@@ -1,0 +1,22 @@
+# IDEs
+
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# SQLite
+
+database/*.db 
+
+# OS files
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+
+*.log
