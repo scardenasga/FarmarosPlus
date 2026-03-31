@@ -1,0 +1,349 @@
+package co.edu.unbosque.backend.service;
+
+import co.edu.unbosque.backend.exception.BusinessException;
+import co.edu.unbosque.backend.exception.InsufficientStockException;
+import co.edu.unbosque.backend.exception.ResourceNotFoundException;
+import co.edu.unbosque.backend.model.entity.DetalleVenta;
+import co.edu.unbosque.backend.model.entity.Lote;
+import co.edu.unbosque.backend.model.entity.MovimientoInventario;
+import co.edu.unbosque.backend.model.entity.PagoVenta;
+import co.edu.unbosque.backend.model.entity.Producto;
+import co.edu.unbosque.backend.model.entity.Usuario;
+import co.edu.unbosque.backend.model.entity.Venta;
+import co.edu.unbosque.backend.repository.LoteRepository;
+import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
+import co.edu.unbosque.backend.repository.ProductoRepository;
+import co.edu.unbosque.backend.repository.UsuarioRepository;
+import co.edu.unbosque.backend.repository.VentaRepository;
+import co.edu.unbosque.backend.model.request.CrearVentaRequest;
+import co.edu.unbosque.backend.model.request.PagoVentaRequest;
+import co.edu.unbosque.backend.model.request.VentaDetalleRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Servicio transaccional del módulo de ventas.
+ * Garantiza consistencia entre venta, detalle, pago y movimientos de inventario.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
+@Service
+public class VentaService {
+
+    private static final double TOLERANCIA_MONETARIA = 0.01d;
+
+    private final VentaRepository ventaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ProductoRepository productoRepository;
+    private final LoteRepository loteRepository;
+    private final MovimientoInventarioRepository movimientoInventarioRepository;
+
+    public VentaService(
+            VentaRepository ventaRepository,
+            UsuarioRepository usuarioRepository,
+            ProductoRepository productoRepository,
+            LoteRepository loteRepository,
+            MovimientoInventarioRepository movimientoInventarioRepository
+    ) {
+        this.ventaRepository = ventaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.productoRepository = productoRepository;
+        this.loteRepository = loteRepository;
+        this.movimientoInventarioRepository = movimientoInventarioRepository;
+    }
+
+    /**
+     * Registra una venta completa y actualiza el inventario en una sola transacción.
+     * Si falla un detalle, un pago o un movimiento, Spring revierte todo el proceso.
+     *
+     * @param request datos de la venta
+     * @return venta persistida con sus detalles y pagos
+     */
+    @Transactional
+    public Venta registrarVenta(CrearVentaRequest request) {
+        validarVenta(request);
+
+        Usuario usuario = usuarioRepository.findById(request.usuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario con id " + request.usuarioId()
+                ));
+        String usuarioResponsable = usuario.getUsername();
+
+        Venta venta = new Venta();
+        venta.setUsuario(usuario);
+        venta.setFecha(LocalDateTime.now());
+        venta.setEstado("COMPLETADA");
+        venta.setDescuento(valorMonetarioSeguro(request.descuento()));
+
+        List<DetalleVenta> detalles = new ArrayList<>();
+        List<MovimientoInventario> movimientos = new ArrayList<>();
+        double subtotal = 0.0;
+
+        for (VentaDetalleRequest detalleRequest : request.detalles()) {
+            Lote lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el lote con id " + detalleRequest.loteId()
+                    ));
+
+            Producto producto = productoRepository.findByIdForUpdate(detalleRequest.productoId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el producto con id " + detalleRequest.productoId()
+                    ));
+
+            validarRelacionProductoLote(producto, lote);
+            validarDisponibilidad(producto, lote, detalleRequest.cantidad());
+
+            int stockAnterior = valorSeguro(producto.getStockActual());
+            int stockNuevo = stockAnterior - detalleRequest.cantidad();
+            int cantidadLoteNueva = valorSeguro(lote.getCantidad()) - detalleRequest.cantidad();
+
+            Double precioUnitario = detalleRequest.precioUnitario() != null
+                    ? detalleRequest.precioUnitario()
+                    : producto.getPrecioVenta();
+
+            DetalleVenta detalle = new DetalleVenta();
+            detalle.setVenta(venta);
+            detalle.setProducto(producto);
+            detalle.setLote(lote);
+            detalle.setCantidad(detalleRequest.cantidad());
+            detalle.setPrecioUnitarioAplicado(precioUnitario);
+            detalle.setSubtotalLinea(precioUnitario * detalleRequest.cantidad());
+            detalles.add(detalle);
+            subtotal += detalle.getSubtotalLinea();
+
+            producto.setStockActual(stockNuevo);
+            lote.setCantidad(cantidadLoteNueva);
+
+            movimientos.add(construirMovimientoVenta(producto, lote, stockAnterior, stockNuevo, usuarioResponsable));
+        }
+
+        double total = subtotal - venta.getDescuento();
+        if (total < 0) {
+            throw new BusinessException("El total de la venta no puede ser negativo");
+        }
+
+        List<PagoVenta> pagos = construirPagos(venta, request.pagos(), total);
+
+        venta.setSubtotal(subtotal);
+        venta.setTotal(total);
+        venta.setDetalles(detalles);
+        venta.setPagos(pagos);
+
+        Venta ventaGuardada = ventaRepository.saveAndFlush(venta);
+        asignarReferenciaVenta(movimientos, ventaGuardada.getIdVenta());
+        movimientoInventarioRepository.saveAll(movimientos);
+
+        return ventaRepository.findWithDetallesAndPagosByIdVenta(ventaGuardada.getIdVenta())
+                .orElse(ventaGuardada);
+    }
+
+    /**
+     * Anula una venta completada, repone inventario y registra movimientos de reversión.
+     * La operación se ejecuta de forma atómica.
+     *
+     * @param ventaId identificador de la venta
+     * @param motivoAnulacion motivo funcional de la anulación
+     * @param usuarioResponsable usuario o actor responsable
+     * @return venta anulada
+     */
+    @Transactional
+    public Venta anularVenta(Long ventaId, String motivoAnulacion, String usuarioResponsable) {
+        if (motivoAnulacion == null || motivoAnulacion.isBlank()) {
+            throw new BusinessException("El motivo de anulación es obligatorio");
+        }
+        if (usuarioResponsable == null || usuarioResponsable.isBlank()) {
+            throw new BusinessException("El usuario responsable de la anulación es obligatorio");
+        }
+
+        Venta venta = ventaRepository.findWithDetallesAndPagosByIdVenta(ventaId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la venta con id " + ventaId));
+
+        if (!"COMPLETADA".equalsIgnoreCase(venta.getEstado())) {
+            throw new BusinessException("Solo se pueden anular ventas completadas");
+        }
+
+        List<MovimientoInventario> movimientos = new ArrayList<>();
+        for (DetalleVenta detalle : venta.getDetalles()) {
+            Lote lote = loteRepository.findByIdForUpdate(detalle.getLote().getIdLote())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el lote con id " + detalle.getLote().getIdLote()
+                    ));
+            Producto producto = productoRepository.findByIdForUpdate(detalle.getProducto().getUniqueID())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el producto con id " + detalle.getProducto().getUniqueID()
+                    ));
+
+            int stockAnterior = valorSeguro(producto.getStockActual());
+            int stockNuevo = stockAnterior + detalle.getCantidad();
+            int cantidadLoteNueva = valorSeguro(lote.getCantidad()) + detalle.getCantidad();
+
+            producto.setStockActual(stockNuevo);
+            lote.setCantidad(cantidadLoteNueva);
+
+            MovimientoInventario movimiento = new MovimientoInventario();
+            movimiento.setProducto(producto);
+            movimiento.setNombreProducto(producto.getNombre());
+            movimiento.setLote(lote);
+            movimiento.setTipoMovimiento("DEVOLUCION");
+            movimiento.setCantidadAnterior(stockAnterior);
+            movimiento.setCantidadNueva(stockNuevo);
+            movimiento.setDiferencia(stockNuevo - stockAnterior);
+            movimiento.setMotivo(motivoAnulacion);
+            movimiento.setReferenciaDocumento("VENTA-" + venta.getIdVenta());
+            movimiento.setUsuarioResponsable(usuarioResponsable);
+            movimientos.add(movimiento);
+        }
+
+        venta.setEstado("ANULADA");
+        venta.setMotivoAnulacion(motivoAnulacion);
+
+        Venta ventaAnulada = ventaRepository.save(venta);
+        movimientoInventarioRepository.saveAll(movimientos);
+        return ventaAnulada;
+    }
+
+    /**
+     * Recupera una venta con detalles, pagos, productos y lotes.
+     *
+     * @param ventaId identificador de la venta
+     * @return venta encontrada
+     */
+    @Transactional(readOnly = true)
+    public Venta obtenerVentaDetallada(Long ventaId) {
+        return ventaRepository.findWithDetallesAndPagosByIdVenta(ventaId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la venta con id " + ventaId));
+    }
+
+    /**
+     * Construye la lista de pagos y valida que la suma coincida con el total esperado.
+     */
+    private List<PagoVenta> construirPagos(Venta venta, List<PagoVentaRequest> pagosRequest, double totalEsperado) {
+        double totalPagado = 0.0;
+        List<PagoVenta> pagos = new ArrayList<>();
+
+        for (PagoVentaRequest pagoRequest : pagosRequest) {
+            if (pagoRequest.monto() == null || pagoRequest.monto() <= 0) {
+                throw new BusinessException("Cada pago debe tener un monto mayor a cero");
+            }
+            if (pagoRequest.tipo() == null || pagoRequest.tipo().isBlank()) {
+                throw new BusinessException("Cada pago debe tener un tipo válido");
+            }
+
+            PagoVenta pago = new PagoVenta();
+            pago.setVenta(venta);
+            pago.setTipo(pagoRequest.tipo());
+            pago.setMonto(pagoRequest.monto());
+            pagos.add(pago);
+            totalPagado += pagoRequest.monto();
+        }
+
+        if (Math.abs(totalPagado - totalEsperado) > TOLERANCIA_MONETARIA) {
+            throw new BusinessException("La suma de los pagos debe coincidir con el total de la venta");
+        }
+
+        return pagos;
+    }
+
+    /**
+     * Construye el movimiento de salida asociado a una línea de venta.
+     */
+    private MovimientoInventario construirMovimientoVenta(
+            Producto producto,
+            Lote lote,
+            int cantidadAnterior,
+            int cantidadNueva,
+            String usuarioResponsable
+    ) {
+        MovimientoInventario movimiento = new MovimientoInventario();
+        movimiento.setProducto(producto);
+        movimiento.setNombreProducto(producto.getNombre());
+        movimiento.setLote(lote);
+        movimiento.setTipoMovimiento("VENTA");
+        movimiento.setCantidadAnterior(cantidadAnterior);
+        movimiento.setCantidadNueva(cantidadNueva);
+        movimiento.setDiferencia(cantidadNueva - cantidadAnterior);
+        movimiento.setUsuarioResponsable(usuarioResponsable);
+        return movimiento;
+    }
+
+    /**
+     * Agrega la referencia documental de la venta a cada movimiento generado.
+     */
+    private void asignarReferenciaVenta(List<MovimientoInventario> movimientos, Long ventaId) {
+        String referencia = "VENTA-" + ventaId;
+        for (MovimientoInventario movimiento : movimientos) {
+            movimiento.setReferenciaDocumento(referencia);
+        }
+    }
+
+    /**
+     * Valida las reglas mínimas de entrada para registrar una venta.
+     */
+    private void validarVenta(CrearVentaRequest request) {
+        if (request == null) {
+            throw new BusinessException("La solicitud de venta es obligatoria");
+        }
+        if (request.usuarioId() == null) {
+            throw new BusinessException("El usuario de la venta es obligatorio");
+        }
+        if (request.detalles() == null || request.detalles().isEmpty()) {
+            throw new BusinessException("La venta debe tener al menos un detalle");
+        }
+        if (request.pagos() == null || request.pagos().isEmpty()) {
+            throw new BusinessException("La venta debe tener al menos un pago");
+        }
+        for (VentaDetalleRequest detalle : request.detalles()) {
+            if (detalle.productoId() == null) {
+                throw new BusinessException("Cada detalle debe indicar un producto");
+            }
+            if (detalle.loteId() == null) {
+                throw new BusinessException("Cada detalle debe indicar un lote");
+            }
+            if (detalle.cantidad() == null || detalle.cantidad() <= 0) {
+                throw new BusinessException("Cada detalle debe tener una cantidad mayor a cero");
+            }
+            if (detalle.precioUnitario() != null && detalle.precioUnitario() < 0) {
+                throw new BusinessException("El precio unitario no puede ser negativo");
+            }
+        }
+        if (request.descuento() != null && request.descuento() < 0) {
+            throw new BusinessException("El descuento no puede ser negativo");
+        }
+    }
+
+    /**
+     * Verifica que el lote recibido realmente pertenezca al producto del detalle.
+     */
+    private void validarRelacionProductoLote(Producto producto, Lote lote) {
+        if (!producto.getUniqueID().equals(lote.getProducto().getUniqueID())) {
+            throw new BusinessException("El lote no pertenece al producto indicado en el detalle");
+        }
+    }
+
+    /**
+     * Verifica stock agregado y stock por lote antes de confirmar una venta.
+     */
+    private void validarDisponibilidad(Producto producto, Lote lote, Integer cantidadSolicitada) {
+        if (!"ACTIVO".equalsIgnoreCase(producto.getEstado())) {
+            throw new BusinessException("Solo se pueden vender productos activos");
+        }
+        if (valorSeguro(producto.getStockActual()) < cantidadSolicitada) {
+            throw new InsufficientStockException("Stock insuficiente para el producto " + producto.getNombre());
+        }
+        if (valorSeguro(lote.getCantidad()) < cantidadSolicitada) {
+            throw new InsufficientStockException("Stock insuficiente en el lote " + lote.getNumeroLote());
+        }
+    }
+
+    private int valorSeguro(Integer valor) {
+        return valor == null ? 0 : valor;
+    }
+
+    private double valorMonetarioSeguro(Double valor) {
+        return valor == null ? 0.0 : valor;
+    }
+}

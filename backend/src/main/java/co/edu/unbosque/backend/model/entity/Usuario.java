@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad de usuario interno del sistema.
+ * Modela credenciales, rol operativo y estado de acceso.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

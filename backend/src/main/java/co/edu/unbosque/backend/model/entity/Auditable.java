@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
  *
  * Spring Data JPA rellena estos campos automáticamente gracias a
  * @EnableJpaAuditing (ver JpaAuditingConfig) y AuditorAwareImpl.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Getter
 @Setter

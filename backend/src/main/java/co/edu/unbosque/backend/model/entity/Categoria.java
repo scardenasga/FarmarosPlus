@@ -6,6 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entidad de clasificación funcional para productos.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+/**
+ * Entidad que representa un lote físico de inventario.
+ * Permite controlar vencimiento y disponibilidad por lote.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
