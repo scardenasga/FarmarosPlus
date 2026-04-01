@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
  * No se modifica una vez creada, por eso no extiende Auditable.
  * Solo usa @CreatedDate para fecha_cambio.
  * usuario_responsable se asigna explícitamente desde el servicio.
+ * Sirve para trazabilidad de cambios de costo y precio de venta.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Data
 @NoArgsConstructor

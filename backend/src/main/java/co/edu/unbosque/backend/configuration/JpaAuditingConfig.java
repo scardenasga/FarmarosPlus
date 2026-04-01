@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  *
  * auditorAwareRef apunta al bean AuditorAwareImpl, que provee
  * el nombre del usuario actual para @CreatedBy y @LastModifiedBy.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")

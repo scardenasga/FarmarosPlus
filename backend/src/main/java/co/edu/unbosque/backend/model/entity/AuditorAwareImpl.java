@@ -24,6 +24,8 @@ import java.util.Optional;
  *   import org.springframework.security.core.context.SecurityContextHolder;
  *   import org.springframework.security.authentication.AnonymousAuthenticationToken;
  * ────────────────────────────────────────────────────────────────────────────
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Component("auditorAware")
 public class AuditorAwareImpl implements AuditorAware<String> {

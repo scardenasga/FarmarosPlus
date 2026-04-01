@@ -6,6 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entidad de catálogo para productos farmacéuticos o comerciales.
+ * Mantiene datos maestros y stock agregado a nivel de producto.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,8 +25,8 @@ public class Producto extends Auditable {
     @Column(name = "UniqueID")
     private Long uniqueID;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_categoria", nullable = false,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_categoria",
             foreignKey = @ForeignKey(name = "fk_producto_categoria"))
     private Categoria categoria;
 

@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
  * Si la venta se anula, el estado cambia en Venta y el servicio revierte el stock,
  * pero las líneas quedan como registro histórico intacto.
  * Por eso no necesita auditoría JPA.
+ * Cada fila vincula un producto y un lote específico dentro de una venta.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Data
 @NoArgsConstructor

@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
  * No se modifica una vez creada, por eso no extiende Auditable.
  * Solo usa @CreatedDate para fecha_movimiento.
  * usuario_responsable se asigna explícitamente desde el servicio.
+ * Es la base de trazabilidad para ingresos, ventas, mermas y ajustes.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Data
 @NoArgsConstructor

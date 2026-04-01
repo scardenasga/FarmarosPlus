@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
  * Tabla de solo inserción: registra eventos técnicos del sistema (login, logout, etc.).
  * No se modifica una vez creada, por eso no extiende Auditable.
  * Solo usa @CreatedDate para fecha_hora.
+ * Complementa la auditoría funcional con eventos de seguridad y operación.
+ *
+ * @author Sebastian Cardenas Garcia
  */
 @Data
 @NoArgsConstructor

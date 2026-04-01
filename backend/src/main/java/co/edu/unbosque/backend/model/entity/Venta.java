@@ -12,6 +12,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad cabecera de una transacción de venta.
+ * Agrupa detalles vendidos, pagos registrados y totales calculados.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
