@@ -29,12 +29,28 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByCodigoBarras(String codigoBarras);
 
     /**
+     * Busca un producto por código de barras ignorando mayúsculas.
+     *
+     * @param codigoBarras código de barras del producto
+     * @return producto coincidente si existe
+     */
+    Optional<Producto> findByCodigoBarrasIgnoreCase(String codigoBarras);
+
+    /**
      * Verifica si ya existe un producto con el mismo código de barras.
      *
      * @param codigoBarras código de barras a validar
      * @return {@code true} si ya existe un producto con ese código
      */
     boolean existsByCodigoBarras(String codigoBarras);
+
+    /**
+     * Verifica si ya existe un producto con el mismo código de barras ignorando mayúsculas.
+     *
+     * @param codigoBarras código de barras a validar
+     * @return {@code true} si ya existe un producto con ese código
+     */
+    boolean existsByCodigoBarrasIgnoreCase(String codigoBarras);
 
     /**
      * Lista productos por estado ordenados alfabéticamente.
@@ -69,6 +85,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Producto p WHERE p.uniqueID = :id")
     Optional<Producto> findByIdForUpdate(@Param("id") Long id);
+
+    /**
+     * Obtiene y bloquea un producto por código de barras para actualización.
+     *
+     * @param codigoBarras código de barras del producto
+     * @return producto bloqueado si existe
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Producto p WHERE LOWER(p.codigoBarras) = LOWER(:codigoBarras)")
+    Optional<Producto> findByCodigoBarrasForUpdate(@Param("codigoBarras") String codigoBarras);
 
     /**
      * Recupera productos que ya alcanzaron o cruzaron su stock mínimo.

@@ -95,7 +95,9 @@ public class ApiExceptionHandler {
     ) {
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Ocurrió un error interno no controlado",
+                ex.getMessage() != null && !ex.getMessage().isBlank()
+                        ? ex.getMessage()
+                        : "Ocurrió un error interno no controlado",
                 request.getRequestURI()
         );
     }

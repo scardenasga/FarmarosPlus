@@ -29,15 +29,18 @@ public class InventarioService {
     private final ProductoRepository productoRepository;
     private final LoteRepository loteRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
+    private final CurrentUserService currentUserService;
 
     public InventarioService(
             ProductoRepository productoRepository,
             LoteRepository loteRepository,
-            MovimientoInventarioRepository movimientoInventarioRepository
+            MovimientoInventarioRepository movimientoInventarioRepository,
+            CurrentUserService currentUserService
     ) {
         this.productoRepository = productoRepository;
         this.loteRepository = loteRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
+        this.currentUserService = currentUserService;
     }
 
     /**
@@ -77,7 +80,7 @@ public class InventarioService {
                 producto.getStockActual(),
                 request.motivo(),
                 request.referenciaDocumento(),
-                request.usuarioResponsable()
+                currentUserService.getCurrentUsername()
         );
         movimientoInventarioRepository.save(movimiento);
 
@@ -129,7 +132,7 @@ public class InventarioService {
                 stockProductoNuevo,
                 request.motivo(),
                 request.referenciaDocumento(),
-                request.usuarioResponsable()
+                currentUserService.getCurrentUsername()
         );
         movimientoInventarioRepository.save(movimiento);
 
@@ -206,9 +209,6 @@ public class InventarioService {
         if (request.cantidad() == null || request.cantidad() <= 0) {
             throw new BusinessException("La cantidad del lote debe ser mayor a cero");
         }
-        if (request.usuarioResponsable() == null || request.usuarioResponsable().isBlank()) {
-            throw new BusinessException("El usuario responsable es obligatorio");
-        }
     }
 
     private void validarAjusteInventario(AjusteInventarioRequest request) {
@@ -223,9 +223,6 @@ public class InventarioService {
         }
         if (request.tipoMovimiento() == null || request.tipoMovimiento().isBlank()) {
             throw new BusinessException("El tipo de movimiento es obligatorio");
-        }
-        if (request.usuarioResponsable() == null || request.usuarioResponsable().isBlank()) {
-            throw new BusinessException("El usuario responsable es obligatorio");
         }
     }
 

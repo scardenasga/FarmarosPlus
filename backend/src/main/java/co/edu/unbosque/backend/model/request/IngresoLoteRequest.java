@@ -16,7 +16,6 @@ import java.time.LocalDate;
  * @param cantidad cantidad inicial ingresada
  * @param motivo motivo o comentario del ingreso
  * @param referenciaDocumento referencia documental externa
- * @param usuarioResponsable usuario o actor responsable del ingreso
  * @author Sebastian Cardenas Garcia
  */
 public record IngresoLoteRequest(
@@ -30,8 +29,6 @@ public record IngresoLoteRequest(
         @Positive(message = "La cantidad debe ser mayor a cero")
         Integer cantidad,
         String motivo,
-        String referenciaDocumento,
-        @NotBlank(message = "El usuarioResponsable es obligatorio")
-        String usuarioResponsable
+        String referenciaDocumento
 ) {
 }

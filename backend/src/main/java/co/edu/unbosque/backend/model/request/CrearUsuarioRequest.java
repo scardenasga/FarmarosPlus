@@ -7,10 +7,10 @@ import jakarta.validation.constraints.Pattern;
  * Comando de entrada para crear un usuario interno del sistema.
  *
  * @param username nombre de usuario único
- * @param passwordHash contraseña o hash persistido por el sistema
+ * @param passwordHash contraseña en texto plano o valor a transformar por el backend
  * @param nombreCompleto nombre completo del usuario
  * @param rol rol operativo
- * @param estado estado funcional
+ * @param estado estado funcional opcional
  * @author Sebastian Cardenas Garcia
  */
 public record CrearUsuarioRequest(
@@ -26,9 +26,8 @@ public record CrearUsuarioRequest(
                 message = "El rol debe ser ADMIN, REGENTE, VENDEDOR o ALMACENISTA"
         )
         String rol,
-        @NotBlank(message = "El estado es obligatorio")
         @Pattern(
-                regexp = "ACTIVO|INACTIVO",
+                regexp = "^$|ACTIVO|INACTIVO",
                 message = "El estado debe ser ACTIVO o INACTIVO"
         )
         String estado

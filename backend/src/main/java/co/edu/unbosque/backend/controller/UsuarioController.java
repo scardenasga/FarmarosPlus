@@ -55,10 +55,11 @@ public class UsuarioController {
     @GetMapping
     @Operation(summary = "Listar usuarios", description = "Permite listar todos los usuarios o filtrar por estado y rol")
     public ResponseEntity<List<UsuarioResponse>> listarUsuarios(
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String rol
     ) {
-        return ResponseEntity.ok(usuarioService.listarUsuarios(estado, rol)
+        return ResponseEntity.ok(usuarioService.listarUsuarios(q, estado, rol)
                 .stream()
                 .map(this::toUsuarioResponse)
                 .toList());

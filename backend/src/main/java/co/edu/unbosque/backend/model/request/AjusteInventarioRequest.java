@@ -11,7 +11,6 @@ import jakarta.validation.constraints.NotNull;
  * @param tipoMovimiento tipo funcional del ajuste
  * @param motivo motivo del ajuste
  * @param referenciaDocumento referencia externa de soporte
- * @param usuarioResponsable usuario o actor responsable
  * @author Sebastian Cardenas Garcia
  */
 public record AjusteInventarioRequest(
@@ -22,8 +21,6 @@ public record AjusteInventarioRequest(
         @NotBlank(message = "El tipoMovimiento es obligatorio")
         String tipoMovimiento,
         String motivo,
-        String referenciaDocumento,
-        @NotBlank(message = "El usuarioResponsable es obligatorio")
-        String usuarioResponsable
+        String referenciaDocumento
 ) {
 }
