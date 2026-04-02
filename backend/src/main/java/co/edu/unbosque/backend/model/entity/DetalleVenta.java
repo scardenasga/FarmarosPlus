@@ -1,5 +1,7 @@
 package co.edu.unbosque.backend.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +28,7 @@ public class DetalleVenta {
     @Column(name = "id_detalle")
     private Long idDetalle;
 
+    @JsonBackReference("venta-detalles")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_venta", nullable = false,
             foreignKey = @ForeignKey(name = "fk_detalle_venta"))

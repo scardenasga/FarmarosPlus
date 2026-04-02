@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 /**
  * Entidad que representa un pago parcial o total asociado a una venta.
@@ -23,6 +24,7 @@ public class PagoVenta {
     @Column(name = "id_pago")
     private Long idPago;
 
+    @JsonBackReference("venta-pagos")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_venta", nullable = false,
             foreignKey = @ForeignKey(name = "fk_pago_venta"))
