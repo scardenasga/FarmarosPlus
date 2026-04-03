@@ -22,7 +22,7 @@ public class Producto extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "UniqueID")
+    @Column(name = "uniqueid")
     private Long uniqueID;
 
     @ManyToOne(fetch = FetchType.LAZY)
