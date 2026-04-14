@@ -1,0 +1,52 @@
+<div class="container">
+
+  <div class="header">
+    <span class="titulo">BUSCAR PRODUCTO</span>
+  </div>
+
+  <div class="search-bar">
+    <span class="icon">⌕</span>
+    <input
+      type="text"
+      [(ngModel)]="busqueda"
+      (input)="buscar()"
+      placeholder="Nombre, código, categoría…"
+    />
+  </div>
+
+  <div class="chips">
+    <button [class.activo]="criterio==='nombre'" (click)="criterio='nombre'; buscar()">Nombre</button>
+    <button [class.activo]="criterio==='codigo'" (click)="criterio='codigo'; buscar()">Código</button>
+    <button [class.activo]="criterio==='categoria'" (click)="criterio='categoria'; buscar()">Categoría</button>
+    <button [class.activo]="criterio==='proveedor'" (click)="criterio='proveedor'; buscar()">Proveedor</button>
+  </div>
+
+  <div class="resultados">
+    <div *ngIf="sinResultados" class="sin-resultados">
+      <span class="icono-vacio">🔍</span>
+      <p>No se encontraron productos para "{{ busqueda }}"</p>
+      <span>Intenta con otro criterio de búsqueda</span>
+    </div>
+
+    <div *ngFor="let p of productos" class="producto-card">
+      <div class="prod-avatar">{{ p.nombre?.substring(0,3).toUpperCase() }}</div>
+      <div class="prod-info">
+        <span class="prod-nombre">{{ p.nombre }}</span>
+        <div class="prod-meta">
+          <span class="cod">Cód. {{ p.codigoBarras }}</span>
+          <span class="stock">{{ p.stockActual }} und</span>
+        </div>
+      </div>
+      <span class="prod-precio">${{ p.precioVenta | number }}</span>
+      <button class="btn-agregar" (click)="agregarProducto(p)">+</button>
+    </div>
+  </div>
+
+  <div class="barra-inferior" *ngIf="productosEnVenta.length > 0">
+    <div class="info-seleccionados">
+      <span>{{ productosEnVenta.length }} productos · {{ totalSeleccionados }} unidades</span>
+    </div>
+    <button class="btn-ver-venta" (click)="irARegistrarVenta()">Ver venta →</button>
+  </div>
+
+</div>
