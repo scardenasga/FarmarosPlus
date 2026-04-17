@@ -16,11 +16,14 @@ import co.edu.unbosque.backend.model.response.PagoVentaResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.model.response.UsuarioResumenResponse;
 import co.edu.unbosque.backend.model.response.VentaResponse;
+import co.edu.unbosque.backend.service.FacturaService;
 import co.edu.unbosque.backend.service.VentaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -43,9 +46,11 @@ import java.util.List;
 public class VentaController {
 
     private final VentaService ventaService;
+    private final FacturaService facturaService;
 
-    public VentaController(VentaService ventaService) {
+    public VentaController(VentaService ventaService, FacturaService facturaService) {
         this.ventaService = ventaService;
+        this.facturaService = facturaService;
     }
 
     /**
@@ -65,6 +70,20 @@ public class VentaController {
     @Operation(summary = "Consultar venta por id")
     public ResponseEntity<VentaResponse> obtenerVenta(@PathVariable Long id) {
         return ResponseEntity.ok(toVentaResponse(ventaService.obtenerVentaDetallada(id)));
+    }
+
+    /**
+     * Descarga la factura de una venta en formato PDF.
+     */
+    @GetMapping(value = "/{id}/factura", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Descargar factura en PDF")
+    public ResponseEntity<byte[]> descargarFactura(@PathVariable Long id) {
+        Venta venta = ventaService.obtenerVentaDetallada(id);
+        byte[] pdf = facturaService.generarFactura(venta);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"factura-" + String.format("%06d", id) + ".pdf\"")
+                .body(pdf);
     }
 
     /**
@@ -89,8 +108,10 @@ public class VentaController {
                 venta.getEstado(),
                 venta.getMotivoAnulacion(),
                 venta.getSubtotal(),
+                venta.getIva(),
                 venta.getDescuento(),
                 venta.getTotal(),
+                venta.getCambio(),
                 venta.getDetalles().stream().map(this::toDetalleResponse).toList(),
                 venta.getPagos().stream().map(this::toPagoResponse).toList()
         );
@@ -103,7 +124,8 @@ public class VentaController {
                 toLoteResumen(detalle.getLote()),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitarioAplicado(),
-                detalle.getSubtotalLinea()
+                detalle.getSubtotalLinea(),
+                detalle.getIvaLinea()
         );
     }
 
@@ -145,6 +167,7 @@ public class VentaController {
                 producto.getCosto(),
                 producto.getPrecioVenta(),
                 producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
                 producto.getEstado()
         );
     }

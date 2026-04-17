@@ -52,4 +52,7 @@ public class DetalleVenta {
 
     @Column(name = "subtotal_linea", nullable = false)
     private Double subtotalLinea;
+
+    @Column(name = "iva_linea", nullable = false)
+    private Double ivaLinea = 0.0;
 }

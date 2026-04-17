@@ -141,6 +141,7 @@ public class InventarioController {
                 producto.getCosto(),
                 producto.getPrecioVenta(),
                 producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
                 producto.getEstado()
         );
     }

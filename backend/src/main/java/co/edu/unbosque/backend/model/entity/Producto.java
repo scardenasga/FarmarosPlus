@@ -55,6 +55,13 @@ public class Producto extends Auditable {
     private Double margenGanancia;
 
     /**
+     * Porcentaje de IVA aplicable al producto.
+     * Medicamentos: 0.0 — Cosméticos/otros: 19.0
+     */
+    @Column(name = "porcentaje_iva", nullable = false)
+    private Double porcentajeIva = 0.0;
+
+    /**
      * Valores válidos: ACTIVO | INACTIVO | DESCONTINUADO
      * Validar con @Pattern en el DTO correspondiente.
      */

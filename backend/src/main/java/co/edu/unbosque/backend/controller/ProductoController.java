@@ -218,6 +218,7 @@ public class ProductoController {
                 producto.getCosto(),
                 producto.getPrecioVenta(),
                 producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
                 producto.getEstado()
         );
     }
