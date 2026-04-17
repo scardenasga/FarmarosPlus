@@ -53,13 +53,6 @@ public class ProductoService {
         this.currentUserService = currentUserService;
     }
 
-    /**
-     * Crea un producto nuevo con stock inicial obligatorio. La operación registra
-     * siempre un movimiento inicial y opcionalmente un lote.
-     *
-     * @param request datos de creación
-     * @return producto persistido
-     */
     @Transactional
     public Producto crearProducto(CrearProductoRequest request) {
         validarCreacionProducto(request);
@@ -91,15 +84,6 @@ public class ProductoService {
         return productoGuardado;
     }
 
-    /**
-     * Aumenta stock de un producto existente identificado por código de barras.
-     * Si el request trae lote, se crea un nuevo lote; si además cambia el precio
-     * de venta, se registra historial de precio.
-     *
-     * @param codigoBarras código de barras del producto
-     * @param request datos del ingreso
-     * @return producto actualizado
-     */
     @Transactional
     public Producto ingresarStock(String codigoBarras, IngresoProductoRequest request) {
         validarIngresoProducto(request);
@@ -163,45 +147,34 @@ public class ProductoService {
         return productoActualizado;
     }
 
-    /**
-     * Recupera un producto por id o lanza excepción.
-     *
-     * @param productoId identificador del producto
-     * @return producto encontrado
-     */
     @Transactional(readOnly = true)
     public Producto obtenerProductoPorId(Long productoId) {
         return productoRepository.findById(productoId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
     }
 
-    /**
-     * Lista todos los productos activos.
-     *
-     * @return productos activos ordenados por nombre
-     */
     @Transactional(readOnly = true)
     public List<Producto> listarProductosActivos() {
         return productoRepository.findByEstadoOrderByNombreAsc("ACTIVO");
     }
 
-    /**
-     * Recupera productos cuyo stock actual está por debajo o igual al mínimo.
-     *
-     * @return productos con stock bajo
-     */
     @Transactional(readOnly = true)
     public List<Producto> listarProductosConStockBajo() {
         return productoRepository.findProductosConStockBajo();
     }
 
     /**
-     * Actualiza precio y costo de un producto y registra el historial del cambio
-     * en la misma transacción para evitar inconsistencias parciales.
+     * Busca productos activos por nombre o código de barras.
+     * Usado por el frontend al registrar una venta.
      *
-     * @param request datos del cambio
-     * @return producto actualizado
+     * @param termino fragmento de nombre o código de barras
+     * @return productos activos coincidentes
      */
+    @Transactional(readOnly = true)
+    public List<Producto> buscarActivosPorNombreOCodigo(String termino) {
+        return productoRepository.buscarActivosPorNombreOCodigo(termino);
+    }
+
     @Transactional
     public Producto actualizarPrecio(String codigoBarras, CambioPrecioProductoRequest request) {
         validarCambioPrecio(request);
@@ -231,9 +204,7 @@ public class ProductoService {
     }
 
     private void registrarIngresoInicial(Producto producto, int stockInicial, String numeroLote) {
-        if (stockInicial <= 0) {
-            return;
-        }
+        if (stockInicial <= 0) return;
 
         Lote loteGuardado = null;
         if (numeroLote != null && !numeroLote.isBlank()) {
@@ -257,114 +228,76 @@ public class ProductoService {
     }
 
     private Categoria obtenerCategoriaOpcional(Long categoriaId) {
-        if (categoriaId == null) {
-            return null;
-        }
+        if (categoriaId == null) return null;
         return categoriaRepository.findById(categoriaId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe la categoria con id " + categoriaId));
     }
 
     private void validarProducto(Producto producto) {
-        if (producto == null) {
-            throw new BusinessException("El producto no puede ser nulo");
-        }
-        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+        if (producto == null) throw new BusinessException("El producto no puede ser nulo");
+        if (producto.getNombre() == null || producto.getNombre().isBlank())
             throw new BusinessException("El nombre del producto es obligatorio");
-        }
-        if (producto.getCodigoBarras() == null || producto.getCodigoBarras().isBlank()) {
+        if (producto.getCodigoBarras() == null || producto.getCodigoBarras().isBlank())
             throw new BusinessException("El codigo de barras del producto es obligatorio");
-        }
-        if (producto.getCosto() == null || producto.getCosto() < 0) {
+        if (producto.getCosto() == null || producto.getCosto() < 0)
             throw new BusinessException("El costo del producto debe ser mayor o igual a cero");
-        }
-        if (producto.getPrecioVenta() == null || producto.getPrecioVenta() < 0) {
+        if (producto.getPrecioVenta() == null || producto.getPrecioVenta() < 0)
             throw new BusinessException("El precio de venta debe ser mayor o igual a cero");
-        }
-        if (producto.getStockActual() == null) {
-            producto.setStockActual(0);
-        }
-        if (producto.getStockMinimo() == null) {
-            producto.setStockMinimo(0);
-        }
+        if (producto.getStockActual() == null) producto.setStockActual(0);
+        if (producto.getStockMinimo() == null) producto.setStockMinimo(0);
         producto.setMargenGanancia(calcularMargen(producto.getCosto(), producto.getPrecioVenta()));
     }
 
     private void validarCreacionProducto(CrearProductoRequest request) {
-        if (request == null) {
-            throw new BusinessException("La solicitud de creacion del producto es obligatoria");
-        }
-        if (request.nombre() == null || request.nombre().isBlank()) {
+        if (request == null) throw new BusinessException("La solicitud de creacion del producto es obligatoria");
+        if (request.nombre() == null || request.nombre().isBlank())
             throw new BusinessException("El nombre del producto es obligatorio");
-        }
-        if (request.codigoBarras() == null || request.codigoBarras().isBlank()) {
+        if (request.codigoBarras() == null || request.codigoBarras().isBlank())
             throw new BusinessException("El codigo de barras es obligatorio");
-        }
-        if (request.costo() == null || request.costo() < 0) {
+        if (request.costo() == null || request.costo() < 0)
             throw new BusinessException("El costo del producto debe ser mayor o igual a cero");
-        }
-        if (request.precioVenta() == null || request.precioVenta() < 0) {
+        if (request.precioVenta() == null || request.precioVenta() < 0)
             throw new BusinessException("El precio de venta debe ser mayor o igual a cero");
-        }
-        if (request.stockInicial() == null || request.stockInicial() <= 0) {
+        if (request.stockInicial() == null || request.stockInicial() <= 0)
             throw new BusinessException("El stock inicial debe ser mayor a cero");
-        }
-        if (request.stockMinimo() != null && request.stockMinimo() < 0) {
+        if (request.stockMinimo() != null && request.stockMinimo() < 0)
             throw new BusinessException("El stock minimo no puede ser negativo");
-        }
-        if (request.numeroLote() != null && !request.numeroLote().isBlank() && valorEnteroSeguro(request.stockInicial()) <= 0) {
+        if (request.numeroLote() != null && !request.numeroLote().isBlank() && valorEnteroSeguro(request.stockInicial()) <= 0)
             throw new BusinessException("Si se registra lote, el stock inicial debe ser mayor a cero");
-        }
     }
 
     private void validarIngresoProducto(IngresoProductoRequest request) {
-        if (request == null) {
-            throw new BusinessException("La solicitud de ingreso de producto es obligatoria");
-        }
-        if (request.cantidad() == null || request.cantidad() <= 0) {
+        if (request == null) throw new BusinessException("La solicitud de ingreso de producto es obligatoria");
+        if (request.cantidad() == null || request.cantidad() <= 0)
             throw new BusinessException("La cantidad a ingresar debe ser mayor a cero");
-        }
-        if (request.nuevoCosto() != null && request.nuevoCosto() < 0) {
+        if (request.nuevoCosto() != null && request.nuevoCosto() < 0)
             throw new BusinessException("El nuevo costo no puede ser negativo");
-        }
-        if (request.nuevoPrecioVenta() != null && request.nuevoPrecioVenta() < 0) {
+        if (request.nuevoPrecioVenta() != null && request.nuevoPrecioVenta() < 0)
             throw new BusinessException("El nuevo precio de venta no puede ser negativo");
-        }
     }
 
     private void validarCambioPrecio(CambioPrecioProductoRequest request) {
-        if (request == null) {
-            throw new BusinessException("La solicitud de cambio de precio es obligatoria");
-        }
-        if (request.nuevoCosto() == null || request.nuevoCosto() < 0) {
+        if (request == null) throw new BusinessException("La solicitud de cambio de precio es obligatoria");
+        if (request.nuevoCosto() == null || request.nuevoCosto() < 0)
             throw new BusinessException("El nuevo costo debe ser mayor o igual a cero");
-        }
-        if (request.nuevoPrecioVenta() == null || request.nuevoPrecioVenta() < 0) {
+        if (request.nuevoPrecioVenta() == null || request.nuevoPrecioVenta() < 0)
             throw new BusinessException("El nuevo precio de venta debe ser mayor o igual a cero");
-        }
     }
 
     private Double calcularMargen(Double costo, Double precioVenta) {
-        if (costo == null || precioVenta == null || costo <= 0) {
-            return 0.0;
-        }
+        if (costo == null || precioVenta == null || costo <= 0) return 0.0;
         return ((precioVenta - costo) / costo) * 100.0;
     }
 
-    private Integer valorEnteroSeguro(Integer valor) {
-        return valor == null ? 0 : valor;
-    }
+    private Integer valorEnteroSeguro(Integer valor) { return valor == null ? 0 : valor; }
 
     private String normalizarEstadoProducto(String estado) {
-        if (estado == null || estado.isBlank()) {
-            return "ACTIVO";
-        }
+        if (estado == null || estado.isBlank()) return "ACTIVO";
         return estado.trim().toUpperCase();
     }
 
     private String normalizarTexto(String texto) {
-        if (texto == null || texto.isBlank()) {
-            return null;
-        }
+        if (texto == null || texto.isBlank()) return null;
         return texto.trim().replaceAll("\\s+", " ");
     }
 }

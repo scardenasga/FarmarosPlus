@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -160,6 +161,26 @@ public class ProductoController {
     @Operation(summary = "Listar productos con stock bajo")
     public ResponseEntity<List<ProductoResponse>> listarProductosConStockBajo() {
         return ResponseEntity.ok(productoService.listarProductosConStockBajo()
+                .stream()
+                .map(this::toProductoResponse)
+                .toList());
+    }
+
+    /**
+     * Busca productos activos por nombre o código de barras.
+     * Usado por el frontend al registrar una venta.
+     */
+    @GetMapping("/buscar")
+    @Operation(summary = "Buscar productos activos por nombre o código")
+    public ResponseEntity<List<ProductoResponse>> buscarProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String codigo
+    ) {
+        String termino = nombre != null ? nombre : codigo;
+        if (termino == null || termino.isBlank()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(productoService.buscarActivosPorNombreOCodigo(termino)
                 .stream()
                 .map(this::toProductoResponse)
                 .toList());
