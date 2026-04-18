@@ -253,3 +253,34 @@ CREATE INDEX idx_detalle_producto ON detalle_venta (id_producto);
 CREATE INDEX idx_detalle_lote   ON detalle_venta (id_lote);
 -- PAGO VENTA
 CREATE INDEX idx_pago_venta     ON pago_venta (id_venta);
+
+-- =====================================================
+-- TABLA: configuracion_alerta (singleton, id siempre = 1)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS configuracion_alerta (
+    id                       INTEGER PRIMARY KEY,
+    dias_proximo_vencimiento INTEGER NOT NULL DEFAULT 30
+);
+INSERT OR IGNORE INTO configuracion_alerta (id, dias_proximo_vencimiento) VALUES (1, 30);
+
+-- =====================================================
+-- TABLA: alerta_inventario
+-- =====================================================
+CREATE TABLE IF NOT EXISTS alerta_inventario (
+    id_alerta          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo               TEXT    NOT NULL CHECK (tipo IN ('STOCK_MINIMO', 'PROXIMO_VENCIMIENTO')),
+    id_producto        INTEGER NOT NULL,
+    nombre_producto    TEXT    NOT NULL,
+    id_lote            INTEGER,
+    numero_lote        TEXT,
+    cantidad_actual    INTEGER,
+    stock_minimo       INTEGER,
+    fecha_vencimiento  TEXT,
+    leida              INTEGER NOT NULL DEFAULT 0,
+    fecha_generacion   TEXT    NOT NULL,
+    FOREIGN KEY (id_producto) REFERENCES producto (UniqueID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_lote)     REFERENCES lote (id_lote)      ON UPDATE CASCADE ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alerta_leida   ON alerta_inventario (leida);
+CREATE INDEX IF NOT EXISTS idx_alerta_tipo    ON alerta_inventario (tipo);
+CREATE INDEX IF NOT EXISTS idx_alerta_producto ON alerta_inventario (id_producto);
