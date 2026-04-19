@@ -1,0 +1,67 @@
+<div class="container">
+
+  <div class="header">
+    <button class="btn-back" (click)="volver()">←</button>
+    <span class="titulo">DETALLE DE VENTA</span>
+  </div>
+
+  <div *ngIf="cargando" class="cargando">Cargando venta...</div>
+  <div *ngIf="error" class="error-msg">{{ error }}</div>
+
+  <div *ngIf="venta && !cargando">
+
+    <div class="venta-header">
+      <div>
+        <div class="venta-id">#{{ venta.id }}</div>
+        <div class="venta-fecha">{{ venta.fecha | date:'dd/MM/yyyy · HH:mm' }}</div>
+      </div>
+      <span class="badge" [class.anulada]="venta.estado === 'ANULADA'">
+        {{ venta.estado }}
+      </span>
+    </div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span>Vendedor</span>
+        <span>{{ venta.usuario?.nombreCompleto }}</span>
+      </div>
+      <div class="info-row">
+        <span>Fecha</span>
+        <span>{{ venta.fecha | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="info-row">
+        <span>Pago</span>
+        <span>{{ venta.pagos?.[0]?.tipo }}</span>
+      </div>
+    </div>
+
+    <div class="seccion-label">PRODUCTOS</div>
+
+    <div class="productos-lista">
+      <div *ngFor="let d of venta.detalles" class="prod-row">
+        <span class="prod-nombre">{{ d.producto?.nombre }} ×{{ d.cantidad }}</span>
+        <span class="prod-subtotal">${{ d.subtotalLinea | number }}</span>
+      </div>
+    </div>
+
+    <div class="totales">
+      <div class="tot-row"><span>Subtotal</span><span>${{ venta.subtotal | number }}</span></div>
+      <div class="tot-row"><span>Descuento</span><span>${{ venta.descuento | number }}</span></div>
+      <div class="tot-row total"><span>Total</span><span>${{ venta.total | number }}</span></div>
+    </div>
+
+    <div class="aviso-permisos" *ngIf="!esAdmin">
+      ⚠ Solo administradores con permisos pueden anular ventas
+    </div>
+
+    <div class="acciones" *ngIf="venta.estado === 'COMPLETADA' && esAdmin">
+      <button class="btn-anular" (click)="irAAnular()">Anular venta</button>
+    </div>
+
+    <div class="motivo-anulacion" *ngIf="venta.estado === 'ANULADA'">
+      <span class="motivo-label">MOTIVO DE ANULACIÓN</span>
+      <span class="motivo-txt">{{ venta.motivoAnulacion }}</span>
+    </div>
+
+  </div>
+</div>

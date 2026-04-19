@@ -76,10 +76,10 @@ public class VentaController {
             @PathVariable Long id,
             @Valid @RequestBody AnularVentaRequest request
     ) {
-        return ResponseEntity.ok(toVentaResponse(
-                ventaService.anularVenta(id, request.motivoAnulacion(), request.usuarioResponsable())
-        ));
-    }
+       return ResponseEntity.ok(toVentaResponse(
+            ventaService.eliminarVenta(id, request)
+    ));
+}
 
     private VentaResponse toVentaResponse(Venta venta) {
         return new VentaResponse(

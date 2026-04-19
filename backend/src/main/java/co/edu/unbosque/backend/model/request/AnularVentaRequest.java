@@ -13,6 +13,9 @@ public record AnularVentaRequest(
         @NotBlank(message = "El motivoAnulacion es obligatorio")
         String motivoAnulacion,
         @NotBlank(message = "El usuarioResponsable es obligatorio")
-        String usuarioResponsable
+        String usuarioResponsable,
+        Long usuarioId,
+        Boolean confirmacion
+
 ) {
 }

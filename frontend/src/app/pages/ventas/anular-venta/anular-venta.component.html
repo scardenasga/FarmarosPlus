@@ -1,0 +1,69 @@
+<div class="container">
+
+  <div class="header">
+    <button class="btn-back" (click)="cancelar()">←</button>
+    <span class="titulo">DETALLE DE VENTA</span>
+  </div>
+
+  <div *ngIf="cargandoVenta" class="cargando">Cargando...</div>
+
+  <div *ngIf="venta && !cargandoVenta">
+
+    <div class="venta-resumen">
+      <div class="venta-top">
+        <span class="venta-id">Venta #{{ venta.idVenta }}</span>
+        <span class="badge-ok">Completada</span>
+      </div>
+
+      <div *ngFor="let d of venta.detalles" class="prod-row">
+        <span class="prod-nombre">{{ d.producto?.nombre }} ×{{ d.cantidad }}</span>
+        <span class="prod-subtotal">${{ d.subtotalLinea | number }}</span>
+      </div>
+
+      <div class="total-row">
+        <span>${{ venta.total | number }}</span>
+      </div>
+    </div>
+
+    <div class="modal-confirmacion">
+      <div class="modal-icono">⚠</div>
+      <div class="modal-titulo">Desea eliminar esta venta?</div>
+      <div class="modal-desc">
+        El inventario volverá a la normalidad.
+        El registro quedará marcado como Anulada en el historial
+      </div>
+    </div>
+
+    <div class="motivo-toggle">
+      <span class="motivo-label">Agregar motivo</span>
+      <label class="switch">
+        <input type="checkbox" [(ngModel)]="agregarMotivo">
+        <span class="slider"></span>
+      </label>
+      <span class="motivo-estado">{{ agregarMotivo ? 'Activado' : 'Opcional' }}</span>
+    </div>
+
+    <div *ngIf="agregarMotivo" class="motivo-input-wrap">
+      <span class="motivo-lbl-campo">MOTIVO DE ANULACIÓN</span>
+      <textarea
+        [(ngModel)]="motivoAnulacion"
+        placeholder="Describe el motivo de la anulación..."
+        rows="3"
+        class="motivo-input">
+      </textarea>
+    </div>
+
+    <div class="error-msg" *ngIf="error">{{ error }}</div>
+
+    <div class="acciones">
+      <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+      <button class="btn-eliminar" (click)="confirmarAnulacion()" [disabled]="cargando">
+        {{ cargando ? 'Anulando...' : 'Eliminar' }}
+      </button>
+    </div>
+
+  </div>
+
+  <div *ngIf="error && !venta" class="error-msg" style="margin:16px">{{ error }}</div>
+
+</div>

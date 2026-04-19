@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Auditable {
 
-    @CreatedDate
+     @CreatedDate
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
@@ -42,4 +42,11 @@ public abstract class Auditable {
     @LastModifiedBy
     @Column(name = "usuario_modificacion")
     private String usuarioModificacion;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
+    }
 }

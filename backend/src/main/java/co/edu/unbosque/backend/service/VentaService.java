@@ -15,6 +15,7 @@ import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
 import co.edu.unbosque.backend.repository.UsuarioRepository;
 import co.edu.unbosque.backend.repository.VentaRepository;
+import co.edu.unbosque.backend.model.request.AnularVentaRequest;
 import co.edu.unbosque.backend.model.request.CrearVentaRequest;
 import co.edu.unbosque.backend.model.request.PagoVentaRequest;
 import co.edu.unbosque.backend.model.request.VentaDetalleRequest;
@@ -24,12 +25,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+
 
 /**
  * Servicio transaccional del módulo de ventas.
  * Garantiza consistencia entre venta, detalle, pago y movimientos de inventario.
  *
+ * El campo {@code descuento} del request se interpreta como PORCENTAJE (0.0 - 1.0).
+ * Ejemplo: 0.10 → 10 % de descuento sobre el subtotal.
+ * El valor que se persiste en la entidad {@code Venta.descuento} es el MONTO en pesos
+ * resultante de aplicar ese porcentaje, para que la respuesta siempre muestre cuánto
+ * dinero se descontó realmente.
+ *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Service
 public class VentaService {
@@ -58,9 +68,8 @@ public class VentaService {
 
     /**
      * Registra una venta completa y actualiza el inventario en una sola transacción.
-     * Si falla un detalle, un pago o un movimiento, Spring revierte todo el proceso.
      *
-     * @param request datos de la venta
+     * @param request datos de la venta (descuento como porcentaje 0.0-1.0)
      * @return venta persistida con sus detalles y pagos
      */
     @Transactional
@@ -77,24 +86,32 @@ public class VentaService {
         venta.setUsuario(usuario);
         venta.setFecha(LocalDateTime.now());
         venta.setEstado("COMPLETADA");
-        venta.setDescuento(valorMonetarioSeguro(request.descuento()));
+
+        double porcentajeDescuento = valorMonetarioSeguro(request.descuento());
+        if (porcentajeDescuento < 0 || porcentajeDescuento > 1) {
+            throw new BusinessException("El descuento debe ser un porcentaje entre 0.0 y 1.0 (ej. 0.10 para 10%)");
+        }
 
         List<DetalleVenta> detalles = new ArrayList<>();
         List<MovimientoInventario> movimientos = new ArrayList<>();
         double subtotal = 0.0;
 
         for (VentaDetalleRequest detalleRequest : request.detalles()) {
+
             Lote lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "No existe el lote con id " + detalleRequest.loteId()
                     ));
 
-            Producto producto = productoRepository.findByIdForUpdate(detalleRequest.productoId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "No existe el producto con id " + detalleRequest.productoId()
-                    ));
+            Producto producto = lote.getProducto();
 
-            validarRelacionProductoLote(producto, lote);
+            if (!producto.getUniqueID().equals(detalleRequest.productoId())) {
+                throw new BusinessException(
+                        "El lote " + detalleRequest.loteId() +
+                        " no pertenece al producto " + detalleRequest.productoId()
+                );
+            }
+
             validarDisponibilidad(producto, lote, detalleRequest.cantidad());
 
             int stockAnterior = valorSeguro(producto.getStockActual());
@@ -121,17 +138,21 @@ public class VentaService {
             movimientos.add(construirMovimientoVenta(producto, lote, stockAnterior, stockNuevo, usuarioResponsable));
         }
 
-        double total = subtotal - venta.getDescuento();
+        double montoDescuento = subtotal * porcentajeDescuento;
+        double total = subtotal - montoDescuento;
+
         if (total < 0) {
             throw new BusinessException("El total de la venta no puede ser negativo");
         }
+
+        venta.setDescuento(montoDescuento);
 
         List<PagoVenta> pagos = construirPagos(venta, request.pagos(), total);
 
         venta.setSubtotal(subtotal);
         venta.setTotal(total);
-        venta.setDetalles(detalles);
-        venta.setPagos(pagos);
+        venta.setDetalles(new HashSet<>(detalles));
+        venta.setPagos(new HashSet<>(pagos));
 
         Venta ventaGuardada = ventaRepository.saveAndFlush(venta);
         asignarReferenciaVenta(movimientos, ventaGuardada.getIdVenta());
@@ -143,11 +164,11 @@ public class VentaService {
 
     /**
      * Anula una venta completada, repone inventario y registra movimientos de reversión.
-     * La operación se ejecuta de forma atómica.
+     * Solo usuarios con rol ADMIN o REGENTE y estado ACTIVO pueden anular ventas.
      *
      * @param ventaId identificador de la venta
      * @param motivoAnulacion motivo funcional de la anulación
-     * @param usuarioResponsable usuario o actor responsable
+     * @param usuarioResponsable username del usuario que solicita la anulación
      * @return venta anulada
      */
     @Transactional
@@ -159,6 +180,19 @@ public class VentaService {
             throw new BusinessException("El usuario responsable de la anulación es obligatorio");
         }
 
+        // ── CORRECCIÓN: validar rol y estado del usuario responsable ────────────
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(usuarioResponsable)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario: " + usuarioResponsable
+                ));
+        if (!"ACTIVO".equalsIgnoreCase(usuario.getEstado())) {
+            throw new BusinessException("El usuario no está activo en el sistema");
+        }
+        if (!"ADMIN".equalsIgnoreCase(usuario.getRol()) && !"REGENTE".equalsIgnoreCase(usuario.getRol())) {
+            throw new BusinessException("Solo usuarios con rol ADMIN o REGENTE pueden anular ventas");
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         Venta venta = ventaRepository.findWithDetallesAndPagosByIdVenta(ventaId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe la venta con id " + ventaId));
 
@@ -168,14 +202,13 @@ public class VentaService {
 
         List<MovimientoInventario> movimientos = new ArrayList<>();
         for (DetalleVenta detalle : venta.getDetalles()) {
+
             Lote lote = loteRepository.findByIdForUpdate(detalle.getLote().getIdLote())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "No existe el lote con id " + detalle.getLote().getIdLote()
                     ));
-            Producto producto = productoRepository.findByIdForUpdate(detalle.getProducto().getUniqueID())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "No existe el producto con id " + detalle.getProducto().getUniqueID()
-                    ));
+
+            Producto producto = lote.getProducto();
 
             int stockAnterior = valorSeguro(producto.getStockActual());
             int stockNuevo = stockAnterior + detalle.getCantidad();
@@ -207,10 +240,40 @@ public class VentaService {
     }
 
     /**
-     * Recupera una venta con detalles, pagos, productos y lotes.
+     * La venta queda marcada como Anulada en el historial y se revierten
+     * los movimientos de inventario.
+     *
+     * @param ventaId identificador de la venta a eliminar
+     * @param request datos de confirmación, usuario y motivo
+     * @return venta marcada como ANULADA
+     */
+    @Transactional
+    public Venta eliminarVenta(Long ventaId, AnularVentaRequest request) {
+        if (!Boolean.TRUE.equals(request.confirmacion())) {
+            throw new BusinessException("Debe confirmar la eliminación para proceder");
+        }
+
+        Usuario usuario = usuarioRepository.findById(request.usuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario con id " + request.usuarioId()
+                ));
+
+        if (!"ACTIVO".equalsIgnoreCase(usuario.getEstado())) {
+            throw new BusinessException("El usuario no está activo en el sistema");
+        }
+
+        if (!"ADMIN".equalsIgnoreCase(usuario.getRol()) && !"REGENTE".equalsIgnoreCase(usuario.getRol())) {
+            throw new BusinessException("Solo usuarios con rol ADMIN o REGENTE pueden eliminar ventas");
+        }
+
+        return anularVenta(ventaId, request.motivoAnulacion(), usuario.getUsername());
+    }
+
+    /**
+     * Recupera una venta con detalles, pagos, productos y lotes en una sola consulta.
      *
      * @param ventaId identificador de la venta
-     * @return venta encontrada
+     * @return venta encontrada con todas sus relaciones
      */
     @Transactional(readOnly = true)
     public Venta obtenerVentaDetallada(Long ventaId) {
@@ -312,15 +375,6 @@ public class VentaService {
         }
         if (request.descuento() != null && request.descuento() < 0) {
             throw new BusinessException("El descuento no puede ser negativo");
-        }
-    }
-
-    /**
-     * Verifica que el lote recibido realmente pertenezca al producto del detalle.
-     */
-    private void validarRelacionProductoLote(Producto producto, Lote lote) {
-        if (!producto.getUniqueID().equals(lote.getProducto().getUniqueID())) {
-            throw new BusinessException("El lote no pertenece al producto indicado en el detalle");
         }
     }
 

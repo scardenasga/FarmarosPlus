@@ -1,6 +1,5 @@
 package co.edu.unbosque.backend.model.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +9,10 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
  * Entidad cabecera de una transacción de venta.
@@ -21,8 +23,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-@ToString(exclude = {"detalles", "pagos"}) // Evita StackOverflowError por ciclo bidireccional
+@EqualsAndHashCode(callSuper = false, exclude = {"detalles", "pagos", "usuario"})
+@ToString(exclude = {"detalles", "pagos"})
 @Entity
 @Table(name = "venta")
 public class Venta extends Auditable {
@@ -40,9 +42,6 @@ public class Venta extends Auditable {
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
-    /**
-     * Valores válidos: COMPLETADA | ANULADA
-     */
     @Column(name = "estado", nullable = false)
     private String estado = "COMPLETADA";
 
@@ -58,9 +57,11 @@ public class Venta extends Auditable {
     @Column(name = "total", nullable = false)
     private Double total = 0.0;
 
+    @JsonManagedReference("venta-detalles")
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<DetalleVenta> detalles = new ArrayList<>();
+    private Set<DetalleVenta> detalles = new HashSet<>();
 
+    @JsonManagedReference("venta-pagos")
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<PagoVenta> pagos = new ArrayList<>();
+    private Set<PagoVenta> pagos = new HashSet<>();
 }
