@@ -48,6 +48,9 @@ public record CrearProductoRequest(
         @DecimalMin(value = "0.0", inclusive = true, message = "El precio de venta no puede ser negativo")
         @Schema(description = "Precio de venta del producto", example = "12000.0")
         Double precioVenta,
+        @DecimalMin(value = "0.0", inclusive = true, message = "El porcentaje de IVA no puede ser negativo")
+        @Schema(description = "Porcentaje de IVA. Medicamentos: 0.0, Cosméticos/otros: 19.0", example = "0.0")
+        Double porcentajeIva,
         @Pattern(
                 regexp = "^$|ACTIVO|INACTIVO|DESCONTINUADO",
                 message = "El estado debe ser ACTIVO, INACTIVO o DESCONTINUADO"

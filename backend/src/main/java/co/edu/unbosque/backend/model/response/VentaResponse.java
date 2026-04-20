@@ -25,8 +25,10 @@ public record VentaResponse(
         String estado,
         String motivoAnulacion,
         Double subtotal,
+        Double iva,
         Double descuento,
         Double total,
+        Double cambio,
         List<DetalleVentaResponse> detalles,
         List<PagoVentaResponse> pagos
 ) {

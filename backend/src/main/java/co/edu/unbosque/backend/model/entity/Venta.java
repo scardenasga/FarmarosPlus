@@ -54,8 +54,14 @@ public class Venta extends Auditable {
     @Column(name = "descuento", nullable = false)
     private Double descuento = 0.0;
 
+    @Column(name = "iva", nullable = false)
+    private Double iva = 0.0;
+
     @Column(name = "total", nullable = false)
     private Double total = 0.0;
+
+    @Column(name = "cambio", nullable = false)
+    private Double cambio = 0.0;
 
     @JsonManagedReference("venta-detalles")
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

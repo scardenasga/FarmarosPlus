@@ -17,6 +17,7 @@ public record DetalleVentaResponse(
         LoteResumenResponse lote,
         Integer cantidad,
         Double precioUnitarioAplicado,
-        Double subtotalLinea
+        Double subtotalLinea,
+        Double ivaLinea
 ) {
 }

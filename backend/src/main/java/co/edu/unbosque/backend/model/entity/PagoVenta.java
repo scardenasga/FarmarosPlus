@@ -31,7 +31,7 @@ public class PagoVenta {
     private Venta venta;
 
     /**
-     * Valores válidos: EFECTIVO | TARJETA — validar en DTO
+     * Valores válidos: EFECTIVO | TARJETA | TRANSFERENCIA — validado en DTO
      */
     @Column(name = "tipo", nullable = false)
     private String tipo;
