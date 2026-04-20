@@ -1,0 +1,69 @@
+<div class="alertas-container">
+  <div class="alertas-header">
+    <h1>Alertas de Inventario</h1>
+    <div class="alertas-actions">
+      <button class="btn btn-secondary" (click)="toggleFiltro()">
+        {{ soloNoLeidas ? 'Ver todas' : 'Solo no leídas' }}
+      </button>
+      @if (noLeidasCount > 0) {
+        <button class="btn btn-primary" (click)="marcarTodasLeidas()">
+          Marcar todas como leídas
+        </button>
+      }
+      <button class="btn btn-outline" (click)="generarYCargar()">
+        🔄 Actualizar
+      </button>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <div class="estado-info">Cargando alertas...</div>
+  } @else if (error) {
+    <div class="estado-error">{{ error }}</div>
+  } @else if (alertas.length === 0) {
+    <div class="estado-vacio">
+      <span class="icono-ok">✅</span>
+      <p>No hay alertas {{ soloNoLeidas ? 'pendientes' : '' }} en este momento.</p>
+    </div>
+  } @else {
+    <div class="alertas-resumen">
+      {{ noLeidasCount }} alerta{{ noLeidasCount !== 1 ? 's' : '' }} no leída{{ noLeidasCount !== 1 ? 's' : '' }}
+      de {{ alertas.length }} en total
+    </div>
+    <ul class="alertas-lista">
+      @for (alerta of alertas; track alerta.idAlerta) {
+        <li class="alerta-item"
+            [class.leida]="alerta.leida"
+            [class.stock]="alerta.tipo === 'STOCK_MINIMO'"
+            [class.vencimiento]="alerta.tipo === 'PROXIMO_VENCIMIENTO'">
+          <div class="alerta-icono">
+            {{ alerta.tipo === 'STOCK_MINIMO' ? '🔴' : '⚠️' }}
+          </div>
+          <div class="alerta-detalle">
+            <p class="alerta-producto">{{ alerta.nombreProducto }}</p>
+            @if (alerta.tipo === 'STOCK_MINIMO') {
+              <p class="alerta-motivo">
+                Stock bajo: <strong>{{ alerta.cantidadActual }}</strong> unidades
+                (mínimo: {{ alerta.stockMinimo }})
+              </p>
+            } @else {
+              <p class="alerta-motivo">
+                Lote <strong>{{ alerta.numeroLote }}</strong> vence el
+                <strong>{{ alerta.fechaVencimiento | date:'dd/MM/yyyy' }}</strong>
+              </p>
+            }
+            <p class="alerta-fecha">Generada: {{ alerta.fechaGeneracion | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="alerta-estado">
+            @if (!alerta.leida) {
+              <span class="badge-nueva">Nueva</span>
+              <button class="btn-leer" (click)="marcarLeida(alerta.idAlerta)">Marcar leída</button>
+            } @else {
+              <span class="badge-leida">Leída</span>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

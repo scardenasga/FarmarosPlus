@@ -1,0 +1,23 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="brand-icon">💊</span>
+    <span class="brand-name">FarmaROS PLUS</span>
+  </div>
+  <ul class="navbar-links">
+    <li>
+      <a routerLink="/alertas" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">🔔</span>
+        Alertas
+        @if (alertasNoLeidas > 0) {
+          <span class="badge">{{ alertasNoLeidas }}</span>
+        }
+      </a>
+    </li>
+    <li>
+      <a routerLink="/configuracion" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">⚙️</span>
+        Configuración
+      </a>
+    </li>
+  </ul>
+</nav>

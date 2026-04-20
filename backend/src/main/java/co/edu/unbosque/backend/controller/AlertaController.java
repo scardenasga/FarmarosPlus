@@ -6,7 +6,6 @@ import co.edu.unbosque.backend.model.response.ConfiguracionAlertaResponse;
 import co.edu.unbosque.backend.service.AlertaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +39,7 @@ public class AlertaController {
         summary = "Generar alertas de inventario",
         description = "No requiere cuerpo. Escanea automáticamente productos con stock bajo y lotes próximos a vencer."
     )
-    @RequestBody(required = false, content = @Content)
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = false, content = @Content)
     public ResponseEntity<List<AlertaResponse>> generarAlertas() {
         return ResponseEntity.ok(alertaService.generarAlertas());
     }

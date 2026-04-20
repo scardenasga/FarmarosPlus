@@ -1,0 +1,37 @@
+<div class="config-container">
+  <h1>Configuración de Alertas</h1>
+
+  <div class="config-card">
+    <h2>Umbral de vencimiento próximo</h2>
+    <p class="config-desc">
+      El sistema generará alertas para lotes que vencerán dentro de los próximos
+      <strong>{{ dias }} días</strong>.
+    </p>
+
+    <div class="config-form">
+      <label for="dias">Días de anticipación</label>
+      <input
+        id="dias"
+        type="number"
+        [(ngModel)]="dias"
+        min="1"
+        max="365"
+        class="input-dias"
+      />
+      <button
+        class="btn btn-primary"
+        (click)="guardar()"
+        [disabled]="cargando || dias < 1"
+      >
+        {{ cargando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+
+    @if (guardado) {
+      <p class="msg-ok">✅ Configuración guardada correctamente.</p>
+    }
+    @if (error) {
+      <p class="msg-error">{{ error }}</p>
+    }
+  </div>
+</div>
