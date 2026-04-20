@@ -27,7 +27,7 @@ import java.util.Optional;
  *
  * @author Sebastian Cardenas Garcia
  */
-@Component("auditorAware")
+@Component
 public class AuditorAwareImpl implements AuditorAware<String> {
 
     @Override

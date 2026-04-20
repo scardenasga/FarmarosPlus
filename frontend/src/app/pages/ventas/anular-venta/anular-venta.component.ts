@@ -70,6 +70,10 @@ export class AnularVentaComponent implements OnInit {
   }
 
   cancelar() {
-    this.router.navigate(['/ventas', this.venta?.idVenta]);
+    if (this.venta?.idVenta) {
+      this.router.navigate(['/ventas', this.venta.idVenta]); // vuelve al detalle
+    } else {
+      this.router.navigate(['/ventas/buscar']); // si no cargó, va al inicio
+    }
   }
 }
