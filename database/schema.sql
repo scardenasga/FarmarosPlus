@@ -284,3 +284,69 @@ CREATE TABLE IF NOT EXISTS alerta_inventario (
 CREATE INDEX IF NOT EXISTS idx_alerta_leida   ON alerta_inventario (leida);
 CREATE INDEX IF NOT EXISTS idx_alerta_tipo    ON alerta_inventario (tipo);
 CREATE INDEX IF NOT EXISTS idx_alerta_producto ON alerta_inventario (id_producto);
+
+-- =====================================================
+-- TABLA: proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS proveedor (
+    id_proveedor         INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre               TEXT    NOT NULL UNIQUE,
+    nit                  TEXT    UNIQUE,
+    contacto             TEXT,
+    telefono             TEXT,
+    email                TEXT,
+    direccion            TEXT,
+    estado               TEXT    NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'INACTIVO')),
+    -- Auditoría JPA
+    fecha_creacion       TEXT    DEFAULT (datetime('now', 'localtime')),
+    usuario_creacion     TEXT,
+    fecha_modificacion   TEXT,
+    usuario_modificacion TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_proveedor_estado ON proveedor (estado);
+
+-- =====================================================
+-- TABLA: devolucion_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS devolucion_proveedor (
+    id_devolucion        INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_proveedor         INTEGER NOT NULL,
+    id_usuario           INTEGER NOT NULL,
+    fecha                TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+    estado               TEXT    NOT NULL DEFAULT 'PROCESADA' CHECK (estado IN ('PROCESADA', 'ANULADA')),
+    motivo               TEXT,
+    -- Auditoría JPA
+    fecha_creacion       TEXT    DEFAULT (datetime('now', 'localtime')),
+    usuario_creacion     TEXT,
+    fecha_modificacion   TEXT,
+    usuario_modificacion TEXT,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedor (id_proveedor)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (id_usuario)   REFERENCES usuario (id_usuario)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+CREATE INDEX IF NOT EXISTS idx_devolucion_proveedor ON devolucion_proveedor (id_proveedor);
+CREATE INDEX IF NOT EXISTS idx_devolucion_fecha     ON devolucion_proveedor (fecha);
+CREATE INDEX IF NOT EXISTS idx_devolucion_usuario   ON devolucion_proveedor (id_usuario);
+
+-- =====================================================
+-- TABLA: detalle_devolucion_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS detalle_devolucion_proveedor (
+    id_detalle           INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_devolucion        INTEGER NOT NULL,
+    id_producto          INTEGER NOT NULL,
+    nombre_producto      TEXT    NOT NULL,
+    id_lote              INTEGER,
+    numero_lote          TEXT,
+    cantidad             INTEGER NOT NULL CHECK (cantidad > 0),
+    motivo               TEXT,
+    FOREIGN KEY (id_devolucion) REFERENCES devolucion_proveedor (id_devolucion)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_producto)   REFERENCES producto (UniqueID)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (id_lote)       REFERENCES lote (id_lote)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_detalle_dev_devolucion ON detalle_devolucion_proveedor (id_devolucion);
+CREATE INDEX IF NOT EXISTS idx_detalle_dev_producto   ON detalle_devolucion_proveedor (id_producto);
