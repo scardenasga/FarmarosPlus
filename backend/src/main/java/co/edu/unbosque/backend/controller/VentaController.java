@@ -25,6 +25,8 @@ import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -85,13 +87,17 @@ public class VentaController {
     @GetMapping("/historico")
     @Operation(summary = "Consultar histórico de ventas")
     public ResponseEntity<List<VentaResponse>> consultarHistorico(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
             @RequestParam(required = false) Long idVendedor,
             @RequestParam(required = false) String estado,
             @RequestHeader("X-Username") String username
     ) {
-        HistoricoFiltroRequest filtros = new HistoricoFiltroRequest(fechaInicio, fechaFin, idVendedor, estado);
+        LocalDateTime inicio = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
+        LocalDateTime fin = fechaFin != null ? fechaFin.atTime(23, 59, 59) : null;
+        HistoricoFiltroRequest filtros = new HistoricoFiltroRequest(inicio, fin, idVendedor, estado);
         List<Venta> ventas = ventaService.consultarHistorico(filtros, username);
         return ResponseEntity.ok(ventas.stream().map(this::toVentaResponse).toList());
     }

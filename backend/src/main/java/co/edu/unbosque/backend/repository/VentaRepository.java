@@ -86,7 +86,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
           AND (:fechaFin IS NULL OR v.fecha <= :fechaFin) 
           AND (:idVendedor IS NULL OR u.idUsuario = :idVendedor)
           AND (:estado IS NULL OR v.estado = :estado)
-        ORDER BI v.fecha DESC
+        ORDER BY v.fecha DESC
 
     """)
 
