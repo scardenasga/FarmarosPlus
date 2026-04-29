@@ -8,13 +8,14 @@ import { VentaService } from '../../../services/venta.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './detalle-venta.component.html',
-  styleUrl: './detalle-venta.component.css'
+  styleUrls: ['./detalle-venta.component.css']
 })
 export class DetalleVentaComponent implements OnInit {
 
   venta: any = null;
-  cargando: boolean = true;
-  error: string = '';
+  cargando = true;
+  error = '';
+  mostrarModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -38,15 +39,27 @@ export class DetalleVentaComponent implements OnInit {
     }
   }
 
-  irAAnular() {
-    this.router.navigate(['/ventas', this.venta.id, 'anular']);
+  abrirModal() {
+    this.mostrarModal = true;
   }
 
+  cerrarModal() {
+    this.mostrarModal = false;
+  }
+
+  irAAnular() {
+    const ventaId = this.venta?.idVenta ?? this.venta?.id;
+    this.cerrarModal();
+    this.router.navigate(['/ventas', ventaId, 'anular']);
+  }
+
+  
   volver() {
-    this.router.navigate(['/ventas/buscar']);
+   
+    this.router.navigate(['/ventas/historial']);
   }
 
   get esAdmin(): boolean {
-    return true; // luego se conecta con el login real
+    return true;
   }
 }

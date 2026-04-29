@@ -1,53 +1,90 @@
 <div class="container">
 
+  <div class="status-bar"></div>
+
   <div class="header">
-    <button class="btn-back" (click)="cancelar()">←</button>
-    <span class="titulo">DETALLE DE VENTA</span>
+    <button class="btn-back" (click)="cancelar()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+    <span class="titulo">Detalle de venta</span>
+    <button class="btn-campana">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </button>
   </div>
 
   <div *ngIf="cargandoVenta" class="cargando">Cargando...</div>
 
   <div *ngIf="venta && !cargandoVenta">
 
-    <div class="venta-resumen">
-      <div class="venta-top">
-        <span class="venta-id">Venta #{{ venta.idVenta }}</span>
-        <span class="badge-ok">Completada</span>
-      </div>
+    <div class="venta-top">
+      <span class="venta-id">Venta # {{ venta.idVenta }}</span>
+      <span class="venta-hora">{{ venta.fecha | date:'hh:mm a' }}</span>
+    </div>
 
-      <div *ngFor="let d of venta.detalles" class="prod-row">
-        <span class="prod-nombre">{{ d.producto?.nombre }} ×{{ d.cantidad }}</span>
-        <span class="prod-subtotal">${{ d.subtotalLinea | number }}</span>
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-lbl">Vendedor</span>
+        <span class="info-val">{{ venta.usuario?.nombreCompleto }}</span>
       </div>
+      <div class="info-row">
+        <span class="info-lbl">Fecha</span>
+        <span class="info-val fecha-verde">{{ venta.fecha | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-lbl">Método de pago</span>
+        <span class="info-val">{{ venta.pagos?.[0]?.tipo }}</span>
+      </div>
+    </div>
 
-      <div class="total-row">
-        <span>${{ venta.total | number }}</span>
+    <div class="productos-lista">
+      <div *ngFor="let d of venta.detalles" class="prod-card">
+        <div class="prod-img">
+          <img *ngIf="d.producto?.imagenUrl" [src]="d.producto.imagenUrl" alt="" />
+          <div *ngIf="!d.producto?.imagenUrl" class="prod-avatar">
+            {{ d.producto?.nombre?.substring(0,3).toUpperCase() }}
+          </div>
+        </div>
+        <div class="prod-info">
+          <span class="prod-nombre">{{ d.producto?.nombre }}</span>
+          <span class="prod-precio">${{ d.precioUnitarioAplicado | number }}</span>
+        </div>
+        <span class="prod-stock">{{ d.cantidad }} und.</span>
+        <div class="btn-ver">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
       </div>
     </div>
 
     <div class="modal-confirmacion">
       <div class="modal-icono">⚠</div>
-      <div class="modal-titulo">Desea eliminar esta venta?</div>
+      <div class="modal-titulo">¡Cuidado! Anular Venta</div>
       <div class="modal-desc">
-        El inventario volverá a la normalidad.
-        El registro quedará marcado como Anulada en el historial
+        ¿Desea anular permanentemente la <strong>Venta #{{ venta.idVenta }}</strong>
+        y revertir el inventario? Esta acción es irreversible.
       </div>
     </div>
 
     <div class="motivo-toggle">
-      <span class="motivo-label">Agregar motivo</span>
-      <label class="switch">
-        <input type="checkbox" [(ngModel)]="agregarMotivo">
-        <span class="slider"></span>
-      </label>
-      <span class="motivo-estado">{{ agregarMotivo ? 'Activado' : 'Opcional' }}</span>
+      <span class="motivo-label">Motivo de Anulación</span>
     </div>
 
-    <div *ngIf="agregarMotivo" class="motivo-input-wrap">
-      <span class="motivo-lbl-campo">MOTIVO DE ANULACIÓN</span>
+    <div class="motivo-input-wrap">
       <textarea
         [(ngModel)]="motivoAnulacion"
-        placeholder="Describe el motivo de la anulación..."
+        placeholder="Escribe el motivo de anulación..."
         rows="3"
         class="motivo-input">
       </textarea>
@@ -55,15 +92,15 @@
 
     <div class="error-msg" *ngIf="error">{{ error }}</div>
 
-    <div class="acciones">
-      <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
-      <button class="btn-eliminar" (click)="confirmarAnulacion()" [disabled]="cargando">
-        {{ cargando ? 'Anulando...' : 'Eliminar' }}
-      </button>
-    </div>
-
   </div>
 
   <div *ngIf="error && !venta" class="error-msg" style="margin:16px">{{ error }}</div>
+
+  <div class="acciones" *ngIf="venta && !cargandoVenta">
+    <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+    <button class="btn-eliminar" (click)="confirmarAnulacion()" [disabled]="cargando">
+      {{ cargando ? 'Anulando...' : 'Confirmar anulación' }}
+    </button>
+  </div>
 
 </div>

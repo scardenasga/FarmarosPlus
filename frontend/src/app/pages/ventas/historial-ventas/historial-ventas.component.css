@@ -1,0 +1,133 @@
+/* Contenedor principal que simula la pantalla del móvil */
+.container {
+  position: relative; /* CRÍTICO: Mantiene el botón dentro del área negra */
+  background-color: #121814;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 450px; /* Ajuste al ancho del simulador */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Encabezado con botones circulares oscuros */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #121814;
+}
+
+.btn-back, .btn-filtro {
+  background-color: #2d3539; /* Gris oscuro del diseño */
+  border: none;
+  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4ba;
+  cursor: pointer;
+}
+
+.titulo {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Área de error o carga */
+.error-msg {
+  background-color: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  margin: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+/* Cuerpo de la lista con scroll */
+.contenido-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 120px; /* Espacio extra para que el botón no tape la última venta */
+}
+
+.fecha-label {
+  color: #90f4d3; /* Verde cian de la fecha */
+  padding: 15px 20px 5px;
+  font-weight: bold;
+}
+
+.conteo-label {
+  color: #a5b4ba;
+  padding: 0 20px 15px;
+  font-size: 0.9rem;
+}
+
+/* Tarjetas de venta blancas */
+.venta-card {
+  background-color: white;
+  margin: 0 15px 12px;
+  padding: 15px;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.venta-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background-color: #d1f3e8; /* Verde completada */
+  color: #1e4d3e;
+}
+
+.badge.anulada {
+  background-color: #fbd5d5; /* Rojo anulada */
+  color: #8a2a2a;
+}
+
+.venta-card-mid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr auto;
+  font-size: 0.8rem;
+  color: #333;
+  align-items: center;
+}
+
+.venta-total {
+  font-weight: bold;
+  color: black;
+  font-size: 0.9rem;
+}
+
+/* BOTÓN FLOTANTE (+) POSICIONADO CORRECTAMENTE */
+.btn-flotante {
+  position: absolute; /* Relativo al .container */
+  bottom: 90px;       /* SUBIDO: Para que no lo tape la barra de navegación */
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background-color: #0d4d3e; /* Verde esmeralda oscuro */
+  border: none;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  z-index: 100;
+  cursor: pointer;
+}

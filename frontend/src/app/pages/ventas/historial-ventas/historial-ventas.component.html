@@ -1,0 +1,56 @@
+<div class="container">
+  
+  <div class="header">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    
+    <span class="titulo">Historial de ventas</span>
+    
+    <button class="btn-filtro" (click)="irAFiltrar()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  
+  <div *ngIf="error" class="error-msg">
+    {{ error }}
+  </div>
+
+  <div *ngIf="cargando && !error" class="error-msg" style="color: white; border-color: gray;">
+    Cargando historial...
+  </div>
+
+  
+  <div *ngIf="!cargando && !error" class="contenido-scroll">
+    <div class="fecha-grupo" *ngFor="let grupo of ventasAgrupadas">
+      <div class="fecha-label">{{ grupo.fecha }}</div>
+      <div class="conteo-label">{{ grupo.ventas.length }} resultados</div>
+
+      <div *ngFor="let v of grupo.ventas" class="venta-card" (click)="verDetalle(v.idVenta)">
+        <div class="venta-card-top">
+          <span class="venta-num">#{{ v.idVenta }}</span>
+          <span class="badge" [class.anulada]="v.estado === 'ANULADA'">
+            {{ v.estado === 'ANULADA' ? 'Anulada' : 'Completada' }}
+          </span>
+        </div>
+        <div class="venta-card-mid">
+          <span class="venta-fecha">{{ v.fecha | date:'dd/MM/yyyy' }}</span>
+          <span class="venta-vendedor">{{ v.usuario?.nombreCompleto?.split(' ')[0] }}</span>
+          <span class="venta-metodo">{{ v.pagos?.[0]?.tipo || 'Efectivo' }}</span>
+          <span class="venta-total">${{ v.total | number }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <button class="btn-flotante" routerLink="/ventas/buscar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
+</div>
