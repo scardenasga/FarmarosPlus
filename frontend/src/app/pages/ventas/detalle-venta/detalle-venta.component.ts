@@ -31,8 +31,9 @@ export class DetalleVentaComponent implements OnInit {
           this.venta = data;
           this.cargando = false;
         },
-        error: () => {
-          this.error = 'No se encontró la venta';
+        error: (err) => {
+          console.error("Error cargando venta:", err);
+          this.error = 'No se encontró la información de la venta';
           this.cargando = false;
         }
       });
@@ -48,18 +49,27 @@ export class DetalleVentaComponent implements OnInit {
   }
 
   irAAnular() {
-    const ventaId = this.venta?.idVenta ?? this.venta?.id;
+    // Usamos el ID de la venta obtenido de los datos cargados
+    const ventaId = this.venta?.idVenta || this.venta?.id;
+    
+    if (!ventaId) {
+      alert("Error: No se puede identificar la venta.");
+      return;
+    }
+
     this.cerrarModal();
-    this.router.navigate(['/ventas', ventaId, 'anular']);
+    // Navegación corregida para evitar el 404
+    // Asegúrate de que en tu app-routing esta sea la ruta correcta
+    this.router.navigate(['/ventas/anular', ventaId]);
   }
 
-  
   volver() {
-   
+    // Te regresa al historial/principal
     this.router.navigate(['/ventas/historial']);
   }
 
   get esAdmin(): boolean {
-    return true;
+    // Cambiar por tu lógica de permisos real si es necesario
+    return true; 
   }
 }

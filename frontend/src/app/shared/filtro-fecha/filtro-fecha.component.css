@@ -1,0 +1,54 @@
+.fecha-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #000000; /* Fondo negro del cuerpo */
+  border: 1px solid #444; /* Borde sutil */
+  border-radius: 12px; /* Redondeado según la imagen */
+  height: 36px;
+  min-width: 140px;
+  overflow: hidden; /* Para que el fondo del icono no se salga de las esquinas */
+}
+
+.icon-container {
+  background-color: #a5b4ba; /* El color gris azulado exacto de tu imagen */
+  width: 36px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-container {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.fecha-label {
+  color: white;
+  font-size: 0.8rem;
+  font-family: sans-serif;
+}
+
+.chevron {
+  margin-left: 5px;
+}
+
+/* El input invisible que detecta el click en todo el componente */
+input[type="date"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Estilo para cuando el input está enfocado */
+.fecha-wrapper:focus-within {
+  border-color: #a5b4ba;
+}

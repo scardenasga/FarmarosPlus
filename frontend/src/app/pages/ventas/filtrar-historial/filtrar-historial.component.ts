@@ -3,17 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VentaService } from '../../../services/venta.service';
+// IMPORTA EL NUEVO COMPONENTE
+import { InputFechaComponent } from '../../../shared/filtro-fecha/filtro-fecha.component';
 
 @Component({
   selector: 'app-filtrar-historial',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  // AÑÁDELO AQUÍ
+  imports: [CommonModule, FormsModule, InputFechaComponent],
   templateUrl: './filtrar-historial.component.html',
   styleUrl: './filtrar-historial.component.css'
 })
 export class FiltrarHistorialComponent {
-
-  fechaInicio: string = '';
+  // Inicializamos con fechas por defecto si quieres, o vacías
+  fechaInicio: string = ''; 
   fechaFin: string = '';
   vendedor: string = '';
   cargando: boolean = false;

@@ -3,37 +3,35 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: var(--app-max-width);
-  background: #1a1f1e;
-  border-top: 1px solid #2a3330;
+  width: 100%;
+  max-width: 390px; /* Manteniendo la estética de tus mockups */
+  background: #ffffff;
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  padding: 8px 0 12px;
-  z-index: 100;
+  padding: 8px 0;
+  border-top: 1px solid #e0e0da;
+  z-index: 1000;
 }
 
 .bottom-nav a {
+  text-decoration: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  color: #5a7a72;
-  text-decoration: none;
-  flex: 1;
-  transition: color 0.2s;
+  color: #888780; /* Gris apagado para inactivos */
+  gap: 4px;
 }
 
-.bottom-nav a svg {
+.bottom-nav svg {
   width: 22px;
   height: 22px;
 }
 
-.bottom-nav a span {
-  font-size: 10px;
-  font-family: var(--font-base);
+.bottom-nav span {
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .bottom-nav a.activo {
-  color: #4ecba8;
+  color: #085041; /* El verde oscuro de tu header */
 }
