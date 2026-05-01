@@ -62,6 +62,13 @@ public class Producto extends Auditable {
     private Double porcentajeIva = 0.0;
 
     /**
+     * Indica si el producto requiere prescripción médica.
+     * true = requiere prescripción | false = no requiere
+     */
+    @Column(name = "requiere_prescripcion", nullable = false)
+    private Boolean requierePrescripcion = false;
+
+    /**
      * Valores válidos: ACTIVO | INACTIVO | DESCONTINUADO
      * Validar con @Pattern en el DTO correspondiente.
      */

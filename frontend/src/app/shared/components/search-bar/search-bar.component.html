@@ -1,0 +1,11 @@
+<div class="search-container">
+  <input
+    type="text"
+    [placeholder]="placeholder()"
+    [value]="initialValue()"
+    (input)="onInput($event)"
+    class="search-input"
+    aria-label="Barra de búsqueda"
+  />
+  <span class="search-icon" aria-hidden="true">🔍</span>
+</div>

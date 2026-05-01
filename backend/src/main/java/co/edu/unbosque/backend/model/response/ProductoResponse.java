@@ -13,6 +13,8 @@ package co.edu.unbosque.backend.model.response;
  * @param costo costo actual
  * @param precioVenta precio de venta actual
  * @param margenGanancia margen de ganancia calculado
+ * @param porcentajeIva porcentaje de IVA
+ * @param requierePrescripcion indica si el producto requiere prescripción médica
  * @param estado estado funcional
  * @author Sebastian Cardenas Garcia
  */
@@ -28,6 +30,7 @@ public record ProductoResponse(
         Double precioVenta,
         Double margenGanancia,
         Double porcentajeIva,
+        Boolean requierePrescripcion,
         String estado
 ) {
 }
