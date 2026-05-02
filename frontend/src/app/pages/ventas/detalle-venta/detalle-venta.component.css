@@ -1,184 +1,91 @@
 .container {
   max-width: 390px;
   margin: 0 auto;
-  background: #f4f6f4;
+  background: #151c1a;
   min-height: 100vh;
-  padding-bottom: 40px;
+  padding-bottom: 180px; /* Espacio extra para no tapar el total */
   font-family: sans-serif;
+  position: relative;
 }
 
+.status-bar { height: 36px; background: #151c1a; }
+
 .header {
-  background: #085041;
+  background: #1e2825;
   padding: 14px 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.btn-back {
-  background: none;
-  border: none;
-  color: #9FE1CB;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.titulo {
-  font-size: 11px;
-  font-weight: 500;
-  color: #E1F5EE;
-  letter-spacing: 0.08em;
-}
-
-.venta-header {
-  background: #fff;
-  padding: 12px 16px;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e0e0da;
 }
 
-.venta-id { font-size: 16px; font-weight: 500; color: #2C2C2A; }
-.venta-fecha { font-size: 11px; color: #888780; margin-top: 2px; }
+.titulo { font-size: 16px; font-weight: 600; color: #fff; flex: 1; text-align: center; }
 
-.badge {
-  background: #d4edda;
-  color: #1a5c2a;
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 11px;
-  font-weight: 500;
-}
+.btn-back, .btn-campana { background: none; border: none; color: #9FE1CB; cursor: pointer; }
 
-.badge.anulada {
-  background: #FCEBEB;
-  color: #A32D2D;
-}
+.venta-top { display: flex; justify-content: space-between; padding: 14px 16px; }
+.venta-id { color: #e8f0ee; font-weight: 600; }
+.venta-hora { color: #5a7a72; font-size: 13px; }
 
 .info-box {
-  background: #f8f8f6;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 12px;
+  background: #1a2320; border-radius: 10px; margin: 0 12px 12px;
+  padding: 12px; border: 1px solid #2e3d38;
 }
 
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 12px;
-}
-
-.info-row span:first-child { color: #888780; }
-.info-row span:last-child { color: #2C2C2A; font-weight: 500; }
-
-.seccion-label {
-  font-size: 10px;
-  font-weight: 500;
-  color: #888780;
-  letter-spacing: 0.06em;
-  padding: 0 16px;
-  margin-bottom: 6px;
-}
+.info-row { display: flex; justify-content: space-between; padding: 4px 0; }
+.info-lbl { color: #5a7a72; font-size: 14px; }
+.info-val { color: #e8f0ee; font-size: 14px; }
+.fecha-verde { color: #4ecba8; }
 
 .productos-lista { padding: 0 12px; }
-
-.prod-row {
-  display: flex;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin-bottom: 5px;
-  border: 1px solid #e0e0da;
-  font-size: 13px;
+.prod-card {
+  display: flex; align-items: center; gap: 10px; background: #1e2825;
+  border: 1px solid #2e3d38; border-radius: 10px; padding: 10px; margin-bottom: 8px;
 }
 
-.prod-nombre { color: #2C2C2A; }
-.prod-subtotal { color: #0F6E56; font-weight: 500; }
+.prod-img { width: 42px; height: 42px; background: #253530; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.prod-img img { width: 100%; height: 100%; object-fit: cover; }
+.prod-avatar { font-size: 10px; color: #9FE1CB; }
+.prod-info { flex: 1; }
+.prod-nombre { color: #e8f0ee; font-size: 13px; display: block; }
+.prod-precio { color: #9FE1CB; font-size: 12px; }
+.prod-stock { color: #5a7a72; font-size: 12px; }
 
 .totales {
-  background: #fff;
-  margin: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e0da;
-  padding: 10px 14px;
+  background: #1a2320; margin: 12px; border-radius: 10px;
+  padding: 12px; border: 1px solid #2e3d38;
 }
+.tot-row { display: flex; justify-content: space-between; color: #5a7a72; margin-bottom: 4px; }
+.total { color: #fff; font-weight: bold; font-size: 18px; border-top: 1px solid #2e3d38; padding-top: 8px; margin-top: 8px; }
 
-.tot-row {
+/* BARRA DE ACCIONES FLOTANTE */
+.acciones {
+  position: fixed;
+  bottom: 85px; /* Encima del bottom-nav */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 370px;
   display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 13px;
-  color: #888780;
+  gap: 12px;
+  z-index: 999;
 }
 
-.tot-row span:last-child { color: #2C2C2A; }
-
-.tot-row.total {
-  font-size: 15px;
-  font-weight: 500;
-  border-top: 1px solid #e0e0da;
-  padding-top: 8px;
-  margin-top: 4px;
+.btn-anular, .btn-confirmar {
+  flex: 1; padding: 14px; border-radius: 12px;
+  font-weight: bold; border: none; cursor: pointer; font-size: 14px;
 }
+.btn-anular { background: #A32D2D; color: #fff; box-shadow: 0 4px 15px rgba(163,45,45,0.4); }
+.btn-confirmar { background: #0F6E56; color: #fff; box-shadow: 0 4px 15px rgba(15,110,86,0.4); }
 
-.tot-row.total span:last-child { color: #0F6E56; }
-
-.aviso-permisos {
-  background: #FAEEDA;
-  color: #633806;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 0 12px 10px;
-  font-size: 12px;
+/* MODAL */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
-
-.acciones { padding: 0 12px; }
-
-.btn-anular {
-  width: 100%;
-  padding: 12px;
-  border-radius: 20px;
-  border: none;
-  background: #A32D2D;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.motivo-anulacion {
-  background: #FCEBEB;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 0 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.motivo-label {
-  font-size: 10px;
-  font-weight: 500;
-  color: #A32D2D;
-  letter-spacing: 0.06em;
-}
-
-.motivo-txt { font-size: 13px; color: #791F1F; }
-
-.cargando {
-  text-align: center;
-  padding: 40px;
-  color: #888780;
-}
-
-.error-msg {
-  background: #FCEBEB;
-  color: #A32D2D;
-  padding: 12px 16px;
-  margin: 12px;
-  border-radius: 8px;
-  font-size: 13px;
-}
+.modal-box { background: #1e2825; border-radius: 15px; padding: 25px; width: 85%; max-width: 320px; border: 1px solid #2e3d38; }
+.modal-titulo { color: #fff; font-weight: bold; text-align: center; margin-bottom: 10px; }
+.modal-desc { color: #8fa19c; text-align: center; margin-bottom: 20px; font-size: 14px; line-height: 1.4; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-btn-cancelar, .modal-btn-anular { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; }
+.modal-btn-cancelar { background: #2e3d38; color: #fff; }
+.modal-btn-anular { background: #A32D2D; color: #fff; }

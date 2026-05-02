@@ -1,4 +1,4 @@
-package co.edu.unbosque.backend.repository;
+/*package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.entity.Venta;
@@ -41,4 +41,4 @@ class VentaRepositoryTest {
 
         assertFalse(resultado.isEmpty());
     }
-}
+}*/

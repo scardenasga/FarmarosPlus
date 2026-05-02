@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  max-width: var(--app-max-width);
+  width: 100%;
+  min-height: 100vh;
+  background: var(--color-bg);
+  position: relative;
+  margin: 0 auto;
+}

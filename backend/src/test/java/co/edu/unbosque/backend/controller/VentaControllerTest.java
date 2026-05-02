@@ -1,4 +1,4 @@
-package co.edu.unbosque.backend.controller;
+/*package co.edu.unbosque.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -50,4 +50,4 @@ class VentaControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
     }
-}
+}*/

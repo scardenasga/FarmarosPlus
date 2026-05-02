@@ -1,6 +1,8 @@
 package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.model.entity.Venta;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -70,5 +72,29 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     Double calcularTotalVentasCompletadas(
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
+    );
+
+    /**
+     * Histórico filtrable: todos los parámetros son opcionales.
+     * Si un parámetro llega null se ignora en el WHERE.
+     */
+
+    @Query ("""
+        SELECT v From Venta v
+        JOIN FETCH v.usuario u
+        WHERE (:fechaInicio IS NULL OR v.fecha >= :fechaInicio)
+          AND (:fechaFin IS NULL OR v.fecha <= :fechaFin) 
+          AND (:idVendedor IS NULL OR u.idUsuario = :idVendedor)
+          AND (:estado IS NULL OR v.estado = :estado)
+        ORDER BY v.fecha DESC
+
+    """)
+
+    @EntityGraph(attributePaths = {"detalles", "detalles.producto", "detalles.lote", "pagos", "usuario"})
+    List<Venta> findHistorico (
+         @Param("fechaInicio") LocalDateTime fechaInicio,
+         @Param("fechaFin") LocalDateTime fechaFin,
+         @Param("idVendedor") Long idVendedor,
+         @Param("estado") String estado
     );
 }

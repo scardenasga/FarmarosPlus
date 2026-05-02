@@ -17,10 +17,12 @@ import co.edu.unbosque.backend.repository.UsuarioRepository;
 import co.edu.unbosque.backend.repository.VentaRepository;
 import co.edu.unbosque.backend.model.request.AnularVentaRequest;
 import co.edu.unbosque.backend.model.request.CrearVentaRequest;
+import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 import co.edu.unbosque.backend.model.request.PagoVentaRequest;
 import co.edu.unbosque.backend.model.request.VentaDetalleRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -424,4 +426,32 @@ public class VentaService {
     private double valorMonetarioSeguro(Double valor) {
         return valor == null ? 0.0 : valor;
     }
-}
+
+    /**
+     * Consulta el historico de ventas con filtros opcionales
+     * Solo usuarios con rol ADMIN o REGENRE pueden acceder
+     * @param filtros  parámetros de búsqueda (todos opcionales)
+     * @param username usuario que realiza la consulta
+     * @return lista de ventas que coinciden con los filtros
+        */
+    @Transactional(readOnly = true)
+    public List<Venta> consultarHistorico(HistoricoFiltroRequest filtros, String username) {
+
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario: " + username
+                ));
+
+        if (!"ADMIN".equalsIgnoreCase(usuario.getRol()) && !"REGENTE".equalsIgnoreCase(usuario.getRol())) {
+            throw new BusinessException("Solo usuarios con rol ADMIN o REGENTE pueden consultar el histórico");
+        }
+
+        LocalDateTime fechaInicio = filtros != null ? filtros.fechaInicio() : null;
+        LocalDateTime fechaFin    = filtros != null ? filtros.fechaFin()    : null;
+        Long          idVendedor  = filtros != null ? filtros.idVendedor()  : null;
+        String        estado      = filtros != null ? filtros.estado()      : null;
+
+        return ventaRepository.findHistorico(fechaInicio, fechaFin, idVendedor, estado);
+    }
+
+    }
