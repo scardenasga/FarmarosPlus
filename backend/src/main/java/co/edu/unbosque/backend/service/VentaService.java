@@ -97,6 +97,7 @@ public class VentaService {
         List<DetalleVenta> detalles = new ArrayList<>();
         List<MovimientoInventario> movimientos = new ArrayList<>();
         double subtotal = 0.0;
+        double ivaTotal = 0.0;
 
         for (VentaDetalleRequest detalleRequest : request.detalles()) {
 
@@ -124,15 +125,20 @@ public class VentaService {
                     ? detalleRequest.precioUnitario()
                     : producto.getPrecioVenta();
 
+            double subtotalLinea = precioUnitario * detalleRequest.cantidad();
+            double ivaLinea = subtotalLinea * (valorMonetarioSeguro(producto.getPorcentajeIva()) / 100.0);
+
             DetalleVenta detalle = new DetalleVenta();
             detalle.setVenta(venta);
             detalle.setProducto(producto);
             detalle.setLote(lote);
             detalle.setCantidad(detalleRequest.cantidad());
             detalle.setPrecioUnitarioAplicado(precioUnitario);
-            detalle.setSubtotalLinea(precioUnitario * detalleRequest.cantidad());
+            detalle.setSubtotalLinea(subtotalLinea);
+            detalle.setIvaLinea(ivaLinea);
             detalles.add(detalle);
-            subtotal += detalle.getSubtotalLinea();
+            subtotal += subtotalLinea;
+            ivaTotal += ivaLinea;
 
             producto.setStockActual(stockNuevo);
             lote.setCantidad(cantidadLoteNueva);
@@ -141,18 +147,22 @@ public class VentaService {
         }
 
         double montoDescuento = subtotal * porcentajeDescuento;
-        double total = subtotal - montoDescuento;
+        double total = subtotal + ivaTotal - montoDescuento;
 
         if (total < 0) {
             throw new BusinessException("El total de la venta no puede ser negativo");
         }
 
         venta.setDescuento(montoDescuento);
+        venta.setIva(ivaTotal);
 
         List<PagoVenta> pagos = construirPagos(venta, request.pagos(), total);
+        double totalPagado = pagos.stream().mapToDouble(PagoVenta::getMonto).sum();
+        double cambio = Math.max(0.0, totalPagado - total);
 
         venta.setSubtotal(subtotal);
         venta.setTotal(total);
+        venta.setCambio(cambio);
         venta.setDetalles(new HashSet<>(detalles));
         venta.setPagos(new HashSet<>(pagos));
 
@@ -284,10 +294,14 @@ public class VentaService {
     }
 
     /**
-     * Construye la lista de pagos y valida que la suma coincida con el total esperado.
+     * Construye la lista de pagos y aplica las reglas por tipo:
+     * - EFECTIVO: permite pagar más del total (el excedente es el cambio).
+     * - TARJETA / TRANSFERENCIA: el monto debe cubrir exactamente el total pendiente.
+     * En pagos combinados, el overpayment solo es válido si hay al menos un pago EFECTIVO.
      */
     private List<PagoVenta> construirPagos(Venta venta, List<PagoVentaRequest> pagosRequest, double totalEsperado) {
         double totalPagado = 0.0;
+        boolean tieneEfectivo = false;
         List<PagoVenta> pagos = new ArrayList<>();
 
         for (PagoVentaRequest pagoRequest : pagosRequest) {
@@ -298,16 +312,26 @@ public class VentaService {
                 throw new BusinessException("Cada pago debe tener un tipo válido");
             }
 
+            if ("EFECTIVO".equalsIgnoreCase(pagoRequest.tipo())) {
+                tieneEfectivo = true;
+            }
+
             PagoVenta pago = new PagoVenta();
             pago.setVenta(venta);
-            pago.setTipo(pagoRequest.tipo());
+            pago.setTipo(pagoRequest.tipo().toUpperCase());
             pago.setMonto(pagoRequest.monto());
             pagos.add(pago);
             totalPagado += pagoRequest.monto();
         }
 
-        if (Math.abs(totalPagado - totalEsperado) > TOLERANCIA_MONETARIA) {
-            throw new BusinessException("La suma de los pagos debe coincidir con el total de la venta");
+        if (totalPagado < totalEsperado - TOLERANCIA_MONETARIA) {
+            throw new BusinessException("El monto pagado es insuficiente para cubrir el total de la venta");
+        }
+
+        if (!tieneEfectivo && totalPagado > totalEsperado + TOLERANCIA_MONETARIA) {
+            throw new BusinessException(
+                    "Los pagos con TARJETA o TRANSFERENCIA deben ser por el monto exacto de la venta"
+            );
         }
 
         return pagos;

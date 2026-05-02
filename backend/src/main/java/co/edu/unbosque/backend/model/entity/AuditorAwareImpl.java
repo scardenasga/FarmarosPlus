@@ -33,6 +33,6 @@ public class AuditorAwareImpl implements AuditorAware<String> {
     @Override
     public Optional<String> getCurrentAuditor() {
         // TODO: reemplazar por SecurityContextHolder cuando implementes Spring Security
-        return Optional.of("system");
+        return Optional.of("SISTEMA");
     }
 }

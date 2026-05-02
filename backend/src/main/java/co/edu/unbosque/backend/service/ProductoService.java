@@ -74,6 +74,7 @@ public class ProductoService {
         producto.setStockActual(stockInicial);
         producto.setCosto(request.costo());
         producto.setPrecioVenta(request.precioVenta());
+        producto.setPorcentajeIva(request.porcentajeIva() != null ? request.porcentajeIva() : 0.0);
         producto.setEstado(normalizarEstadoProducto(request.estado()));
 
         validarProducto(producto);

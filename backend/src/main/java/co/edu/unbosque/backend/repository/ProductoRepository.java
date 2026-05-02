@@ -101,12 +101,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      *
      * @return productos con stock bajo
      */
-    @Query("""
-            SELECT p
-            FROM Producto p
-            WHERE p.stockActual <= p.stockMinimo
-            ORDER BY p.stockActual ASC, p.nombre ASC
-            """)
+    @Query(value = """
+            SELECT p.*
+            FROM producto p
+            WHERE p.stock_actual <= p.stock_minimo
+            ORDER BY p.stock_actual ASC, p.nombre ASC
+            """, nativeQuery = true)
     List<Producto> findProductosConStockBajo();
 
     /**
@@ -115,15 +115,15 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * @param termino criterio de búsqueda libre
      * @return productos activos coincidentes
      */
-    @Query("""
-            SELECT p
-            FROM Producto p
+    @Query(value = """
+            SELECT p.*
+            FROM producto p
             WHERE p.estado = 'ACTIVO'
               AND (
-                    LOWER(p.nombre) LIKE LOWER(CONCAT('%', :termino, '%'))
-                    OR LOWER(COALESCE(p.codigoBarras, '')) LIKE LOWER(CONCAT('%', :termino, '%'))
+                    LOWER(p.nombre) LIKE LOWER('%' || :termino || '%')
+                    OR LOWER(COALESCE(p.codigo_barras, '')) LIKE LOWER('%' || :termino || '%')
                   )
             ORDER BY p.nombre ASC
-            """)
+            """, nativeQuery = true)
     List<Producto> buscarActivosPorNombreOCodigo(@Param("termino") String termino);
 }

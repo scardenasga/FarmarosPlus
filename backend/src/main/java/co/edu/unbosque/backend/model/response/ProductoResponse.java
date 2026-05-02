@@ -27,6 +27,7 @@ public record ProductoResponse(
         Double costo,
         Double precioVenta,
         Double margenGanancia,
+        Double porcentajeIva,
         String estado
 ) {
 }

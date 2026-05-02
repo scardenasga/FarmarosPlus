@@ -22,7 +22,7 @@ public class Producto extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "UniqueID")
+    @Column(name = "uniqueid")
     private Long uniqueID;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,6 +53,13 @@ public class Producto extends Auditable {
 
     @Column(name = "margen_ganancia")
     private Double margenGanancia;
+
+    /**
+     * Porcentaje de IVA aplicable al producto.
+     * Medicamentos: 0.0 — Cosméticos/otros: 19.0
+     */
+    @Column(name = "porcentaje_iva", nullable = false)
+    private Double porcentajeIva = 0.0;
 
     /**
      * Valores válidos: ACTIVO | INACTIVO | DESCONTINUADO

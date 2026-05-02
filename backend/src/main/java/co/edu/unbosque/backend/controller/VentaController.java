@@ -17,38 +17,24 @@ import co.edu.unbosque.backend.model.response.PagoVentaResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.model.response.UsuarioResumenResponse;
 import co.edu.unbosque.backend.model.response.VentaResponse;
+import co.edu.unbosque.backend.service.FacturaService;
 import co.edu.unbosque.backend.service.VentaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Controlador REST para operaciones del módulo de ventas.
- *
- * @author Sebastian Cardenas Garcia
  */
 @RestController
 @RequestMapping("/api/ventas")
@@ -56,14 +42,13 @@ import java.util.List;
 public class VentaController {
 
     private final VentaService ventaService;
+    private final FacturaService facturaService;
 
-    public VentaController(VentaService ventaService) {
+    public VentaController(VentaService ventaService, FacturaService facturaService) {
         this.ventaService = ventaService;
+        this.facturaService = facturaService;
     }
 
-    /**
-     * Registra una venta completa.
-     */
     @PostMapping
     @Operation(summary = "Registrar venta")
     public ResponseEntity<VentaResponse> registrarVenta(@Valid @RequestBody CrearVentaRequest request) {
@@ -71,9 +56,6 @@ public class VentaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toVentaResponse(ventaGuardada));
     }
 
-    /**
-     * Consulta una venta con su detalle completo.
-     */
     @GetMapping("/{id}")
     @Operation(summary = "Consultar venta por id")
     public ResponseEntity<VentaResponse> obtenerVenta(@PathVariable Long id) {
@@ -82,15 +64,12 @@ public class VentaController {
 
     /**
      * Lista el histórico de ventas con filtros opcionales
-     * Requiere permisos
-    */
+     */
     @GetMapping("/historico")
     @Operation(summary = "Consultar histórico de ventas")
     public ResponseEntity<List<VentaResponse>> consultarHistorico(
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
             @RequestParam(required = false) Long idVendedor,
             @RequestParam(required = false) String estado,
             @RequestHeader("X-Username") String username
@@ -103,18 +82,27 @@ public class VentaController {
     }
 
     /**
-     * Anula una venta existente.
+     * Descarga la factura de una venta en formato PDF.
      */
+    @GetMapping(value = "/{id}/factura", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Descargar factura en PDF")
+    public ResponseEntity<byte[]> descargarFactura(@PathVariable Long id) {
+        Venta venta = ventaService.obtenerVentaDetallada(id);
+        byte[] pdf = facturaService.generarFactura(venta);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"factura-" + String.format("%06d", id) + ".pdf\"")
+                .body(pdf);
+    }
+
     @PatchMapping("/{id}/anular")
     @Operation(summary = "Anular venta")
     public ResponseEntity<VentaResponse> anularVenta(
             @PathVariable Long id,
             @Valid @RequestBody AnularVentaRequest request
     ) {
-       return ResponseEntity.ok(toVentaResponse(
-            ventaService.eliminarVenta(id, request)
-    ));
-}
+        return ResponseEntity.ok(toVentaResponse(ventaService.eliminarVenta(id, request)));
+    }
 
     private VentaResponse toVentaResponse(Venta venta) {
         return new VentaResponse(
@@ -124,8 +112,10 @@ public class VentaController {
                 venta.getEstado(),
                 venta.getMotivoAnulacion(),
                 venta.getSubtotal(),
+                venta.getIva(),
                 venta.getDescuento(),
                 venta.getTotal(),
+                venta.getCambio(),
                 venta.getDetalles().stream().map(this::toDetalleResponse).toList(),
                 venta.getPagos().stream().map(this::toPagoResponse).toList()
         );
@@ -138,7 +128,8 @@ public class VentaController {
                 toLoteResumen(detalle.getLote()),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitarioAplicado(),
-                detalle.getSubtotalLinea()
+                detalle.getSubtotalLinea(),
+                detalle.getIvaLinea()
         );
     }
 
@@ -180,14 +171,13 @@ public class VentaController {
                 producto.getCosto(),
                 producto.getPrecioVenta(),
                 producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
                 producto.getEstado()
         );
     }
 
     private CategoriaResponse toCategoriaResponse(Categoria categoria) {
-        if (categoria == null) {
-            return null;
-        }
+        if (categoria == null) return null;
         return new CategoriaResponse(
                 categoria.getIdCategoria(),
                 categoria.getNombre(),
