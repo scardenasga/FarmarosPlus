@@ -1,13 +1,29 @@
-<div class="inventory-container">
+<div class="inventory-page">
+  <div class="sticky-header">
+    <app-top-bar
+      title="Inventario"
+      (back)="handleBack()"
+      (alert)="handleAlerts()"
+    ></app-top-bar>
 
-
-  <!-- Barra de Búsqueda (Componente Reutilizable) -->
-  <section class="search-section">
-    <app-search-bar
-      placeholder="Buscar productos por nombre, código o categoría..."
+    <app-inventory-search
       (search)="handleSearch($event)"
-    ></app-search-bar>
-  </section>
+      (toggleFilter)="handleAlerts()"
+    ></app-inventory-search>
+  </div>
 
+  <main class="content">
+    <app-inventory-summary
+      [totalProducts]="filteredProducts().length"
+    ></app-inventory-summary>
 
+    <app-product-list
+      [products]="filteredProducts()"
+      (productSelected)="handleProductSelect($event)"
+    ></app-product-list>
+  </main>
+
+  <app-fab-button
+    (clicked)="handleAddProduct()"
+  ></app-fab-button>
 </div>

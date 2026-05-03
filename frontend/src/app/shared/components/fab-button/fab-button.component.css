@@ -1,0 +1,14 @@
+.fab {
+  position: fixed;
+  right: var(--space-l);
+  bottom: 100px; /* Above bottom nav */
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-l);
+  background-color: var(--primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-3);
+  z-index: 1001;
+}

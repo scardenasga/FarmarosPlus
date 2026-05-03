@@ -1,0 +1,12 @@
+<div class="product-list">
+  @for (product of products(); track product.id) {
+    <app-product-card 
+      [product]="product"
+      (clicked)="productSelected.emit(product)"
+    ></app-product-card>
+  } @empty {
+    <div class="empty-state flex-center">
+      <p>No se encontraron productos.</p>
+    </div>
+  }
+</div>
