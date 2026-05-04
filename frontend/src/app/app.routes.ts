@@ -4,11 +4,17 @@ import { RegistrarVentaComponent } from './pages/ventas/registrar-venta/registra
 import { DetalleVentaComponent } from './pages/ventas/detalle-venta/detalle-venta.component';
 import { AnularVentaComponent } from './pages/ventas/anular-venta/anular-venta.component';
 import { InventoryComponent} from './inventory/pages/inventory/inventory.component';
+import { HistorialVentasComponent } from './pages/ventas/historial-ventas/historial-ventas.component';
+import { FiltrarHistorialComponent } from './pages/ventas/filtrar-historial/filtrar-historial.component';
+
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'ventas/buscar', pathMatch: 'full' },
+  { path: '', redirectTo: 'ventas/historial', pathMatch: 'full' }, 
+  
+  { path: 'ventas/historial', component: HistorialVentasComponent },
   { path: 'ventas/buscar', component: BuscarProductoComponent },
   { path: 'ventas/registrar', component: RegistrarVentaComponent },
+  { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
   { path: 'ventas/:id', component: DetalleVentaComponent },
   { path: 'ventas/:id/anular', component: AnularVentaComponent },
   { path: 'inventario', component: InventoryComponent }
