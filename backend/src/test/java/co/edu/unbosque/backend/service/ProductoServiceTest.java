@@ -66,6 +66,7 @@ class ProductoServiceTest {
                 20,
                 5000.0,
                 8000.0,
+                0.0,
                 "ACTIVO",
                 null
         );
@@ -102,6 +103,7 @@ class ProductoServiceTest {
                 50,
                 15000.0,
                 22000.0,
+                0.0,
                 "ACTIVO",
                 "LOT-01"
         );
@@ -141,6 +143,7 @@ class ProductoServiceTest {
                 0,
                 5000.0,
                 8000.0,
+                0.0,
                 "ACTIVO",
                 null
         );
