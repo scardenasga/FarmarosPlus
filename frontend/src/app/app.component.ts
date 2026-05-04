@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { BottomNavBarComponent } from './shared/components/bottom-nav-bar/bottom-nav-bar.component';
+import { NavigationService } from './shared/services/navigation.service';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +11,5 @@ import { BottomNavBarComponent } from './shared/components/bottom-nav-bar/bottom
 })
 export class AppComponent {
   title = 'frontend';
+  navService = inject(NavigationService);
 }

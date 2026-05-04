@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.form-group label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--on-surface);
+}
+
+.input-container {
+  background-color: var(--surface-container);
+  border: 1px solid var(--on-surface);
+  border-radius: 20px;
+  padding: var(--space-m) var(--space-l);
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  min-height: 48px;
+}
+
+.input-container input, 
+.input-container textarea,
+.input-container select {
+  background: none;
+  border: none;
+  color: var(--on-surface-variant);
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  width: 100%;
+  outline: none;
+}
+
+.input-container textarea {
+  resize: none;
+  height: 80px;
+}
+
+.suffix-text {
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.icon-button {
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix for number input placeholder styling if needed */
+input[type="number"]::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.7;
+}

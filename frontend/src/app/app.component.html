@@ -1,4 +1,6 @@
-<main class="main-content">
+<main class="main-content" [class.no-padding]="!navService.showBottomNav()">
   <router-outlet />
 </main>
-<app-bottom-nav-bar />
+@if (navService.showBottomNav()) {
+  <app-bottom-nav-bar />
+}

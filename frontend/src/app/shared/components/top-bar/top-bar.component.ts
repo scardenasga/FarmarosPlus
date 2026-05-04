@@ -8,6 +8,7 @@ import { Component, input, output } from '@angular/core';
 })
 export class TopBarComponent {
   title = input<string>('');
+  showAlert = input<boolean>(true);
   back = output<void>();
   alert = output<void>();
 }

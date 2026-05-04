@@ -1,0 +1,101 @@
+<div class="detail-page">
+  <div class="sticky-header">
+    <app-top-bar title="Detalle del Producto" [showAlert]="false" (back)="onBack()"></app-top-bar>
+  </div>
+
+  <main class="content-area">
+    @if (product(); as p) {
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <span class="product-id">REFERENCIA #{{ p.id }}</span>
+          <h2 class="product-name">{{ p.name }}</h2>
+          <span class="category-badge">{{ p.category }}</span>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="info-section">
+          <span class="section-label">Descripción del Producto</span>
+          <div class="description-box">
+            <p class="description-text">{{ p.description || 'Sin descripción detallada disponible.' }}</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Inventario</span>
+            <div class="stat-main">
+              <span class="stat-value">{{ p.stock }}</span>
+              <span class="stat-unit">{{ p.unit }}</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Demanda</span>
+            <div class="stat-main">
+              <span class="stat-value" [class.positive]="(p.trend || 0) > 0" [class.negative]="(p.trend || 0) < 0">
+                {{ (p.trend || 0) > 0 ? '↑' : '↓' }} {{ (p.trend || 0) | number:'1.1-1' }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        @if (p.lotes && p.lotes.length > 0) {
+          <div class="lotes-section">
+            <span class="section-label">Lotes Disponibles</span>
+            <div class="lotes-list">
+              @for (lote of p.lotes; track lote.id) {
+                <div class="lote-item">
+                  <div class="lote-meta">
+                    <span class="lote-num">No. {{ lote.numeroLote }}</span>
+                    <span class="lote-exp">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <div class="lote-qty">
+                    <span class="lote-count">{{ lote.cantidad }}</span>
+                    <span class="stat-unit">{{ p.unit }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="receipt-divider dotted"></div>
+
+        <div class="price-section">
+          <span class="price-label">Precio de Venta</span>
+          <span class="price-amount">{{ p.price | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+
+        <div class="receipt-footer">
+          <div class="barcode-visual">
+            <div class="barcode-bars"></div>
+            <span class="barcode-number">7701234567890</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="loading-state">
+        <p>Cargando información...</p>
+      </div>
+    }
+  </main>
+
+  @if (product()) {
+    <footer class="sticky-footer">
+      <button class="btn btn-secondary" (click)="onDeleteRequest()">Eliminar</button>
+      <button class="btn btn-primary" (click)="onEdit()">Editar Detalles</button>
+    </footer>
+  }
+</div>
+
+<!-- Confirm Dialog -->
+@if (showDeleteConfirmation()) {
+  <app-confirmation-dialog
+    title="¿Eliminar Producto?"
+    content="Esta acción marcará el producto como inactivo. ¿Desea continuar?"
+    cancelText="Volver"
+    confirmText="Eliminar"
+    (onCancel)="cancelDelete()"
+    (onConfirm)="confirmDelete()">
+  </app-confirmation-dialog>
+}
