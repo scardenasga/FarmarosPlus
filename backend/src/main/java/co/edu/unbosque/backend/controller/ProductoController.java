@@ -240,6 +240,7 @@ public class ProductoController {
                 producto.getPrecioVenta(),
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
+                producto.getRequierePrescripcion(),
                 producto.getEstado()
         );
     }

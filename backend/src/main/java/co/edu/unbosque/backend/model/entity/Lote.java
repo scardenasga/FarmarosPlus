@@ -40,4 +40,9 @@ public class Lote extends Auditable {
     @JoinColumn(name = "id_producto", nullable = false,
             foreignKey = @ForeignKey(name = "fk_lote_producto"))
     private Producto producto;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_proveedor",
+            foreignKey = @ForeignKey(name = "fk_lote_proveedor"))
+    private Proveedor proveedor;
 }
