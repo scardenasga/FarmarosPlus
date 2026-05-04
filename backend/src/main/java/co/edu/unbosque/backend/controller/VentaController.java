@@ -9,6 +9,7 @@ import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.entity.Venta;
 import co.edu.unbosque.backend.model.request.AnularVentaRequest;
 import co.edu.unbosque.backend.model.request.CrearVentaRequest;
+import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.DetalleVentaResponse;
 import co.edu.unbosque.backend.model.response.LoteResumenResponse;
@@ -21,24 +22,19 @@ import co.edu.unbosque.backend.service.VentaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Controlador REST para operaciones del módulo de ventas.
- *
- * @author Sebastian Cardenas Garcia
  */
 @RestController
 @RequestMapping("/api/ventas")
@@ -53,9 +49,6 @@ public class VentaController {
         this.facturaService = facturaService;
     }
 
-    /**
-     * Registra una venta completa.
-     */
     @PostMapping
     @Operation(summary = "Registrar venta")
     public ResponseEntity<VentaResponse> registrarVenta(@Valid @RequestBody CrearVentaRequest request) {
@@ -63,13 +56,29 @@ public class VentaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toVentaResponse(ventaGuardada));
     }
 
-    /**
-     * Consulta una venta con su detalle completo.
-     */
     @GetMapping("/{id}")
     @Operation(summary = "Consultar venta por id")
     public ResponseEntity<VentaResponse> obtenerVenta(@PathVariable Long id) {
         return ResponseEntity.ok(toVentaResponse(ventaService.obtenerVentaDetallada(id)));
+    }
+
+    /**
+     * Lista el histórico de ventas con filtros opcionales
+     */
+    @GetMapping("/historico")
+    @Operation(summary = "Consultar histórico de ventas")
+    public ResponseEntity<List<VentaResponse>> consultarHistorico(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
+            @RequestParam(required = false) Long idVendedor,
+            @RequestParam(required = false) String estado,
+            @RequestHeader("X-Username") String username
+    ) {
+        LocalDateTime inicio = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
+        LocalDateTime fin = fechaFin != null ? fechaFin.atTime(23, 59, 59) : null;
+        HistoricoFiltroRequest filtros = new HistoricoFiltroRequest(inicio, fin, idVendedor, estado);
+        List<Venta> ventas = ventaService.consultarHistorico(filtros, username);
+        return ResponseEntity.ok(ventas.stream().map(this::toVentaResponse).toList());
     }
 
     /**
@@ -86,19 +95,14 @@ public class VentaController {
                 .body(pdf);
     }
 
-    /**
-     * Anula una venta existente.
-     */
     @PatchMapping("/{id}/anular")
     @Operation(summary = "Anular venta")
     public ResponseEntity<VentaResponse> anularVenta(
             @PathVariable Long id,
             @Valid @RequestBody AnularVentaRequest request
     ) {
-       return ResponseEntity.ok(toVentaResponse(
-            ventaService.eliminarVenta(id, request)
-    ));
-}
+        return ResponseEntity.ok(toVentaResponse(ventaService.eliminarVenta(id, request)));
+    }
 
     private VentaResponse toVentaResponse(Venta venta) {
         return new VentaResponse(
@@ -174,9 +178,7 @@ public class VentaController {
     }
 
     private CategoriaResponse toCategoriaResponse(Categoria categoria) {
-        if (categoria == null) {
-            return null;
-        }
+        if (categoria == null) return null;
         return new CategoriaResponse(
                 categoria.getIdCategoria(),
                 categoria.getNombre(),

@@ -33,6 +33,7 @@ export class VentaService {
   obtenerLotesDisponibles(productoId: number): Observable<any[]> {
   return this.http.get<any[]>(`${this.api}/inventario/productos/${productoId}/lotes-disponibles`);
 }
+
 consultarHistorico(
   fechaInicio?: string,
   fechaFin?: string,
@@ -51,4 +52,11 @@ consultarHistorico(
     headers: { 'X-Username': username }
   });
 }
+obtenerPrevisualizacion(proveedorId: number): Observable<any> {
+    return this.http.get(`${this.api}/previsualizar/${proveedorId}`);
+  }
+
+  confirmarPedidoFinal(datosOrden: any): Observable<any> {
+    return this.http.post(`${this.api}/confirmar`, datosOrden);
+  }
 }

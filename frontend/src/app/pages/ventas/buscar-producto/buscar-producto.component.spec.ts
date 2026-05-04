@@ -1,78 +1,23 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { BuscarProductoComponent } from './buscar-producto.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
-@Component({
-  selector: 'app-buscar-producto',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './buscar-producto.component.html',
-  styleUrl: './buscar-producto.component.css'
-})
-export class BuscarProductoComponent {
+describe('BuscarProductoComponent', () => {
+  let component: BuscarProductoComponent;
+  let fixture: ComponentFixture<BuscarProductoComponent>;
 
-  criterio: string = 'nombre';
-  busqueda: string = '';
-  productos: any[] = [];
-  productosEnVenta: any[] = [];
-  sinResultados: boolean = false;
-  errorLote: string = '';
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [BuscarProductoComponent, RouterTestingModule, HttpClientTestingModule]
+    }).compileComponents();
 
-  constructor(private ventaService: VentaService, private router: Router) {}
+    fixture = TestBed.createComponent(BuscarProductoComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
 
-  buscar() {
-    if (!this.busqueda.trim()) {
-      this.productos = [];
-      this.sinResultados = false;
-      return;
-    }
-    this.ventaService.buscarProductos(this.busqueda, this.criterio).subscribe({
-      next: (data) => {
-        this.productos = data;
-        this.sinResultados = data.length === 0;
-      },
-      error: () => {
-        this.productos = [];
-        this.sinResultados = true;
-      }
-    });
-  }
-
-  agregarProducto(producto: any) {
-    const existente = this.productosEnVenta.find(p => p.id === producto.id);
-    if (existente) {
-      existente.cantidad++;
-      return;
-    }
-
-    this.errorLote = '';
-    this.ventaService.obtenerLotesDisponibles(producto.id).subscribe({
-      next: (lotes) => {
-        if (!lotes || lotes.length === 0) {
-          this.errorLote = `"${producto.nombre}" no tiene lotes disponibles`;
-          return;
-        }
-        this.productosEnVenta.push({
-          ...producto,
-          cantidad: 1,
-          loteId: lotes[0].idLote,
-          numeroLote: lotes[0].numeroLote
-        });
-      },
-      error: () => {
-        this.errorLote = `No se pudo obtener el lote de "${producto.nombre}"`;
-      }
-    });
-  }
-
-  irARegistrarVenta() {
-    sessionStorage.setItem('productosVenta', JSON.stringify(this.productosEnVenta));
-    this.router.navigate(['/ventas/registrar']);
-  }
-
-  get totalSeleccionados(): number {
-    return this.productosEnVenta.reduce((acc, p) => acc + p.cantidad, 0);
-  }
-}
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

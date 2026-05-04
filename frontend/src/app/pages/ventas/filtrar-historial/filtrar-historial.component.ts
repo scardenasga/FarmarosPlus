@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VentaService } from '../../../services/venta.service';
-// IMPORTA EL NUEVO COMPONENTE
 import { InputFechaComponent } from '../../../shared/components/filtro-fecha/filtro-fecha.component';
 
 @Component({

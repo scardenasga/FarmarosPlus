@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Controlador REST para operaciones de órdenes de compra.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @RestController
 @RequestMapping("/api/ordenes-compra")

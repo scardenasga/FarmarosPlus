@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { VentaService } from '../../../services/venta.service';
-import { BotonNuevoRegistroComponent } from '../../../shared/components/boton-nuevo-registro/boton-nuevo-registro.component';
-import { BotonFiltroComponent } from '../../../shared/components/boton-filtro/boton-filtro.component';
-import { EstadoVentaComponent } from '../../../shared/components/estado-venta/estado-venta.component';
+import { BotonNuevoRegistroComponent } from '../../../shared/boton-nuevo-registro/boton-nuevo-registro.component';
+import { BotonFiltroComponent } from '../../../shared/boton-filtro/boton-filtro.component';
+import { EstadoVentaComponent } from '../../../shared/estado-venta/estado-venta.component';
 
 @Component({
   selector: 'app-historial-ventas', 
