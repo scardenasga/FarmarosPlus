@@ -17,13 +17,32 @@
   padding: var(--space-l);
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
+  gap: var(--space-l);
 }
 
 form {
   display: flex;
   flex-direction: column;
+  gap: var(--space-l);
+}
+
+.section-card {
+  background-color: var(--surface-container);
+  border-radius: var(--radius-l);
+  padding: var(--space-l);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-m);
+  box-shadow: var(--shadow-1);
+}
+
+.section-title {
+  font-size: 12px;
+  color: var(--outline);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: var(--space-xs);
 }
 
 .row {
@@ -34,19 +53,18 @@ form {
 .form-group-switch {
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
-  margin-top: var(--space-m);
+  gap: var(--space-m);
 }
 
 .switch-group {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--surface-container);
-  border: 1px solid var(--on-surface);
-  border-radius: 20px;
-  padding: var(--space-s) var(--space-l);
-  min-height: 48px;
+  background-color: var(--surface-container-low);
+  border: 1px dashed var(--outline);
+  border-radius: var(--radius-m);
+  padding: var(--space-m);
+  min-height: 56px;
 }
 
 .switch-group label {
