@@ -58,8 +58,15 @@ public class Producto extends Auditable {
      * Porcentaje de IVA aplicable al producto.
      * Medicamentos: 0.0 — Cosméticos/otros: 19.0
      */
-    @Column(name = "porcentaje_iva", nullable = false)
+    @Column(name = "porcentaje_iva", nullable = true)
     private Double porcentajeIva = 0.0;
+
+    /**
+     * Indica si el producto requiere prescripción médica.
+     * true = requiere prescripción | false = no requiere
+     */
+    @Column(name = "requiere_prescripcion", nullable = true)
+    private Boolean requierePrescripcion = false;
 
     /**
      * Valores válidos: ACTIVO | INACTIVO | DESCONTINUADO

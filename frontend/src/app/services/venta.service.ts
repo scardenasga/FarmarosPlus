@@ -33,4 +33,22 @@ export class VentaService {
   obtenerLotesDisponibles(productoId: number): Observable<any[]> {
   return this.http.get<any[]>(`${this.api}/inventario/productos/${productoId}/lotes-disponibles`);
 }
+consultarHistorico(
+  fechaInicio?: string,
+  fechaFin?: string,
+  idVendedor?: number,
+  estado?: string,
+  username: string = 'admin'
+): Observable<any[]> {
+  let params: any = {};
+  if (fechaInicio) params.fechaInicio = fechaInicio;
+  if (fechaFin) params.fechaFin = fechaFin;
+  if (idVendedor) params.idVendedor = idVendedor;
+  if (estado) params.estado = estado;
+
+  return this.http.get<any[]>(`${this.api}/ventas/historico`, {
+    params,
+    headers: { 'X-Username': username }
+  });
+}
 }
