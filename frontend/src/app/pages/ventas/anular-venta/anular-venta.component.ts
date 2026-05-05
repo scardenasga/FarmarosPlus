@@ -19,8 +19,7 @@ export class AnularVentaComponent implements OnInit {
   cargando: boolean = false;
   cargandoVenta: boolean = true;
   error: string = '';
-  usuarioId: number = 1; // luego viene del login
-
+  usuarioId: number = 1;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -60,7 +59,8 @@ export class AnularVentaComponent implements OnInit {
 
     this.ventaService.anularVenta(this.venta.idVenta, request).subscribe({
       next: () => {
-        this.router.navigate(['/ventas', this.venta.idVenta]);
+       
+        this.router.navigate(['/ventas/historial']);
       },
       error: (err) => {
         this.error = err.error?.message || 'Error al anular la venta';
@@ -71,9 +71,9 @@ export class AnularVentaComponent implements OnInit {
 
   cancelar() {
     if (this.venta?.idVenta) {
-      this.router.navigate(['/ventas', this.venta.idVenta]); // vuelve al detalle
+      this.router.navigate(['/ventas', this.venta.idVenta]); 
     } else {
-      this.router.navigate(['/ventas/buscar']); // si no cargó, va al inicio
+      this.router.navigate(['/ventas/historial']); 
     }
   }
 }

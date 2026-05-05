@@ -22,6 +22,11 @@ export class BuscarProductoComponent {
 
   constructor(private ventaService: VentaService, private router: Router) {}
 
+ 
+  volver() {
+    this.router.navigate(['/ventas/historial']);
+  }
+
   buscar() {
     if (!this.busqueda.trim()) {
       this.productos = [];
@@ -76,5 +81,28 @@ export class BuscarProductoComponent {
 
   get totalSeleccionados(): number {
     return this.productosEnVenta.reduce((acc, p) => acc + p.cantidad, 0);
+  }
+
+  estaEnVenta(producto: any): boolean {
+    return this.productosEnVenta.some(p => p.id === producto.id);
+  }
+
+  getCantidad(producto: any): number {
+    const p = this.productosEnVenta.find(p => p.id === producto.id);
+    return p ? p.cantidad : 0;
+  }
+
+  aumentarCantidad(producto: any) {
+    const p = this.productosEnVenta.find(p => p.id === producto.id);
+    if (p) p.cantidad++;
+  }
+
+  reducirCantidad(producto: any) {
+    const p = this.productosEnVenta.find(p => p.id === producto.id);
+    if (!p) return;
+    p.cantidad--;
+    if (p.cantidad <= 0) {
+      this.productosEnVenta = this.productosEnVenta.filter(x => x.id !== producto.id);
+    }
   }
 }

@@ -1,0 +1,105 @@
+/* Contenedor principal que simula la pantalla del móvil */
+.container {
+  position: relative;
+  background-color: #121814;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Encabezado */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #121814;
+}
+
+/* IMPORTANTE: Posicionamiento del nuevo componente de filtro */
+app-boton-filtro {
+  display: flex;
+  align-items: center;
+}
+
+.titulo {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+  flex: 1; /* Esto empuja el título para que el filtro quede a la derecha */
+  text-align: center;
+}
+
+/* Icono de volver */
+.btn-volver {
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Área de error o carga */
+.error-msg {
+  background-color: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  margin: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+/* Cuerpo de la lista con scroll */
+.contenido-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 120px;
+}
+
+.fecha-label {
+  color: #90f4d3;
+  padding: 15px 20px 5px;
+  font-weight: bold;
+}
+
+.conteo-label {
+  color: #a5b4ba;
+  padding: 0 20px 15px;
+  font-size: 0.9rem;
+}
+
+/* Tarjetas de venta blancas */
+.venta-card {
+  background-color: white;
+  margin: 0 15px 12px;
+  padding: 15px;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.venta-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.venta-card-mid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr auto;
+  font-size: 0.8rem;
+  color: #333;
+  align-items: center;
+}
+
+.venta-total {
+  font-weight: bold;
+  color: black;
+  font-size: 0.9rem;
+}

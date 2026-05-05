@@ -8,13 +8,14 @@ import { VentaService } from '../../../services/venta.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './detalle-venta.component.html',
-  styleUrl: './detalle-venta.component.css'
+  styleUrls: ['./detalle-venta.component.css']
 })
 export class DetalleVentaComponent implements OnInit {
 
   venta: any = null;
-  cargando: boolean = true;
-  error: string = '';
+  cargando = true;
+  error = '';
+  mostrarModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -30,23 +31,45 @@ export class DetalleVentaComponent implements OnInit {
           this.venta = data;
           this.cargando = false;
         },
-        error: () => {
-          this.error = 'No se encontró la venta';
+        error: (err) => {
+          console.error("Error cargando venta:", err);
+          this.error = 'No se encontró la información de la venta';
           this.cargando = false;
         }
       });
     }
   }
 
+  abrirModal() {
+    this.mostrarModal = true;
+  }
+
+  cerrarModal() {
+    this.mostrarModal = false;
+  }
+
   irAAnular() {
-    this.router.navigate(['/ventas', this.venta.id, 'anular']);
+    // Usamos el ID de la venta obtenido de los datos cargados
+    const ventaId = this.venta?.idVenta || this.venta?.id;
+    
+    if (!ventaId) {
+      alert("Error: No se puede identificar la venta.");
+      return;
+    }
+
+    this.cerrarModal();
+    // Navegación corregida para evitar el 404
+    // Asegúrate de que en tu app-routing esta sea la ruta correcta
+    this.router.navigate(['/ventas/anular', ventaId]);
   }
 
   volver() {
-    this.router.navigate(['/ventas/buscar']);
+    // Te regresa al historial/principal
+    this.router.navigate(['/ventas/historial']);
   }
 
   get esAdmin(): boolean {
-    return true; // luego se conecta con el login real
+    // Cambiar por tu lógica de permisos real si es necesario
+    return true; 
   }
 }

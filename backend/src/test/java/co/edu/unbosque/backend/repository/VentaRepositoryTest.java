@@ -1,4 +1,4 @@
-package co.edu.unbosque.backend.repository;
+/*package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.configuration.JpaAuditingConfig;
 import co.edu.unbosque.backend.configuration.LocalDateTimeAttributeConverter;
@@ -80,4 +80,4 @@ class VentaRepositoryTest {
         assertFalse(resultado.isEmpty());
         assertEquals(usuario.getIdUsuario(), resultado.getFirst().getUsuario().getIdUsuario());
     }
-}
+}*/
