@@ -253,3 +253,101 @@ CREATE INDEX idx_detalle_producto ON detalle_venta (id_producto);
 CREATE INDEX idx_detalle_lote   ON detalle_venta (id_lote);
 -- PAGO VENTA
 CREATE INDEX idx_pago_venta     ON pago_venta (id_venta);
+
+-- =====================================================
+-- TABLA: alerta (notificaciones del sistema, vida corta)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS alerta (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo             TEXT    NOT NULL,
+    titulo           TEXT    NOT NULL,
+    mensaje          TEXT    NOT NULL,
+    referencia       TEXT,
+    leida            INTEGER NOT NULL DEFAULT 0,
+    fecha_generacion TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+    fecha_expiracion TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_alerta_leida      ON alerta (leida);
+CREATE INDEX IF NOT EXISTS idx_alerta_referencia ON alerta (referencia);
+
+-- =====================================================
+-- TABLA: proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS proveedor (
+    id_proveedor  INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre        TEXT    NOT NULL UNIQUE,
+    nit           TEXT,
+    contacto      TEXT,
+    telefono      TEXT,
+    email         TEXT,
+    estado        TEXT    NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'INACTIVO')),
+    fecha_creacion TEXT   DEFAULT (datetime('now', 'localtime'))
+);
+
+-- =====================================================
+-- TABLA: devolucion_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS devolucion_proveedor (
+    id_devolucion       INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_proveedor        INTEGER NOT NULL,
+    fecha               TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+    usuario_responsable TEXT    NOT NULL,
+    motivo              TEXT,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedor (id_proveedor) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- =====================================================
+-- TABLA: detalle_devolucion_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS detalle_devolucion_proveedor (
+    id_detalle       INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_devolucion    INTEGER NOT NULL,
+    id_producto      INTEGER NOT NULL,
+    id_lote          INTEGER,
+    nombre_producto  TEXT    NOT NULL,
+    numero_lote      TEXT,
+    cantidad         INTEGER NOT NULL CHECK (cantidad > 0),
+    FOREIGN KEY (id_devolucion) REFERENCES devolucion_proveedor (id_devolucion) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_producto)   REFERENCES producto (UniqueID)                 ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (id_lote)       REFERENCES lote (id_lote)                      ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_devolucion_proveedor ON devolucion_proveedor (id_proveedor);
+CREATE INDEX IF NOT EXISTS idx_devolucion_fecha      ON devolucion_proveedor (fecha);
+CREATE INDEX IF NOT EXISTS idx_detalle_devolucion    ON detalle_devolucion_proveedor (id_devolucion);
+
+-- =====================================================
+-- TABLA: compra_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS compra_proveedor (
+    id_compra           INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_proveedor        INTEGER NOT NULL,
+    fecha_recepcion     TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+    usuario_responsable TEXT    NOT NULL,
+    numero_factura      TEXT,
+    total               REAL    NOT NULL DEFAULT 0,
+    notas               TEXT,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedor (id_proveedor)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- =====================================================
+-- TABLA: detalle_compra_proveedor
+-- =====================================================
+CREATE TABLE IF NOT EXISTS detalle_compra_proveedor (
+    id_detalle      INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_compra       INTEGER NOT NULL,
+    id_producto     INTEGER NOT NULL,
+    nombre_producto TEXT    NOT NULL,
+    cantidad        INTEGER NOT NULL CHECK (cantidad > 0),
+    precio_unitario REAL    NOT NULL CHECK (precio_unitario >= 0),
+    subtotal        REAL    NOT NULL,
+    FOREIGN KEY (id_compra)   REFERENCES compra_proveedor (id_compra)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto (UniqueID)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_compra_proveedor ON compra_proveedor (id_proveedor);
+CREATE INDEX IF NOT EXISTS idx_compra_fecha     ON compra_proveedor (fecha_recepcion);
+CREATE INDEX IF NOT EXISTS idx_detalle_compra   ON detalle_compra_proveedor (id_compra);

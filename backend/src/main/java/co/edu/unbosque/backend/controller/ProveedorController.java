@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,10 +26,12 @@ import java.util.List;
 /**
  * Controlador REST para operaciones de proveedores.
  *
+ * @author juanjo2748
  * @author Sebastian Cardenas Garcia
  */
 @RestController
 @RequestMapping("/api/proveedores")
+@CrossOrigin(origins = "*")
 @Tag(name = "Proveedores", description = "Operaciones de gestión de proveedores")
 public class ProveedorController {
 
@@ -38,6 +41,29 @@ public class ProveedorController {
         this.proveedorService = proveedorService;
     }
 
+    @GetMapping
+    @Operation(summary = "Listar proveedores activos")
+    public ResponseEntity<List<ProveedorResponse>> listar() {
+        return ResponseEntity.ok(proveedorService.listarActivos()
+                .stream().map(this::toResponse).toList());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener proveedor por id")
+    public ResponseEntity<ProveedorResponse> obtener(@PathVariable Long id) {
+        return ResponseEntity.ok(toResponse(proveedorService.obtenerPorId(id)));
+    }
+
+    @PostMapping
+    @Operation(summary = "Crear proveedor")
+    public ResponseEntity<ProveedorResponse> crear(@Valid @RequestBody CrearProveedorRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(toResponse(proveedorService.crear(request)));
+    }
+
+    private ProveedorResponse toResponse(Proveedor p) {
+        return new ProveedorResponse(p.getIdProveedor(), p.getNombre(), p.getNit(),
+                p.getContacto(), p.getTelefono(), p.getEmail(), p.getEstado());
     /**
      * Crea un nuevo proveedor.
      */

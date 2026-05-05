@@ -40,3 +40,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+.agents
+GEMINI.md
+skills-lock.json
+#decoracion.css
+#ventana.html
+

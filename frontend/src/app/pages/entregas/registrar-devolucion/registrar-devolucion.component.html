@@ -1,0 +1,134 @@
+<div class="container">
+
+  <div class="header">
+    <button class="btn-volver" (click)="volver()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+           fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+    <span class="titulo">Nueva devolución</span>
+  </div>
+
+  <div class="form-scroll">
+
+    <!-- Proveedor -->
+    <div class="seccion">
+      <label class="label-campo">Proveedor *</label>
+      <select class="select-campo" [(ngModel)]="idProveedorSeleccionado">
+        <option [ngValue]="null" disabled>Seleccionar proveedor...</option>
+        <option *ngFor="let p of proveedores" [ngValue]="p.id">{{ p.nombre }}</option>
+      </select>
+      <span *ngIf="!cargandoProveedores && proveedores.length === 0" class="hint-vacio">
+        No hay proveedores. Podés crearlos desde el módulo de proveedores.
+      </span>
+    </div>
+
+    <!-- Motivo -->
+    <div class="seccion">
+      <label class="label-campo">Motivo (opcional)</label>
+      <input type="text" class="input-campo" [(ngModel)]="motivo"
+             placeholder="Ej: Producto vencido, error de pedido..." maxlength="200"/>
+    </div>
+
+    <!-- Productos a devolver -->
+    <div class="seccion">
+      <div class="seccion-header">
+        <label class="label-campo">Productos a devolver *</label>
+        <button class="btn-agregar" (click)="abrirModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Agregar
+        </button>
+      </div>
+
+      <div *ngIf="items.length === 0" class="lista-vacia">
+        Aún no agregaste productos.
+      </div>
+
+      <div *ngFor="let item of items; let i = index" class="item-card">
+        <div class="item-info">
+          <span class="item-nombre">{{ item.nombreProducto }}</span>
+          <span class="item-lote">Lote: {{ item.numeroLote }}</span>
+        </div>
+        <div class="item-derecha">
+          <span class="item-cantidad">× {{ item.cantidad }}</span>
+          <button class="btn-quitar" (click)="quitarItem(i)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error general -->
+    <div *ngIf="error" class="msg-error">{{ error }}</div>
+
+    <!-- Botón enviar -->
+    <button class="btn-enviar" (click)="enviar()" [disabled]="!puedeEnviar()">
+      {{ enviando ? 'Registrando...' : 'Registrar devolución' }}
+    </button>
+
+  </div>
+</div>
+
+<!-- Modal buscar producto -->
+<div *ngIf="modalVisible" class="modal-overlay" (click)="cerrarModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <!-- Paso 1: buscar producto -->
+    <ng-container *ngIf="paso === 'buscar'">
+      <h2 class="modal-titulo">Buscar producto</h2>
+      <div class="busqueda-row">
+        <input type="text" [(ngModel)]="termino" placeholder="Nombre del producto..."
+               class="input-busqueda" (keyup.enter)="buscar()"/>
+        <button class="btn-buscar" (click)="buscar()">Buscar</button>
+      </div>
+      <div *ngIf="buscando" class="modal-info">Buscando...</div>
+      <div *ngIf="!buscando && resultados.length === 0 && termino" class="modal-info">
+        Sin resultados.
+      </div>
+      <div class="lista-resultados">
+        <div *ngFor="let prod of resultados" class="resultado-item" (click)="seleccionarProducto(prod)">
+          <span class="res-nombre">{{ prod.nombre }}</span>
+          <span class="res-stock">Stock: {{ prod.stockActual }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Paso 2: seleccionar lote y cantidad -->
+    <ng-container *ngIf="paso === 'lote'">
+      <h2 class="modal-titulo">{{ productoSeleccionado?.nombre }}</h2>
+
+      <div class="campo-modal">
+        <label>Lote *</label>
+        <div *ngFor="let l of lotes" class="lote-item"
+             [class.lote-activo]="idLoteSeleccionado === l.id"
+             (click)="idLoteSeleccionado = l.id">
+          <span class="lote-num">{{ l.numeroLote }}</span>
+          <span class="lote-info">Stock: {{ l.cantidad }} · Vence: {{ l.fechaVencimiento ?? 'S/F' }}</span>
+        </div>
+        <div *ngIf="lotes.length === 0" class="modal-info">Sin lotes disponibles.</div>
+      </div>
+
+      <div class="campo-modal">
+        <label>Cantidad *</label>
+        <input type="number" [(ngModel)]="cantidadModal" min="1" class="input-campo"/>
+      </div>
+
+      <div *ngIf="errorModal" class="form-error">{{ errorModal }}</div>
+
+      <div class="modal-acciones">
+        <button class="btn-cancelar" (click)="paso = 'buscar'">Atrás</button>
+        <button class="btn-guardar" (click)="agregarItem()">Agregar</button>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
