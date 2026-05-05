@@ -1,0 +1,11 @@
+<div class="contenedor-navegacion">
+  <div class="bloque-superior">
+    <button (click)="haciaAtras()" class="btn-flecha">
+      <span class="icono">‹</span> 
+    </button>
+    <div class="textos">
+      <h1 class="titulo-principal">{{ titulo }}</h1>
+      <p class="subtitulo-secundario" *ngIf="subtitulo">{{ subtitulo }}</p>
+    </div>
+  </div>
+</div>

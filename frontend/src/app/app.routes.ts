@@ -27,4 +27,5 @@ export const routes: Routes = [
   { path: 'compras/notificaciones', component: NotificacionPedidosComponent },
   { path: 'compras/previsualizar-orden', component: PrevisualizarOrdenComponent },
   { path: 'inventario', component: InventoryComponent },
+  { path: 'previsualizar-orden/:id', component: PrevisualizarOrdenComponent }
 ];

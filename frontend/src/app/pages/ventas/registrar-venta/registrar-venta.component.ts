@@ -3,11 +3,12 @@ import { CommonModule} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VentaService } from '../../../services/venta.service';
+import { BotonRetrocederComponent } from '../../../shared/components/boton-retroceder/boton-retroceder.component';
 
 @Component({
   selector: 'app-registrar-venta',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BotonRetrocederComponent],
   templateUrl: './registrar-venta.component.html',
   styleUrl: './registrar-venta.component.css'
 })

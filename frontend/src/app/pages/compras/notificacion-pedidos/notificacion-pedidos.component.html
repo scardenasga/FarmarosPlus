@@ -12,7 +12,11 @@
   </div>
 
   <div class="lista-alertas">
-    <div class="tarjeta-alerta" *ngFor="let item of alertasFiltradas">
+    <div class="tarjeta-alerta" 
+         *ngFor="let item of alertasFiltradas"
+         (click)="irAPrevisualizar(item.idOrden)"
+         style="cursor: pointer;">
+         
       <div class="fila-superior">
         <span class="id-pedido">{{ item.codigoGenerado }}</span>
         <span class="dias-cont" [class.urgente]="item.diasTranscurridos > 5">
@@ -34,6 +38,7 @@
       <p>No hay pedidos pendientes que coincidan.</p>
     </div>
   </div>
+
 
   <app-bottom-nav></app-bottom-nav>
 </div>

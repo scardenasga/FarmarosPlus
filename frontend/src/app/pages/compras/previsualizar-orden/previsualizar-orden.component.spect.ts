@@ -5,11 +5,12 @@ import { RouterModule } from '@angular/router'; // Añadido por si acaso
 import { CompraService } from '../../../services/compra.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
+import { BotonRetrocederComponent } from "../../../shared/components/boton-retroceder/boton-retroceder.component";
 
 @Component({
   selector: 'app-previsualizar-orden',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, SearchBarComponent, BottomNavComponent],
+  imports: [CommonModule, FormsModule, RouterModule, SearchBarComponent, BottomNavComponent, BotonRetrocederComponent],
   templateUrl: './previsualizar-orden.component.html',
   styleUrls: ['./previsualizar-orden.component.css'] // Verifica que el archivo CSS exista
 })

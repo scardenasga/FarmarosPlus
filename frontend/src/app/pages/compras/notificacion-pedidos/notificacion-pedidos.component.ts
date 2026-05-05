@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// Ruta corregida para llegar a app/services/compra.service.ts
+import { Route, Router } from '@angular/router'; // <--- 1. Importar Router
 import { CompraService } from '../../../services/compra.service'
 // Ruta corregida para llegar a app/shared/components/bottom-nav/...
 import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
@@ -26,10 +26,14 @@ export class NotificacionPedidosComponent implements OnInit {
   alertas: AlertaDetallada[] = [];
   alertasFiltradas: AlertaDetallada[] = [];
 
-  constructor(private compraService: CompraService) {}
+  constructor(private compraService: CompraService, private router: Router) {}
 
   ngOnInit(): void {
     this.cargarNotificaciones();
+  }
+  irAPrevisualizar(idOrden: number): void {
+    // Esto te lleva a /previsualizar-orden/123 (por ejemplo)
+    this.router.navigate(['/previsualizar-orden', idOrden]);
   }
 
   cargarNotificaciones(): void {
