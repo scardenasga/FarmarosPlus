@@ -320,6 +320,10 @@ CREATE TABLE devolucion_proveedor
     motivo_principal   TEXT NOT NULL CHECK (motivo_principal IN ('VENCIMIENTO', 'DANADO', 'DEFECTO', 'ERROR_DESPACHO', 'RETIRO_SANITARIO', 'OTRO')),
     estado             TEXT NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'ENVIADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA')),
     observaciones      TEXT,
+    fecha_creacion     TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    fecha_modificacion TEXT,
+    usuario_creacion   TEXT,
+    usuario_modificacion TEXT,
     FOREIGN KEY (id_proveedor) REFERENCES proveedor (id_proveedor)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
