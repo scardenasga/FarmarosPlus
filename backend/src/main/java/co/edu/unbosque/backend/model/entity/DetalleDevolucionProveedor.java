@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Línea de detalle de una devolución a proveedor.
+ * Guarda snapshot de nombre y número de lote para trazabilidad.
+ *
  * Detalle de una devolución al proveedor.
  * Especifica qué productos y cantidades se devuelven de un recibo.
  *
