@@ -7,14 +7,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Repositorio de acceso a datos para {@link Proveedor}.
- *
- * @author juanjo2748
+ * Repositorio JPA para la entidad Proveedor.
  */
 @Repository
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
-
-    List<Proveedor> findByEstadoOrderByNombreAsc(String estado);
-
     boolean existsByNombreIgnoreCase(String nombre);
+    List<Proveedor> findByEstadoOrderByNombreAsc(String estado);
 }

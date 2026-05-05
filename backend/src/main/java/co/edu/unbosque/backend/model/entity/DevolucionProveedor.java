@@ -3,23 +3,24 @@ package co.edu.unbosque.backend.model.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Cabecera de una devolución de productos a proveedor.
+ * Entidad que registra devoluciones de productos al proveedor.
+ * Vincula una recepción y especifica motivos y tipo de devolución.
  *
- * @author juanjo2748
+ * @author Sebastian Cardenas Garcia
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "devolucion_proveedor")
-public class DevolucionProveedor {
+public class DevolucionProveedor extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +32,37 @@ public class DevolucionProveedor {
             foreignKey = @ForeignKey(name = "fk_devolucion_proveedor"))
     private Proveedor proveedor;
 
-    @Column(name = "fecha", nullable = false)
-    private LocalDateTime fecha;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_recepcion", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_devolucion_recepcion"))
+    private RecepcionCompra recepcion;
 
-    @Column(name = "usuario_responsable", nullable = false)
-    private String usuarioResponsable;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_usuario", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_devolucion_usuario"))
+    private Usuario usuario;
 
-    @Column(name = "motivo")
-    private String motivo;
+    @Column(name = "fecha_devolucion", nullable = false)
+    private LocalDateTime fechaDevolucion;
 
-    @OneToMany(mappedBy = "devolucion", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetalleDevolucionProveedor> detalles = new ArrayList<>();
+    /**
+     * Valores válidos: INMEDIATA_RECEPCION | POSTERIOR
+     */
+    @Column(name = "tipo_devolucion", nullable = false)
+    private String tipoDevolucion;
+
+    /**
+     * Valores válidos: VENCIMIENTO | DANADO | DEFECTO | ERROR_DESPACHO | RETIRO_SANITARIO | OTRO
+     */
+    @Column(name = "motivo_principal", nullable = false)
+    private String motivoPrincipal;
+
+    /**
+     * Valores válidos: PENDIENTE | ENVIADA | ACEPTADA | RECHAZADA | CERRADA
+     */
+    @Column(name = "estado", nullable = false)
+    private String estado = "PENDIENTE";
+
+    @Column(name = "observaciones")
+    private String observaciones;
 }

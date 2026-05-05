@@ -1,23 +1,23 @@
 package co.edu.unbosque.backend.model.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 /**
- * Solicitud para crear un proveedor.
- *
- * @param nombre   nombre único del proveedor
- * @param nit      NIT (opcional)
- * @param contacto persona de contacto (opcional)
- * @param telefono teléfono (opcional)
- * @param email    correo electrónico (opcional)
- * @author juanjo2748
+ * DTO para crear un nuevo proveedor.
  */
 public record CrearProveedorRequest(
         @NotBlank(message = "El nombre del proveedor es obligatorio")
         String nombre,
+
         String nit,
-        String contacto,
+
         String telefono,
-        String email
+
+        String email,
+
+        String contacto,
+
+        String condicionPago
 ) {
 }

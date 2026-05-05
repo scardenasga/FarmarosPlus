@@ -86,6 +86,21 @@ public class ApiExceptionHandler {
     }
 
     /**
+     * Maneja errores de lectura de mensaje (JSON mal formado, tipos de datos incompatibles).
+     */
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadable(
+            org.springframework.http.converter.HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        String message = "La solicitud JSON es ilegible o tiene un formato incorrecto";
+        if (ex.getMessage() != null && ex.getMessage().contains("java.time.LocalDateTime")) {
+            message = "Formato de fecha-hora inválido. Use el formato ISO (ej: 2026-05-01T14:30:00)";
+        }
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request.getRequestURI());
+    }
+
+    /**
      * Maneja errores no controlados.
      */
     @ExceptionHandler(Exception.class)

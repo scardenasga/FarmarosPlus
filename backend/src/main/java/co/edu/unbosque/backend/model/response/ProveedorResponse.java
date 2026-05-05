@@ -1,17 +1,20 @@
 package co.edu.unbosque.backend.model.response;
 
+import java.time.LocalDateTime;
+
 /**
  * DTO de salida para proveedores.
- *
- * @author juanjo2748
  */
 public record ProveedorResponse(
-        Long id,
+        Long idProveedor,
         String nombre,
         String nit,
-        String contacto,
         String telefono,
         String email,
-        String estado
+        String contacto,
+        String estado,
+        String condicionPago,
+        LocalDateTime fechaCreacion,
+        LocalDateTime fechaModificacion
 ) {
 }
