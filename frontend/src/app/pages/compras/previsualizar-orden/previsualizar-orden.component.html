@@ -1,0 +1,61 @@
+<div class="main-container dark-theme">
+  <header class="header-vistas">
+    <h1>Orden De Compra</h1>
+    <p class="proveedor-txt">Proveedor: <span>{{ nombreProveedor }}</span></p>
+  </header>
+
+  <div class="buscador-seccion">
+    <app-search-bar (search)="onSearch($event)" [placeholder]="'Filtrar productos...'"></app-search-bar>
+  </div>
+  
+
+  <div class="contenido-orden">
+    <table class="tabla-compacta">
+      <thead>
+        <tr>
+          <th>PRODUCTO</th>
+          <th class="text-center">CANT.</th>
+          <th class="text-right">SUBTOTAL</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of productosFiltrados; let i = index">
+          <td>
+            
+            <div class="prod-info">
+              <span class="nombre">{{ item.nombreProducto }}</span>
+              <span class="motivo">{{ item.justificacion }}</span>
+            </div>
+          </td>
+          <td class="text-center">
+            <!-- MODIFICAR: El admin puede cambiar este número -->
+            <input type="number" class="input-mini" [(ngModel)]="item.cantidadSugerida" (ngModelChange)="calcularTotal()">
+          </td>
+          <td class="text-right valor">{{ (item.cantidadSugerida * item.costo) | currency }}</td>
+          <td class="text-center">
+            <!-- ELIMINAR: Icono de basura -->
+            <button class="btn-delete" (click)="eliminarProducto(i)">🗑</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+  <div class="footer-fijo-contenedor">
+    <div class="card-resumen">
+      <div class="fila-total">
+        <span class="txt-estimado">Total Estimado</span>
+        <span class="monto-total">{{ total | currency }}</span>
+      </div>
+      <button class="btn-confirmar-premium" (click)="confirmarOrdenCompleta()" [disabled]="total <= 0">
+        CONFIRMAR ORDEN
+      </button>
+    </div>
+  </div>
+
+  <div class="nav-blanca-fija">
+    <app-bottom-nav></app-bottom-nav>
+  </div>
+</div>

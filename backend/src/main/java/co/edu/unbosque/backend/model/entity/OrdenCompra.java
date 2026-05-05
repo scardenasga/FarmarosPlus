@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
  * Agrupa detalles pedidos, total esperado y estado.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Data
 @NoArgsConstructor

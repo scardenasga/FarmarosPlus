@@ -14,7 +14,7 @@ import { EstadoVentaComponent } from '../../../shared/estado-venta/estado-venta.
     RouterModule, 
     BotonNuevoRegistroComponent, 
     BotonFiltroComponent, 
-    EstadoVentaComponent // Ya está importado correctamente aquí
+    EstadoVentaComponent 
   ],
   templateUrl: './historial-ventas.component.html',
   styleUrl: './historial-ventas.component.css'

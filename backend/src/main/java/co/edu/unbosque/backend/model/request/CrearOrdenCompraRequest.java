@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 /**
  * DTO para crear una orden de compra.
+ * @author Angie Tatiana Ortiz
  */
 public record CrearOrdenCompraRequest(
         @NotNull(message = "El id del proveedor es obligatorio")

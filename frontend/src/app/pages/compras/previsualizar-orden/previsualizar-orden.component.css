@@ -1,0 +1,142 @@
+.dark-theme {
+  background-color: #000;
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.header-vistas { padding: 15px 20px 5px; }
+.header-vistas h1 { font-size: 1.2rem; margin: 0; font-weight: bold; }
+.proveedor-txt { font-size: 0.85rem; color: #888; margin: 0; }
+
+.buscador-seccion { padding: 10px 15px; }
+
+
+.contenido-orden {
+  padding: 0 15px;
+  padding-bottom: 220px; 
+}
+
+.tabla-compacta {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tabla-compacta th {
+  color: #555;
+  font-size: 0.7rem;
+  padding: 10px 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla-compacta td {
+  padding: 12px 5px;
+  border-bottom: 1px solid #1a1a1a;
+  vertical-align: middle;
+}
+
+.prod-info .nombre {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prod-info .motivo {
+  font-size: 0.7rem;
+  color: #666;
+  line-height: 1.2;
+}
+
+/* Inputs y Valores */
+.input-mini {
+  width: 45px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 0;
+  font-weight: bold;
+}
+
+.valor {
+  font-size: 0.9rem;
+  color: #22c55e; 
+  font-weight: bold;
+}
+
+
+.footer-fijo-contenedor {
+  position: fixed;
+  bottom: 100px;    
+  left: 38%;         
+  width: 85%;        
+  max-width: 380px;  
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-resumen {
+  background-color: #121212; 
+  padding: 20px;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+  border-top: 1px solid #1f1f1f;
+}
+
+.fila-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 0 5px;
+}
+
+.txt-estimado {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.monto-total {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.btn-confirmar-premium {
+  width: 80%;
+  padding: 14px;
+  background-color: #1b5e20; 
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-confirmar-premium:active {
+  background-color: #2e7d32;
+  transform: scale(0.98);
+}
+
+/* Barra de navegación blanca al final */
+.bottom-nav-fix {
+  background-color: #fff;
+  width: 100%;
+  padding-top: 5px;
+}
+
+/* Helpers */
+.text-center { text-align: center; }
+.text-right { text-align: right; }

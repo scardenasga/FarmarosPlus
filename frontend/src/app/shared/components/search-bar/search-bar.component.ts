@@ -1,10 +1,11 @@
+import { CommonModule } from '@angular/common';
 import { Component, input, output, OnInit, OnDestroy } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './search-bar.component.html',
 styleUrl: './search-bar.component.css'
 })

@@ -5,9 +5,11 @@ import co.edu.unbosque.backend.model.entity.OrdenCompra;
 import co.edu.unbosque.backend.model.request.AgregarDetalleOrdenRequest;
 import co.edu.unbosque.backend.model.request.CrearOrdenCompraRequest;
 import co.edu.unbosque.backend.model.response.DetalleOrdenCompraResponse;
+import co.edu.unbosque.backend.model.response.OrdenCompraPreviewResponse;
 import co.edu.unbosque.backend.model.response.OrdenCompraResponse;
 import co.edu.unbosque.backend.model.response.OrdenCompraResumenResponse;
 import co.edu.unbosque.backend.model.response.ProveedorResponse;
+import co.edu.unbosque.backend.model.response.ResumenAlertasComprasResponse;
 import co.edu.unbosque.backend.model.response.UsuarioResumenResponse;
 import co.edu.unbosque.backend.service.OrdenCompraService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,11 +27,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 /**
  * Controlador REST para operaciones de órdenes de compra.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @RestController
 @RequestMapping("/api/ordenes-compra")
@@ -113,6 +118,14 @@ public class OrdenCompraController {
     }
 
     /**
+     * Enpoint para obtener el resumen de seguimiento y alertas de compras.
+     */
+   @GetMapping("/resumen-seguimiento")
+    public ResponseEntity<ResumenAlertasComprasResponse> getResumenSeguimiento() {
+        return ResponseEntity.ok(ordenCompraService.obtenerResumenAlertasSeguimiento());
+    }
+
+    /**
      * Lista órdenes de compra pendientes.
      */
     @GetMapping("/pendientes")
@@ -155,6 +168,18 @@ public class OrdenCompraController {
                         .toList()
         );
     }
+
+    @GetMapping("/previsualizar-propuesta/{idProveedor}") // 1. Asegúrate que aquí diga idProveedor
+@Operation(summary = "Previsualizar orden de compra")
+public ResponseEntity<OrdenCompraPreviewResponse> previsualizarOrden(
+    @PathVariable("idProveedor") Long idProveedor) { // 2. IMPORTANTE: Pon "idProveedor" dentro del paréntesis
+    return ResponseEntity.ok(ordenCompraService.generarPrevisualizacion(idProveedor));
+}
+
+    public String getMethodName(@RequestParam String param) {
+        return new String();
+    }
+    
 
     private OrdenCompraResponse toOrdenCompraResponse(OrdenCompra orden) {
         return new OrdenCompraResponse(
@@ -232,4 +257,6 @@ public class OrdenCompraController {
                 usuario.getEstado()
         );
     }
+
+    
 }

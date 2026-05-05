@@ -52,4 +52,11 @@ consultarHistorico(
     headers: { 'X-Username': username }
   });
 }
+obtenerPrevisualizacion(proveedorId: number): Observable<any> {
+    return this.http.get(`${this.api}/previsualizar/${proveedorId}`);
+  }
+
+  confirmarPedidoFinal(datosOrden: any): Observable<any> {
+    return this.http.post(`${this.api}/confirmar`, datosOrden);
+  }
 }

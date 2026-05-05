@@ -9,6 +9,8 @@ import co.edu.unbosque.backend.model.entity.Proveedor;
 import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.request.AgregarDetalleOrdenRequest;
 import co.edu.unbosque.backend.model.request.CrearOrdenCompraRequest;
+import co.edu.unbosque.backend.model.response.OrdenCompraPreviewResponse;
+import co.edu.unbosque.backend.model.response.ResumenAlertasComprasResponse;
 import co.edu.unbosque.backend.repository.DetalleOrdenCompraRepository;
 import co.edu.unbosque.backend.repository.OrdenCompraRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
@@ -18,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Servicio de aplicación para gestión de órdenes de compra.
@@ -77,6 +82,8 @@ public class OrdenCompraService {
 
         return ordenCompraRepository.save(orden);
     }
+
+    
 
     @Transactional
     public DetalleOrdenCompra agregarDetalleOrden(Long ordenId, AgregarDetalleOrdenRequest request) {
@@ -159,4 +166,65 @@ public class OrdenCompraService {
             throw new BusinessException("El precio unitario pactado debe ser mayor a cero");
         }
     }
+
+
+/**
+ * Obtiene el resumen de alertas de seguimiento para el módulo de compras.
+ * 
+ */
+@Transactional(readOnly = true)
+public ResumenAlertasComprasResponse obtenerResumenAlertasSeguimiento() {
+    // 1. Buscamos todas las órdenes (usando el repository de Sebastián)
+    List<OrdenCompra> todasLasOrdenes = ordenCompraRepository.findAll();
+    LocalDateTime ahora = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    // Calculamos los contadores superiores
+    long total = todasLasOrdenes.size();
+    long pendientesCount = todasLasOrdenes.stream().filter(o -> "PENDIENTE".equals(o.getEstado())).count();
+    long vencidasCount = todasLasOrdenes.stream().filter(o -> "NO_RECIBIDA".equals(o.getEstado())).count();
+
+    // Creamos la lista detallada de alertas (tu bloque de código corregido)
+    List<ResumenAlertasComprasResponse.AlertaOrdenDetalle> alertas = todasLasOrdenes.stream()
+        .filter(o -> "PENDIENTE".equals(o.getEstado()) || "NO_RECIBIDA".equals(o.getEstado())) 
+        .map(o -> {
+            long dias = ChronoUnit.DAYS.between(o.getFechaPedido(), ahora);
+            String codigo = "OC-" + o.getFechaPedido().getYear() + "-" + String.format("%03d", o.getIdOrden());
+
+            return new ResumenAlertasComprasResponse.AlertaOrdenDetalle(
+                o.getIdOrden(),
+                codigo,
+                o.getProveedor().getNombre(), 
+                o.getEstado(),
+                o.getFechaPedido().format(formatter),
+                dias
+            );
+        })
+        .collect(Collectors.toList());
+
+    // Retornamos el DTO estructurado
+    return new ResumenAlertasComprasResponse(total, pendientesCount, vencidasCount, alertas);
+}
+@Transactional(readOnly = true)
+public OrdenCompraPreviewResponse generarPrevisualizacion(Long proveedorId) {
+    Proveedor prov = proveedorRepository.findById(proveedorId)
+            .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado"));
+
+    // Lógica de recomendación: Productos con stock bajo
+    List<OrdenCompraPreviewResponse.ItemPreview> itemsSugeridos = productoRepository.findAll().stream()
+            .filter(p -> "ACTIVO".equals(p.getEstado()) && p.getStockActual() <= p.getStockMinimo())
+            .map(p -> new OrdenCompraPreviewResponse.ItemPreview(
+                p.getUniqueID(),
+                p.getNombre(),
+                (p.getStockMinimo() * 2) - p.getStockActual(), // Cantidad sugerida
+                p.getCosto(),
+                ((p.getStockMinimo() * 2) - p.getStockActual()) * p.getCosto(),
+                "Recomendación automática por stock bajo"
+            )).toList();
+
+    Double total = itemsSugeridos.stream().mapToDouble(OrdenCompraPreviewResponse.ItemPreview::subtotal).sum();
+
+    return new OrdenCompraPreviewResponse(prov.getIdProveedor(), prov.getNombre(), itemsSugeridos, total);
+}
+
 }

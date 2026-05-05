@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * Repositorio JPA para la entidad OrdenCompra.
+ * @author Angie Tatiana Ortiz
  */
 @Repository
 public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> {
