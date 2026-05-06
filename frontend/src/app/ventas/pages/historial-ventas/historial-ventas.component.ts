@@ -2,10 +2,11 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { VentaService } from '../../services/venta.service';
-import { BotonFiltroComponent } from '../../../shared/components/boton-filtro/boton-filtro.component';
+import { FilterButtonComponent } from '../../../shared/components/filter-button/filter-button.component';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { VentaListComponent } from '../../components/venta-list/venta-list.component';
+import { SalesFilterComponent, SalesFilterOptions } from '../../components/sales-filter/sales-filter.component';
 
 @Component({
   selector: 'app-historial-ventas',
@@ -13,10 +14,11 @@ import { VentaListComponent } from '../../components/venta-list/venta-list.compo
   imports: [
     CommonModule,
     RouterModule,
-    BotonFiltroComponent,
+    FilterButtonComponent,
     FabButtonComponent,
     TopBarComponent,
-    VentaListComponent
+    VentaListComponent,
+    SalesFilterComponent
   ],
   templateUrl: './historial-ventas.component.html',
   styleUrl: './historial-ventas.component.css'
@@ -28,8 +30,10 @@ export class HistorialVentasComponent implements OnInit {
   ventas = signal<any[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
+  isFilterVisible = signal<boolean>(false);
 
   ventasAgrupadas = computed(() => {
+    // ... logic unchanged
     const mapa = new Map<string, any[]>();
     for (const v of this.ventas()) {
       const fechaObj = new Date(v.fecha);
@@ -47,9 +51,9 @@ export class HistorialVentasComponent implements OnInit {
     this.loadHistory();
   }
 
-  loadHistory() {
+  loadHistory(inicio?: string, fin?: string, vendedor?: string) {
     this.isLoading.set(true);
-    this.ventaService.consultarHistorico(undefined, undefined, undefined, undefined, 'admin').subscribe({
+    this.ventaService.consultarHistorico(inicio, fin, undefined, undefined, 'admin').subscribe({
       next: (data) => {
         if (data.length > 0) {
           data[0].estado = 'COMPLETADA';
@@ -57,7 +61,17 @@ export class HistorialVentasComponent implements OnInit {
             data[1].estado = 'ANULADA';
           }
         }
-        this.ventas.set(data);
+
+        // Filtrado local por vendedor si es necesario (el servicio parece no filtrarlo por defecto según FiltrarHistorial original)
+        let filtered = data;
+        if (vendedor) {
+          const v = vendedor.toLowerCase();
+          filtered = data.filter((sale: any) =>
+            sale.vendedorNombre?.toLowerCase().includes(v)
+          );
+        }
+
+        this.ventas.set(filtered);
         this.isLoading.set(false);
       },
       error: () => {
@@ -67,17 +81,24 @@ export class HistorialVentasComponent implements OnInit {
     });
   }
 
-  verDetalle(id: number) {
-    this.router.navigate(['/ventas', id]);
+  handleFilterApply(options: SalesFilterOptions) {
+    const inicio = options.fechaInicio ? `${options.fechaInicio}T00:00:00` : undefined;
+    const fin = options.fechaFin ? `${options.fechaFin}T23:59:59` : undefined;
+    this.loadHistory(inicio, fin, options.vendedor || undefined);
   }
 
-  irAFiltrar() {
-    this.router.navigate(['/ventas/historial/filtrar']);
+  toggleFilter() {
+    this.isFilterVisible.update(v => !v);
+  }
+
+  verDetalle(id: number) {
+    this.router.navigate(['/ventas', id]);
   }
 
   volver() {
     this.router.navigate(['/home']);
   }
+// ... rest of methods
 
   handleNotification() {
     console.log("Mostrando Notificaciones.");

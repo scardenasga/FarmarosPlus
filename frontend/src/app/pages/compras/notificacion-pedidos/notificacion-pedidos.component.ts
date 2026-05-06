@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 // Ruta corregida para llegar a app/services/compra.service.ts
 import { CompraService } from '../../../ventas/services/compra.service'
 // Ruta corregida para llegar a app/shared/components/bottom-nav/...
-import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
+import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 
 interface AlertaDetallada {
@@ -18,7 +18,7 @@ interface AlertaDetallada {
 @Component({
   selector: 'app-notificacion-pedidos',
   standalone: true,
-  imports: [CommonModule, BottomNavComponent, SearchBarComponent],
+  imports: [CommonModule, BottomNavBarComponent, SearchBarComponent],
   templateUrl: './notificacion-pedidos.component.html',
   styleUrl: './notificacion-pedidos.component.css'
 })

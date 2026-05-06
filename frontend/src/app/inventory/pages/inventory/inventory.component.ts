@@ -6,6 +6,7 @@ import { FabButtonComponent } from '../../../shared/components/fab-button/fab-bu
 import { InventorySearchComponent } from '../../components/inventory-search/inventory-search.component';
 import { InventorySummaryComponent } from '../../components/inventory-summary/inventory-summary.component';
 import { ProductListComponent } from '../../components/product-list/product-list.component';
+import { InventoryFilterComponent, InventoryFilterOptions } from '../../components/inventory-filter/inventory-filter.component';
 import { Product } from '../../models/product.model';
 
 @Component({
@@ -16,7 +17,8 @@ import { Product } from '../../models/product.model';
     FabButtonComponent,
     InventorySearchComponent,
     InventorySummaryComponent,
-    ProductListComponent
+    ProductListComponent,
+    InventoryFilterComponent
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css'
@@ -29,35 +31,66 @@ export class InventoryComponent {
     { id: 3, name: 'Amoxicilina 500mg', price: 15000, stock: 40, unit: 'und.', category: 'Cápsula', trend: 2.1 },
     { id: 4, name: 'Loratadina 10mg', price: 5000, stock: 50, unit: 'und.', category: 'Tableta', trend: 0.0 },
     { id: 5, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-   /*
-    { id: 6, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 7, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 8, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 9, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 10, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 11, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 12, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 13, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 14, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 15, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 16, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 17, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-    { id: 18, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 }*/
   ]);
 
   searchTerm = signal<string>('');
+  isFilterVisible = signal<boolean>(false);
+  filterOptions = signal<InventoryFilterOptions | null>(null);
+
+  activeFilterCount = computed(() => {
+    const options = this.filterOptions();
+    if (!options) return 0;
+    
+    let count = 0;
+    if (options.categories.length > 0) count++;
+    if (options.states.length > 0) count++;
+    if (options.minPrice !== null || options.maxPrice !== null) count++;
+    if (options.minMargin !== null || options.maxMargin !== null) count++;
+    if (options.expirationDate !== null) count++;
+    
+    return count;
+  });
 
   filteredProducts = computed(() => {
+    let products = this.allProducts();
     const term = this.searchTerm().toLowerCase();
-    if (!term) return this.allProducts();
-    return this.allProducts().filter(p =>
-      p.name.toLowerCase().includes(term) ||
-      p.category.toLowerCase().includes(term)
-    );
+    const options = this.filterOptions();
+
+    if (term) {
+      products = products.filter(p =>
+        p.name.toLowerCase().includes(term) ||
+        p.category.toLowerCase().includes(term)
+      );
+    }
+
+    if (options) {
+      if (options.categories.length > 0) {
+        // Mock: categories in Product are strings, in filter are IDs. 
+        // We'd need a mapping, but for now let's assume category name matches.
+        // products = products.filter(p => options.categories.includes(p.categoryId));
+      }
+      
+      if (options.minPrice !== null) {
+        products = products.filter(p => p.price >= (options.minPrice ?? 0));
+      }
+      if (options.maxPrice !== null) {
+        products = products.filter(p => p.price <= (options.maxPrice ?? Infinity));
+      }
+    }
+
+    return products;
   });
 
   handleSearch(term: string): void {
     this.searchTerm.set(term);
+  }
+
+  toggleFilter(): void {
+    this.isFilterVisible.update(v => !v);
+  }
+
+  handleFilterApply(options: InventoryFilterOptions): void {
+    this.filterOptions.set(options);
   }
 
   handleBack(): void {
@@ -76,3 +109,4 @@ export class InventoryComponent {
     this.router.navigate(['/inventario', product.id]);
   }
 }
+

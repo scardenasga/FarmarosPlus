@@ -1,0 +1,44 @@
+<div class="settings-page">
+  <app-top-bar 
+    title="Configuración" 
+    (back)="handleBack()"
+  ></app-top-bar>
+
+  <main class="settings-content">
+    <section class="section">
+      <h2 class="section-title">Tema del Sistema</h2>
+      
+      <div class="theme-grid">
+        @for (theme of themes; track theme.id) {
+          <div 
+            class="theme-card" 
+            [class.active]="currentTheme() === theme.id"
+            (click)="changeTheme(theme.id)"
+            role="button"
+            [attr.aria-label]="'Cambiar a tema ' + theme.name"
+            tabindex="0"
+            (keydown.enter)="changeTheme(theme.id)"
+          >
+            <div class="theme-preview">
+              @for (color of theme.colors; track color) {
+                <div class="preview-color" [style.background-color]="color"></div>
+              }
+            </div>
+            <span class="theme-name">{{ theme.name }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Espacio para futuras opciones -->
+    <section class="section">
+      <h2 class="section-title">Información</h2>
+      <div class="theme-card" style="align-items: flex-start; cursor: default;">
+        <p style="margin: 0; font-size: 14px; opacity: 0.8;">FarmarosPlus v1.0.0</p>
+        <p style="margin: 0; font-size: 12px; opacity: 0.6;">Sistema de Gestión Farmacéutica</p>
+      </div>
+    </section>
+  </main>
+
+  <app-bottom-nav-bar></app-bottom-nav-bar>
+</div>

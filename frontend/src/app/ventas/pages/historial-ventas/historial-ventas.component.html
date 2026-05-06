@@ -7,11 +7,12 @@
     ></app-top-bar>
 
     <div class="header-actions">
-      <app-boton-filtro (clicFiltro)="irAFiltrar()"></app-boton-filtro>
+      <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
     </div>
   </div>
 
   <main class="content">
+    <!-- ... existing if blocks ... -->
     @if (errorMessage()) {
       <div class="error-msg">{{ errorMessage() }}</div>
     }
@@ -29,4 +30,10 @@
   </main>
 
   <app-fab-button (clicked)="handleAddSale()"></app-fab-button>
+
+  <app-sales-filter
+    [isVisible]="isFilterVisible()"
+    (close)="toggleFilter()"
+    (apply)="handleFilterApply($event)"
+  ></app-sales-filter>
 </div>

@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CompraService } from '../../../ventas/services/compra.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
-import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
+import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-previsualizar-orden',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, BottomNavComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, BottomNavBarComponent],
   templateUrl: './previsualizar-orden.component.html',
   styleUrls: ['./previsualizar-orden.component.css']
 })

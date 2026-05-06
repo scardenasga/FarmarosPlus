@@ -190,7 +190,7 @@
 }
 
 /*----  LIGTH GREEN HIGH CONTRAST  ----*/
-:root {
+.ligth-green-theme {
   /* Primary */
   --primary: #0c3407;
   --on-primary: #ffffff;

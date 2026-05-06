@@ -7,8 +7,9 @@
     ></app-top-bar>
 
     <app-inventory-search
+      [activeFilters]="activeFilterCount()"
       (search)="handleSearch($event)"
-      (toggleFilter)="handleAlerts()"
+      (toggleFilter)="toggleFilter()"
     ></app-inventory-search>
   </div>
 
@@ -26,4 +27,10 @@
   <app-fab-button
     (clicked)="handleAddProduct()"
   ></app-fab-button>
+
+  <app-inventory-filter
+    [isVisible]="isFilterVisible()"
+    (close)="toggleFilter()"
+    (apply)="handleFilterApply($event)"
+  ></app-inventory-filter>
 </div>

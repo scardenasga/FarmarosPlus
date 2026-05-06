@@ -20,6 +20,7 @@ import {DetalleVentaComponent} from './ventas/pages/detalle-venta/detalle-venta.
 import {AnularVentaComponent} from './ventas/pages/anular-venta/anular-venta.component';
 import {NotificacionPedidosComponent} from './pages/compras/notificacion-pedidos/notificacion-pedidos.component';
 import {PrevisualizarOrdenComponent} from './pages/compras/previsualizar-orden/previsualizar-orden.component';
+import {SettingsComponent} from './configuracion/pages/settings/settings.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'health', pathMatch: 'full' },
@@ -46,4 +47,5 @@ export const routes: Routes = [
   { path: 'inventario/editar/:id', component: EditarProductoComponent },
 
   { path: 'health', component: HealthComponent },
+  { path: 'configuracion', component: SettingsComponent },
 ];
