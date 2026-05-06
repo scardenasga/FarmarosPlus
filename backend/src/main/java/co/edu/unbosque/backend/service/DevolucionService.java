@@ -39,17 +39,20 @@ public class DevolucionService {
     private final ProductoRepository productoRepository;
     private final LoteRepository loteRepository;
     private final MovimientoInventarioRepository movimientoRepository;
+    private final co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository;
 
     public DevolucionService(DevolucionProveedorRepository devolucionRepository,
                              ProveedorRepository proveedorRepository,
                              ProductoRepository productoRepository,
                              LoteRepository loteRepository,
-                             MovimientoInventarioRepository movimientoRepository) {
+                             MovimientoInventarioRepository movimientoRepository,
+                             co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository) {
         this.devolucionRepository = devolucionRepository;
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
         this.loteRepository = loteRepository;
         this.movimientoRepository = movimientoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
@@ -58,10 +61,15 @@ public class DevolucionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe el proveedor con id " + request.idProveedor()));
 
+        co.edu.unbosque.backend.model.entity.Usuario usuario = usuarioRepository.findByUsername(request.usuarioResponsable())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario con username " + request.usuarioResponsable()));
+
         DevolucionProveedor devolucion = new DevolucionProveedor();
         devolucion.setProveedor(proveedor);
-        devolucion.setFecha(LocalDateTime.now());
+        devolucion.setUsuario(usuario);
         devolucion.setUsuarioResponsable(request.usuarioResponsable());
+        devolucion.setFecha(LocalDateTime.now());
         devolucion.setMotivo(request.motivo());
 
         List<DetalleDevolucionProveedor> detalles = new ArrayList<>();

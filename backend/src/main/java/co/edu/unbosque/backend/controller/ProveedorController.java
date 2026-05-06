@@ -13,13 +13,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -41,29 +34,6 @@ public class ProveedorController {
         this.proveedorService = proveedorService;
     }
 
-    @GetMapping
-    @Operation(summary = "Listar proveedores activos")
-    public ResponseEntity<List<ProveedorResponse>> listar() {
-        return ResponseEntity.ok(proveedorService.listarActivos()
-                .stream().map(this::toResponse).toList());
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener proveedor por id")
-    public ResponseEntity<ProveedorResponse> obtener(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(proveedorService.obtenerPorId(id)));
-    }
-
-    @PostMapping
-    @Operation(summary = "Crear proveedor")
-    public ResponseEntity<ProveedorResponse> crear(@Valid @RequestBody CrearProveedorRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toResponse(proveedorService.crear(request)));
-    }
-
-    private ProveedorResponse toResponse(Proveedor p) {
-        return new ProveedorResponse(p.getIdProveedor(), p.getNombre(), p.getNit(),
-                p.getContacto(), p.getTelefono(), p.getEmail(), p.getEstado());
     /**
      * Crea un nuevo proveedor.
      */
@@ -89,9 +59,7 @@ public class ProveedorController {
                     }
             )
     )
-    public ResponseEntity<ProveedorResponse> crearProveedor(
-            @Valid @RequestBody CrearProveedorRequest request
-    ) {
+    public ResponseEntity<ProveedorResponse> crearProveedor(@Valid @RequestBody CrearProveedorRequest request) {
         Proveedor proveedorGuardado = proveedorService.crearProveedor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProveedorResponse(proveedorGuardado));
     }

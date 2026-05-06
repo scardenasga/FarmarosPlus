@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router'; // Añadido por si acaso
-import { CompraService } from '../../../services/compra.service';
+import { CompraService } from '../../../ventas/services/compra.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
 
@@ -41,7 +41,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
     if (!termino) {
       this.productosFiltrados = [...this.productosOrden];
     } else {
-      this.productosFiltrados = this.productosOrden.filter(p => 
+      this.productosFiltrados = this.productosOrden.filter(p =>
         p.nombreProducto.toLowerCase().includes(termino.toLowerCase())
       );
     }
@@ -54,7 +54,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
   }
 
   calcularTotal() {
-    this.total = this.productosFiltrados.reduce((acc, item) => 
+    this.total = this.productosFiltrados.reduce((acc, item) =>
       acc + (item.cantidadSugerida * item.costo), 0);
   }
 

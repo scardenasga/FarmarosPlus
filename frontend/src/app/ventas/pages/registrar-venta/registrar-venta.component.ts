@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { VentaService } from '../../services/venta.service';
 
 @Component({
   selector: 'app-registrar-venta',

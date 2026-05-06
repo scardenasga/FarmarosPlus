@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 // Ruta corregida para llegar a app/services/compra.service.ts
-import { CompraService } from '../../../services/compra.service'
+import { CompraService } from '../../../ventas/services/compra.service'
 // Ruta corregida para llegar a app/shared/components/bottom-nav/...
 import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
@@ -45,8 +45,8 @@ export class NotificacionPedidosComponent implements OnInit {
 
   onSearch(termino: string): void {
     const t = termino.toLowerCase();
-    this.alertasFiltradas = this.alertas.filter(a => 
-      a.codigoGenerado.toLowerCase().includes(t) || 
+    this.alertasFiltradas = this.alertas.filter(a =>
+      a.codigoGenerado.toLowerCase().includes(t) ||
       a.proveedorNombre.toLowerCase().includes(t)
     );
   }

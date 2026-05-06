@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NotificacionPedidosComponent } from './notificacion-pedidos.component';
-import { CompraService } from '../../../services/compra.service';
+import { CompraService } from '../../../ventas/services/compra.service';
 
 describe('NotificacionPedidosComponent', () => {
   let component: NotificacionPedidosComponent;

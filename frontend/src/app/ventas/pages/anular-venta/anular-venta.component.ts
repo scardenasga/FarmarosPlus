@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { VentaService } from '../../services/venta.service';
 
 @Component({
   selector: 'app-anular-venta',
@@ -59,7 +59,7 @@ export class AnularVentaComponent implements OnInit {
 
     this.ventaService.anularVenta(this.venta.idVenta, request).subscribe({
       next: () => {
-       
+
         this.router.navigate(['/ventas/historial']);
       },
       error: (err) => {
@@ -71,9 +71,9 @@ export class AnularVentaComponent implements OnInit {
 
   cancelar() {
     if (this.venta?.idVenta) {
-      this.router.navigate(['/ventas', this.venta.idVenta]); 
+      this.router.navigate(['/ventas', this.venta.idVenta]);
     } else {
-      this.router.navigate(['/ventas/historial']); 
+      this.router.navigate(['/ventas/historial']);
     }
   }
 }

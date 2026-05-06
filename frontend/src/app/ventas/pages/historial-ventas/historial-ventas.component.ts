@@ -1,20 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
-import { BotonNuevoRegistroComponent } from '../../../shared/boton-nuevo-registro/boton-nuevo-registro.component';
+import { VentaService } from '../../services/venta.service';
 import { BotonFiltroComponent } from '../../../shared/boton-filtro/boton-filtro.component';
 import { EstadoVentaComponent } from '../../../shared/estado-venta/estado-venta.component';
+import {FabButtonComponent} from '../../../shared/components/fab-button/fab-button.component';
 
 @Component({
-  selector: 'app-historial-ventas', 
+  selector: 'app-historial-ventas',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterModule, 
-    BotonNuevoRegistroComponent, 
-    BotonFiltroComponent, 
-    EstadoVentaComponent 
+    CommonModule,
+    RouterModule,
+    BotonFiltroComponent,
+    EstadoVentaComponent,
+    FabButtonComponent
   ],
   templateUrl: './historial-ventas.component.html',
   styleUrl: './historial-ventas.component.css'
@@ -37,7 +37,7 @@ export class HistorialVentasComponent implements OnInit {
         // --- LÓGICA DE PRUEBA (Para ver los colores del componente) ---
         if (this.ventas.length > 0) {
           // Forzamos que la primera sea Completada y la segunda Anulada para probar
-          this.ventas[0].estado = 'COMPLETADA'; 
+          this.ventas[0].estado = 'COMPLETADA';
           if (this.ventas[1]) {
             this.ventas[1].estado = 'ANULADA';
           }
@@ -62,7 +62,7 @@ export class HistorialVentasComponent implements OnInit {
       const fechaKey = fechaObj.toLocaleDateString('es-CO', {
         day: '2-digit', month: '2-digit', year: 'numeric'
       });
-      
+
       if (!mapa.has(fechaKey)) mapa.set(fechaKey, []);
       mapa.get(fechaKey)!.push(v);
     }
@@ -78,6 +78,10 @@ export class HistorialVentasComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/home']); 
+    this.router.navigate(['/home']);
+  }
+
+  handleAddSale(): void {
+    this.router.navigate(['/ventas/crear']);
   }
 }

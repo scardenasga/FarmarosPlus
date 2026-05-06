@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { VentaService } from '../../services/venta.service';
 import { InputFechaComponent } from '../../../shared/filtro-fecha/filtro-fecha.component';
 
 @Component({
@@ -13,7 +13,7 @@ import { InputFechaComponent } from '../../../shared/filtro-fecha/filtro-fecha.c
   styleUrl: './filtrar-historial.component.css'
 })
 export class FiltrarHistorialComponent {
-  fechaInicio: string = ''; 
+  fechaInicio: string = '';
   fechaFin: string = '';
   vendedor: string = '';
   cargando: boolean = false;

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { VentaService } from '../../services/venta.service';
 
 @Component({
   selector: 'app-detalle-venta',
@@ -51,7 +51,7 @@ export class DetalleVentaComponent implements OnInit {
   irAAnular() {
     // Usamos el ID de la venta obtenido de los datos cargados
     const ventaId = this.venta?.idVenta || this.venta?.id;
-    
+
     if (!ventaId) {
       alert("Error: No se puede identificar la venta.");
       return;
@@ -70,6 +70,6 @@ export class DetalleVentaComponent implements OnInit {
 
   get esAdmin(): boolean {
     // Cambiar por tu lógica de permisos real si es necesario
-    return true; 
+    return true;
   }
 }

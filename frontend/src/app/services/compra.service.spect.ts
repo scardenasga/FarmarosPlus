@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { CompraService } from './compra.service';
+import { CompraService } from '../ventas/services/compra.service';
 
 describe('CompraService', () => {
   let service: CompraService;

@@ -1,5 +1,5 @@
 <div class="container">
-  
+
   <!-- Encabezado -->
   <div class="header">
     <div class="btn-volver" (click)="volver()">
@@ -7,7 +7,7 @@
         <polyline points="15 18 9 12 15 6"/>
       </svg>
     </div>
-    
+
     <span class="titulo">Historial de ventas</span>
 
     <!-- Componente del Botón de Filtro -->
@@ -41,7 +41,8 @@
     </div>
   </div>
 
-  <!-- Componente del Botón Nuevo -->
-  <app-boton-nuevo-registro [rutaDestino]="'/ventas/buscar'"></app-boton-nuevo-registro>
+  <app-fab-button
+    (clicked)="handleAddSale()"
+  ></app-fab-button>
 
 </div>

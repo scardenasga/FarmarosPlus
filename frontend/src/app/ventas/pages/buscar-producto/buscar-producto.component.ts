@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { VentaService } from '../../../services/venta.service';
+import { VentaService } from '../../services/venta.service';
 
 @Component({
   selector: 'app-buscar-producto',
@@ -22,7 +22,7 @@ export class BuscarProductoComponent {
 
   constructor(private ventaService: VentaService, private router: Router) {}
 
- 
+
   volver() {
     this.router.navigate(['/ventas/historial']);
   }

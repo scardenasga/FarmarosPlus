@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CompraService } from '../../../services/compra.service';
+import { CompraService } from '../../../ventas/services/compra.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
 import { Router } from '@angular/router';
@@ -33,7 +33,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
         this.productosOrden = (res.items || []).map((item: any) => ({
           nombreProducto: item.nombre,
           cantidadSugerida: item.cantidadSugerida || 0,
-          costo: item.precioUnitario || 0, 
+          costo: item.precioUnitario || 0,
           justificacion: item.motivo || 'Stock Bajo'
         }));
         this.productosFiltrados = [...this.productosOrden];
@@ -64,7 +64,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
   }
 
   // 2. Filtro local: Evitamos ir al servidor si ya tenemos el producto en pantalla
-  const locales = this.productosOrden.filter(p => 
+  const locales = this.productosOrden.filter(p =>
     p.nombreProducto.toLowerCase().includes(t)
   );
 
@@ -82,7 +82,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
       error: (err) => {
         // Aquí capturamos el error 500 para que la app no explote
         console.warn('El servidor tiene problemas con esta búsqueda, pero la app sigue viva.');
-        this.productosFiltrados = []; 
+        this.productosFiltrados = [];
       }
     });
   }
