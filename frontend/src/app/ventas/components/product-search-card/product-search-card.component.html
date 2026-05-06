@@ -1,0 +1,41 @@
+<article class="product-card" [class.selected]="isSelected()">
+  <div class="image-container">
+    @if (product().imagenUrl) {
+      <img [src]="product().imagenUrl" [alt]="product().nombre" class="product-image">
+    } @else {
+      <div class="placeholder-image flex-center">{{ avatarText }}</div>
+    }
+  </div>
+
+  <div class="info-container">
+    <h3 class="product-name">{{ product().nombre }}</h3>
+    <div class="metrics">
+      <span class="price">${{ product().precioVenta | number }}</span>
+      <span class="stock">{{ product().stockActual }} disponibles</span>
+    </div>
+  </div>
+
+  <div class="actions-container">
+    @if (!isSelected()) {
+      <button class="add-btn flex-center" (click)="add.emit()" aria-label="Agregar producto">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+        </svg>
+      </button>
+    } @else {
+      <div class="quantity-controls">
+        <button class="qty-btn flex-center" (click)="decrease.emit()" aria-label="Disminuir cantidad">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 13H5V11H19V13Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <span class="qty-value">{{ quantity() }}</span>
+        <button class="qty-btn flex-center" (click)="increase.emit()" aria-label="Aumentar cantidad">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+</article>
