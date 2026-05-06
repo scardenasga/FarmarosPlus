@@ -1,0 +1,26 @@
+<article class="venta-card" (click)="onSelect()">
+  <div class="venta-card-top">
+    <span class="venta-num">#{{ venta().idVenta }}</span>
+    <app-estado-venta [estado]="venta().estado"></app-estado-venta>
+  </div>
+
+  <div class="venta-card-mid">
+    <div class="venta-info-item">
+      <span class="info-label">Fecha</span>
+      <span class="info-value">{{ venta().fecha | date:'dd/MM/yyyy' }}</span>
+    </div>
+    <div class="venta-info-item">
+      <span class="info-label">Vendedor</span>
+      <span class="info-value">{{ venta().usuario?.nombreCompleto?.split(' ')[0] }}</span>
+    </div>
+    <div class="venta-info-item">
+      <span class="info-label">Método</span>
+      <span class="info-value">{{ venta().pagos?.[0]?.tipo || 'Efectivo' }}</span>
+    </div>
+  </div>
+
+  <div class="venta-total">
+    <span>Total</span>
+    <span>${{ venta().total | number }}</span>
+  </div>
+</article>

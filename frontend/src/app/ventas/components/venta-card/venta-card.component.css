@@ -1,0 +1,67 @@
+.venta-card {
+  background-color: var(--surface-container-low);
+  margin-bottom: var(--space-s);
+  padding: var(--space-l);
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: transform 0.2s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
+.venta-card:active {
+  transform: scale(0.98);
+  background-color: var(--surface-container);
+}
+
+.venta-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.venta-num {
+  font-weight: bold;
+  color: var(--on-surface);
+  font-size: 1rem;
+}
+
+.venta-card-mid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-m);
+  font-size: 0.85rem;
+}
+
+.venta-info-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+}
+
+.info-label {
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.venta-total {
+  margin-top: var(--space-xs);
+  padding-top: var(--space-m);
+  border-top: 1px solid var(--outline-variant, rgba(137, 147, 143, 0.2));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--primary);
+}

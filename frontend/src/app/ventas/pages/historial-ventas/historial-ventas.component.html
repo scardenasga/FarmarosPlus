@@ -1,48 +1,32 @@
-<div class="container">
+<div class="inventory-page">
+  <div class="sticky-header">
+    <app-top-bar
+      title="Historial de Ventas"
+      (back)="volver()"
+      (alert)="handleNotification()"
+    ></app-top-bar>
 
-  <!-- Encabezado -->
-  <div class="header">
-    <div class="btn-volver" (click)="volver()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-    </div>
-
-    <span class="titulo">Historial de ventas</span>
-
-    <!-- Componente del Botón de Filtro -->
-    <app-boton-filtro (clicFiltro)="irAFiltrar()"></app-boton-filtro>
-  </div>
-
-  <!-- Estados de carga y error -->
-  <div *ngIf="error" class="error-msg">{{ error }}</div>
-  <div *ngIf="cargando && !error" class="error-msg" style="color: white; border-color: gray;">
-    Cargando historial...
-  </div>
-
-  <!-- Lista de Ventas -->
-  <div *ngIf="!cargando && !error" class="contenido-scroll">
-    <div class="fecha-grupo" *ngFor="let grupo of ventasAgrupadas">
-      <div class="fecha-label">{{ grupo.fecha }}</div>
-      <div class="conteo-label">{{ grupo.ventas.length }} resultados</div>
-
-      <div *ngFor="let v of grupo.ventas" class="venta-card" (click)="verDetalle(v.idVenta)">
-        <div class="venta-card-top">
-          <span class="venta-num">#{{ v.idVenta }}</span>
-          <app-estado-venta [estado]="v.estado"></app-estado-venta>
-        </div>
-        <div class="venta-card-mid">
-          <span class="venta-fecha">{{ v.fecha | date:'dd/MM/yyyy' }}</span>
-          <span class="venta-vendedor">{{ v.usuario?.nombreCompleto?.split(' ')[0] }}</span>
-          <span class="venta-metodo">{{ v.pagos?.[0]?.tipo || 'Efectivo' }}</span>
-          <span class="venta-total">${{ v.total | number }}</span>
-        </div>
-      </div>
+    <div class="header-actions">
+      <app-boton-filtro (clicFiltro)="irAFiltrar()"></app-boton-filtro>
     </div>
   </div>
 
-  <app-fab-button
-    (clicked)="handleAddSale()"
-  ></app-fab-button>
+  <main class="content">
+    @if (errorMessage()) {
+      <div class="error-msg">{{ errorMessage() }}</div>
+    }
 
+    @if (isLoading() && !errorMessage()) {
+      <div class="loading-msg">Cargando historial...</div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      <app-venta-list
+        [ventasAgrupadas]="ventasAgrupadas()"
+        (ventaSelected)="verDetalle($event)"
+      ></app-venta-list>
+    }
+  </main>
+
+  <app-fab-button (clicked)="handleAddSale()"></app-fab-button>
 </div>

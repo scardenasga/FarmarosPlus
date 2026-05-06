@@ -1,0 +1,17 @@
+@for (grupo of ventasAgrupadas(); track grupo.fecha) {
+  <section class="fecha-grupo">
+    <h2 class="fecha-label">{{ grupo.fecha }}</h2>
+    <p class="conteo-label">{{ grupo.ventas.length }} resultados</p>
+
+    <div class="cards-container">
+      @for (v of grupo.ventas; track v.idVenta) {
+        <app-venta-card
+          [venta]="v"
+          (selected)="onVentaSelect($event)"
+        ></app-venta-card>
+      }
+    </div>
+  </section>
+} @empty {
+  <div class="empty-state">No se encontraron ventas.</div>
+}
