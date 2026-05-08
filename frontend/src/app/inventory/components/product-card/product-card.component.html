@@ -1,16 +1,12 @@
 <article class="card" (click)="clicked.emit()" role="button" tabindex="0" (keydown.enter)="clicked.emit()">
   <div class="image-container">
-    @if (product().imageUrl) {
-      <img [src]="product().imageUrl" [alt]="product().name" class="product-image">
-    } @else {
-      <div class="placeholder-image flex-center">📦</div>
-    }
+    <div class="placeholder-image flex-center">📦</div>
   </div>
 
   <div class="info-container">
-    <h3 class="product-name">{{ product().name }}</h3>
+    <h3 class="product-name">{{ product().nombre }}</h3>
     <div class="metrics">
-      <span class="price">{{ product().price | currency:'USD':'symbol':'1.0-0' }}</span>
+      <span class="price">{{ product().precioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
       @if (product().trend) {
         <span class="trend" [class.positive]="product().trend! > 0">
               {{ product().trend! > 0 ? '+' : '' }}{{ product().trend }} %
@@ -20,7 +16,7 @@
   </div>
 
   <div class="stock-container">
-    <span class="stock">{{ product().stock }} {{ product().unit }}</span>
+    <span class="stock">{{ product().stockActual }} und.</span>
     <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="var(--on-surface)"/>
     </svg>

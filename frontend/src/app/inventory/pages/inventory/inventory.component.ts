@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
@@ -8,6 +8,7 @@ import { InventorySummaryComponent } from '../../components/inventory-summary/in
 import { ProductListComponent } from '../../components/product-list/product-list.component';
 import { InventoryFilterComponent, InventoryFilterOptions } from '../../components/inventory-filter/inventory-filter.component';
 import { Product } from '../../models/product.model';
+import { InventoryService } from '../../services/inventory.service';
 
 @Component({
   selector: 'app-inventory',
@@ -23,19 +24,26 @@ import { Product } from '../../models/product.model';
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css'
 })
-export class InventoryComponent {
+export class InventoryComponent implements OnInit {
   private router = inject(Router);
-  private allProducts = signal<Product[]>([
-    { id: 1, name: 'Acetaminofen 90mL', price: 7500, stock: 26, unit: 'und.', category: 'Jarabe', trend: 1.2 },
-    { id: 2, name: 'Ibuprofeno 400mg', price: 12000, stock: 15, unit: 'und.', category: 'Tableta', trend: -0.5 },
-    { id: 3, name: 'Amoxicilina 500mg', price: 15000, stock: 40, unit: 'und.', category: 'Cápsula', trend: 2.1 },
-    { id: 4, name: 'Loratadina 10mg', price: 5000, stock: 50, unit: 'und.', category: 'Tableta', trend: 0.0 },
-    { id: 5, name: 'Vitamina C 500mg', price: 8000, stock: 100, unit: 'und.', category: 'Efervescente', trend: 5.4 },
-  ]);
+  private inventoryService = inject(InventoryService);
+  
+  private allProducts = signal<Product[]>([]);
 
   searchTerm = signal<string>('');
   isFilterVisible = signal<boolean>(false);
   filterOptions = signal<InventoryFilterOptions | null>(null);
+
+  ngOnInit(): void {
+    this.loadProducts();
+  }
+
+  loadProducts(): void {
+    this.inventoryService.getActiveProducts().subscribe({
+      next: (products) => this.allProducts.set(products),
+      error: (err) => console.error('Error loading products', err)
+    });
+  }
 
   activeFilterCount = computed(() => {
     const options = this.filterOptions();
@@ -58,23 +66,21 @@ export class InventoryComponent {
 
     if (term) {
       products = products.filter(p =>
-        p.name.toLowerCase().includes(term) ||
-        p.category.toLowerCase().includes(term)
+        p.nombre.toLowerCase().includes(term) ||
+        p.categoria?.nombre.toLowerCase().includes(term)
       );
     }
 
     if (options) {
       if (options.categories.length > 0) {
-        // Mock: categories in Product are strings, in filter are IDs. 
-        // We'd need a mapping, but for now let's assume category name matches.
-        // products = products.filter(p => options.categories.includes(p.categoryId));
+        products = products.filter(p => p.categoria && options.categories.includes(p.categoria.id));
       }
       
       if (options.minPrice !== null) {
-        products = products.filter(p => p.price >= (options.minPrice ?? 0));
+        products = products.filter(p => p.precioVenta >= (options.minPrice ?? 0));
       }
       if (options.maxPrice !== null) {
-        products = products.filter(p => p.price <= (options.maxPrice ?? Infinity));
+        products = products.filter(p => p.precioVenta <= (options.maxPrice ?? Infinity));
       }
     }
 
@@ -94,11 +100,11 @@ export class InventoryComponent {
   }
 
   handleBack(): void {
-    console.log('Regresando...');
+    this.router.navigate(['/']);
   }
 
   handleAlerts(): void {
-    console.log('Abriendo alertas...');
+    this.router.navigate(['/inventario/alertas']);
   }
 
   handleAddProduct(): void {

@@ -1,3 +1,9 @@
+export interface Categoria {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+}
+
 export interface Lote {
   id: number;
   numeroLote: string;
@@ -7,15 +13,17 @@ export interface Lote {
 
 export interface Product {
   id: number;
-  name: string;
-  description?: string;
-  price: number;
-  stock: number;
-  unit: string;
-  category: string;
-  imageUrl?: string;
+  nombre: string;
+  codigoBarras: string;
+  stockMinimo: number;
+  stockActual: number;
+  costo: number;
+  precioVenta: number;
+  estado: string;
+  categoria?: Categoria;
+  numeroLote?: string;
+  // UI related fields (optional/computed in FE if needed)
   trend?: number;
-  lotes?: Lote[];
 }
 
 export interface CreateProductRequest {
@@ -28,4 +36,9 @@ export interface CreateProductRequest {
   estado: string;
   categoriaId?: number;
   numeroLote?: string;
+}
+
+export interface CreateCategoriaRequest {
+  nombre: string;
+  descripcion: string;
 }

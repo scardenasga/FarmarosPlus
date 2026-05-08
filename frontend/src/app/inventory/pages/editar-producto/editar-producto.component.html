@@ -15,11 +15,11 @@
           </div>
           <div class="info-row">
             <span class="info-label">Stock Actual:</span>
-            <span class="info-value">{{ p.stock }} {{ p.unit }}</span>
+            <span class="info-value">{{ p.stockActual }} und.</span>
           </div>
           <div class="info-row">
             <span class="info-label">Código:</span>
-            <span class="info-value">7701234567890</span>
+            <span class="info-value">{{ p.codigoBarras }}</span>
           </div>
         </div>
       </section>
@@ -32,12 +32,6 @@
           <app-form-input 
             label="Nombre Comercial" 
             [control]="getControl('nombre')">
-          </app-form-input>
-
-          <app-form-input 
-            label="Descripción" 
-            type="textarea"
-            [control]="getControl('descripcion')">
           </app-form-input>
 
           <app-form-input 

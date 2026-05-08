@@ -5,6 +5,7 @@ import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.comp
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { Product } from '../../models/product.model';
+import { InventoryService } from '../../services/inventory.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -17,6 +18,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private navService = inject(NavigationService);
+  private inventoryService = inject(InventoryService);
 
   product = signal<Product | null>(null);
   showDeleteConfirmation = signal<boolean>(false);
@@ -24,7 +26,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.navService.hideNav();
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadProduct(id);
+    if (id) {
+      this.loadProduct(id);
+    } else {
+      this.onBack();
+    }
   }
 
   ngOnDestroy(): void {
@@ -32,51 +38,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   private loadProduct(id: number): void {
-    // Mock data based on id
-    const mockProducts: Product[] = [
-      { 
-        id: 1, 
-        name: 'Acetaminofen 90mL', 
-        price: 7500, 
-        stock: 26, 
-        unit: 'und.', 
-        category: 'Jarabe', 
-        description: 'Jarabe pediátrico para el alivio rápido del dolor y la fiebre. Sabor a cereza, libre de azúcar y alcohol. Ideal para el cuidado de los más pequeños.',
-        trend: 1.2,
-        lotes: [
-          { id: 101, numeroLote: 'LOT-2024-001', fechaVencimiento: '2025-12-31', cantidad: 10 },
-          { id: 102, numeroLote: 'LOT-2024-015', fechaVencimiento: '2026-06-15', cantidad: 16 }
-        ]
-      },
-      { 
-        id: 2, 
-        name: 'Ibuprofeno 400mg', 
-        price: 12000, 
-        stock: 15, 
-        unit: 'und.', 
-        category: 'Tableta', 
-        description: 'Potente antiinflamatorio y analgésico. Indicado para dolores musculares, cefaleas y estados febriles intensos.',
-        trend: -0.5,
-        lotes: [
-          { id: 201, numeroLote: 'IBU-XP-99', fechaVencimiento: '2024-11-20', cantidad: 15 }
-        ]
-      },
-      { 
-        id: 3, 
-        name: 'Amoxicilina 500mg', 
-        price: 15000, 
-        stock: 40, 
-        unit: 'und.', 
-        category: 'Cápsula', 
-        description: 'Antibiótico de amplio espectro. Requiere fórmula médica para su despacho.',
-        trend: 2.1,
-        lotes: []
+    this.inventoryService.getProductById(id).subscribe({
+      next: (found) => this.product.set(found),
+      error: (err) => {
+        console.error('Error loading product', err);
+        this.onBack();
       }
-    ];
-
-
-    const found = mockProducts.find(p => p.id === id) || mockProducts[0];
-    this.product.set(found);
+    });
   }
 
   onBack(): void {
@@ -92,7 +60,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   confirmDelete(): void {
-    console.log('Producto eliminado (simulado):', this.product()?.id);
+    // Note: Assuming there will be an endpoint for this in the future
+    console.log('Solicitud de eliminación para:', this.product()?.id);
     this.showDeleteConfirmation.set(false);
     this.router.navigate(['/inventario']);
   }

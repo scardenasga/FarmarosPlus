@@ -4,7 +4,8 @@ import { FormBuilder, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { FilterChipComponent } from '../../../shared/components/filter-chip/filter-chip.component';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
-import { CategoriaService, CategoriaResponse } from '../../../services/categoria.service';
+import { CategoriaService } from '../../services/categoria.service';
+import { Categoria } from '../../models/product.model';
 
 export interface InventoryFilterOptions {
   categories: number[];
@@ -103,7 +104,7 @@ export class InventoryFilterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private categoriaService = inject(CategoriaService);
 
-  categories = signal<CategoriaResponse[]>([]);
+  categories = signal<Categoria[]>([]);
   selectedCategories = signal<number[]>([]);
   
   states = ['ACTIVO', 'INACTIVO', 'STOCK BAJO'];
