@@ -18,6 +18,7 @@ import java.util.Optional;
  * Expone consultas operativas y de agregación para el módulo de ventas.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {

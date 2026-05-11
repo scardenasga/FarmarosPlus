@@ -54,13 +54,14 @@ export class AnularVentaComponent implements OnInit {
     const request = {
       confirmacion: true,
       usuarioId: this.usuarioId,
+      usuarioResponsable: 'Tatiana',
       motivoAnulacion: this.motivoAnulacion || 'Anulación sin motivo especificado'
     };
 
-    this.ventaService.anularVenta(this.venta.idVenta, request).subscribe({
+    this.ventaService.anularVenta(this.venta.id, request).subscribe({
       next: () => {
 
-        this.router.navigate(['/ventas/historial']);
+        this.router.navigate(['/ventas']);
       },
       error: (err) => {
         this.error = err.error?.message || 'Error al anular la venta';
@@ -71,9 +72,9 @@ export class AnularVentaComponent implements OnInit {
 
   cancelar() {
     if (this.venta?.idVenta) {
-      this.router.navigate(['/ventas', this.venta.idVenta]);
+      this.router.navigate(['/ventas', this.venta.id]);
     } else {
-      this.router.navigate(['/ventas/historial']);
+      this.router.navigate(['/ventas']);
     }
   }
 }

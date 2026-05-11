@@ -40,3 +40,18 @@
   padding: var(--space-xl);
   opacity: 0.7;
 }
+.header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px 8px;
+  background-color: var(--background);
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--on-background);
+  flex: 1;
+  text-align: center;
+}

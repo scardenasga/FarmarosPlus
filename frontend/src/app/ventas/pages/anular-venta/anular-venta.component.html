@@ -26,7 +26,7 @@
   <div *ngIf="venta && !cargandoVenta">
 
     <div class="venta-top">
-      <span class="venta-id">Venta # {{ venta.idVenta }}</span>
+      <span class="venta-id">Venta # {{ venta.id || venta.idVenta }}</span>
       <span class="venta-hora">{{ venta.fecha | date:'hh:mm a' }}</span>
     </div>
 
@@ -72,7 +72,7 @@
       <div class="modal-icono">⚠</div>
       <div class="modal-titulo">¡Cuidado! Anular Venta</div>
       <div class="modal-desc">
-        ¿Desea anular permanentemente la <strong>Venta #{{ venta.idVenta }}</strong>
+        ¿Desea anular permanentemente la <strong>Venta #{{ venta.id || venta.idVenta}}</strong>
         y revertir el inventario? Esta acción es irreversible.
       </div>
     </div>

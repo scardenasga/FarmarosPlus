@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -34,24 +34,18 @@ export class VentaService {
   return this.http.get<any[]>(`${this.api}/inventario/productos/${productoId}/lotes-disponibles`);
 }
 
-consultarHistorico(
-  fechaInicio?: string,
-  fechaFin?: string,
-  idVendedor?: number,
-  estado?: string,
-  username: string = 'admin'
-): Observable<any[]> {
-  let params: any = {};
-  if (fechaInicio) params.fechaInicio = fechaInicio;
-  if (fechaFin) params.fechaFin = fechaFin;
-  if (idVendedor) params.idVendedor = idVendedor;
-  if (estado) params.estado = estado;
+consultarHistorico(inicio?: string, fin?: string): Observable<any[]> {
+  const url = 'http://localhost:8080/api/ventas/historico';
+  
+  let params = new HttpParams();
+  if (inicio) params = params.set('fechaInicio', inicio);
+  if (fin) params = params.set('fechaFin', fin);
 
-  return this.http.get<any[]>(`${this.api}/ventas/historico`, {
-    params,
-    headers: { 'X-Username': username }
-  });
+  const headers = new HttpHeaders().set('X-Username', 'Tatiana'); // ← esto debe estar
+
+  return this.http.get<any[]>(url, { params, headers }); // ← params Y headers juntos
 }
+
 obtenerPrevisualizacion(proveedorId: number): Observable<any> {
     return this.http.get(`${this.api}/previsualizar/${proveedorId}`);
   }

@@ -1,0 +1,36 @@
+.contenedor-navegacion {
+  padding: 15px 20px;
+  background-color: #000;
+}
+
+.bloque-superior {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-flecha {
+  background: none;
+  border: none;
+  color: #22c55e; /* Tu verde característico */
+  font-size: 2.8rem;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 0;
+  line-height: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.titulo-principal {
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: bold;
+}
+
+.subtitulo-secundario {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 2px 0 0 0;
+}

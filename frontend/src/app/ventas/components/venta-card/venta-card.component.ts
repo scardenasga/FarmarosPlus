@@ -14,6 +14,6 @@ export class VentaCardComponent {
   selected = output<number>();
 
   onSelect() {
-    this.selected.emit(this.venta().idVenta);
+    this.selected.emit(this.venta().id || this.venta().idVenta);
   }
 }

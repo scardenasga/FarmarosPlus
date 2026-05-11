@@ -22,29 +22,35 @@ export class FiltrarHistorialComponent {
   constructor(private ventaService: VentaService, private router: Router) {}
 
   aplicar() {
-    this.cargando = true;
-    this.error = '';
+  this.cargando = true;
+  this.error = '';
 
-    const inicio = this.fechaInicio ? `${this.fechaInicio}T00:00:00` : undefined;
-    const fin = this.fechaFin ? `${this.fechaFin}T23:59:59` : undefined;
+  const formatear = (fecha: string) => {
+    if (!fecha) return undefined;
+    const [yyyy, mm, dd] = fecha.split('-');
+    return `${dd}-${mm}-${yyyy}`;
+  };
 
-    this.ventaService.consultarHistorico(inicio, fin, undefined, undefined, 'admin').subscribe({
-      next: (data) => {
-        sessionStorage.setItem('historialFiltrado', JSON.stringify(data));
-        sessionStorage.setItem('historialFiltros', JSON.stringify({
-          fechaInicio: this.fechaInicio,
-          fechaFin: this.fechaFin,
-          vendedor: this.vendedor
-        }));
-        this.router.navigate(['/ventas/historial']);
-        this.cargando = false;
-      },
-      error: () => {
-        this.error = 'Error al aplicar los filtros';
-        this.cargando = false;
-      }
-    });
-  }
+  const inicio = formatear(this.fechaInicio);
+  const fin = formatear(this.fechaFin);
+
+  this.ventaService.consultarHistorico(inicio, fin).subscribe({
+    next: (data) => {
+      sessionStorage.setItem('historialFiltrado', JSON.stringify(data));
+      sessionStorage.setItem('historialFiltros', JSON.stringify({
+        fechaInicio: this.fechaInicio,
+        fechaFin: this.fechaFin,
+        vendedor: this.vendedor
+      }));
+      this.router.navigate(['/ventas/historial']);
+      this.cargando = false;
+    },
+    error: () => {
+      this.error = 'Error al aplicar los filtros';
+      this.cargando = false;
+    }
+  });
+}
 
   limpiar() {
     this.fechaInicio = '';

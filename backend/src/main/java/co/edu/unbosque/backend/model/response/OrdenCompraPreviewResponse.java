@@ -2,6 +2,9 @@ package co.edu.unbosque.backend.model.response;
 
 import java.util.List;
 
+/**
+ * @author Angie Tatiana Ortiz
+ */
 public record OrdenCompraPreviewResponse(
     Long proveedorId,
     String proveedorNombre,

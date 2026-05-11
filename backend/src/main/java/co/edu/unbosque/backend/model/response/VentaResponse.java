@@ -17,6 +17,7 @@ import java.util.List;
  * @param detalles líneas de la venta
  * @param pagos pagos asociados
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 public record VentaResponse(
         Long id,

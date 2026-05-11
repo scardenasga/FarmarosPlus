@@ -43,13 +43,15 @@ export class DetalleVentaComponent implements OnInit {
   abrirModal() {
     this.mostrarModal = true;
   }
+  confirmarVenta() {
+  this.router.navigate(['/ventas']);
+}
 
   cerrarModal() {
     this.mostrarModal = false;
   }
 
   irAAnular() {
-    // Usamos el ID de la venta obtenido de los datos cargados
     const ventaId = this.venta?.idVenta || this.venta?.id;
 
     if (!ventaId) {
@@ -58,14 +60,11 @@ export class DetalleVentaComponent implements OnInit {
     }
 
     this.cerrarModal();
-    // Navegación corregida para evitar el 404
-    // Asegúrate de que en tu app-routing esta sea la ruta correcta
-    this.router.navigate(['/ventas/anular', ventaId]);
+    this.router.navigate(['/ventas' , ventaId, 'anular']);
   }
 
   volver() {
-    // Te regresa al historial/principal
-    this.router.navigate(['/ventas/historial']);
+    this.router.navigate(['/ventas/crear']);
   }
 
   get esAdmin(): boolean {

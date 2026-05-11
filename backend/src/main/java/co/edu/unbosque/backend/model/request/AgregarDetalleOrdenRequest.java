@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 
 /**
  * DTO para agregar un detalle a una orden de compra.
+ * @author Angie Tatiana Ortiz
  */
 public record AgregarDetalleOrdenRequest(
         @NotNull(message = "El id del producto es obligatorio")

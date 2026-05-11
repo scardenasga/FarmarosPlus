@@ -10,6 +10,7 @@ package co.edu.unbosque.backend.model.response;
  * @param precioUnitarioAplicado precio unitario aplicado
  * @param subtotalLinea subtotal de la línea
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 public record DetalleVentaResponse(
         Long id,

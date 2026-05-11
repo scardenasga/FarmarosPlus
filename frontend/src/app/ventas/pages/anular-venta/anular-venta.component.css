@@ -1,5 +1,5 @@
 .container {
-  max-width: 390px;
+  max-width: 100%;
   margin: 0 auto;
   background: #151c1a;
   min-height: 100vh;
@@ -226,7 +226,8 @@
   bottom: 64px;
   left: 50%;
   transform: translateX(-50%);
-  width: 390px;
+  width: 92%;
+  max-width: 370px;
   background: #151c1a;
   border-top: 1px solid #2e3d38;
   padding: 12px 16px;
@@ -260,3 +261,23 @@
 }
 
 .btn-eliminar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (min-width: 768px) {
+  .acciones {
+    max-width: 680px;
+    bottom: 80px;
+  }
+
+  .productos-lista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .acciones {
+    max-width: 880px;
+    bottom: 80px;
+  }
+}

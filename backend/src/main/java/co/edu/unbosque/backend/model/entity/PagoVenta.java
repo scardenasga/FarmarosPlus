@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  * Permite soportar ventas con uno o varios medios de pago.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Data
 @NoArgsConstructor

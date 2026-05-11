@@ -2,6 +2,7 @@ package co.edu.unbosque.backend.model.response;
 
 /**
  * DTO de salida para detalle de orden de compra.
+ * @author Angie Tatiana Ortiz
  */
 public record DetalleOrdenCompraResponse(
         Long idDetalle,

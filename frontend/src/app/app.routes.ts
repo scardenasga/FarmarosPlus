@@ -42,6 +42,7 @@ export const routes: Routes = [
   { path: 'entregas/compras/nueva', component: RegistrarCompraComponent },
 
   { path: 'inventario', component: InventoryComponent },
+  { path: 'previsualizar-orden/:id', component: PrevisualizarOrdenComponent },
   { path: 'inventario/crear', component: CrearProductoComponent },
   { path: 'inventario/:id', component: ProductDetailComponent },
   { path: 'inventario/editar/:id', component: EditarProductoComponent },

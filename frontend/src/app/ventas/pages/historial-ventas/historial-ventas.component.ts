@@ -52,45 +52,50 @@ export class HistorialVentasComponent implements OnInit {
   }
 
   loadHistory(inicio?: string, fin?: string, vendedor?: string) {
-    this.isLoading.set(true);
-    this.ventaService.consultarHistorico(inicio, fin, undefined, undefined, 'admin').subscribe({
-      next: (data) => {
-        if (data.length > 0) {
-          data[0].estado = 'COMPLETADA';
-          if (data[1]) {
-            data[1].estado = 'ANULADA';
-          }
-        }
+  this.isLoading.set(true);
+  this.errorMessage.set('');
 
-        // Filtrado local por vendedor si es necesario (el servicio parece no filtrarlo por defecto según FiltrarHistorial original)
-        let filtered = data;
-        if (vendedor) {
-          const v = vendedor.toLowerCase();
-          filtered = data.filter((sale: any) =>
-            sale.vendedorNombre?.toLowerCase().includes(v)
-          );
-        }
+  console.log("Intentando conectar con:", inicio, fin);
 
-        this.ventas.set(filtered);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Error al cargar el historial');
-        this.isLoading.set(false);
+  this.ventaService.consultarHistorico(inicio, fin).subscribe({
+    next: (data) => {
+      console.log("PRIMERA VENTA:", JSON.stringify(data[0]));
+      // Si el vendedor viene en el filtro, filtramos localmente para que funcione sí o sí
+      let finalData = data || [];
+      if (vendedor) {
+        finalData = finalData.filter((v: any) => 
+          (v.vendedorNombre || v.usuario?.nombreCompleto || '')
+          .toLowerCase().includes(vendedor.toLowerCase())
+        );
       }
-    });
-  }
+      
+      this.ventas.set(finalData);
+      this.isLoading.set(false);
+    },
+    error: (err) => {
+      // AQUÍ ESTÁ EL PROBLEMA: El servidor responde 500
+      console.error("EL SERVIDOR TIENE UN BUG (500):", err);
+      
+      this.errorMessage.set('El servidor de Java falló (Error 500)');
+      this.ventas.set([]); // Vaciamos la lista para que no se quede el spinner infinito
+      this.isLoading.set(false);
+    }
+  });
+}
 
-  handleFilterApply(options: SalesFilterOptions) {
-    const inicio = options.fechaInicio ? `${options.fechaInicio}T00:00:00` : undefined;
-    const fin = options.fechaFin ? `${options.fechaFin}T23:59:59` : undefined;
-    this.loadHistory(inicio, fin, options.vendedor || undefined);
-  }
+ handleFilterApply(options: SalesFilterOptions) {
+  const formatearFecha = (fechaStr: string | null | undefined): string | undefined => {
+    if (!fechaStr) return undefined;
+    const partes = fechaStr.split('-'); 
+    return `${partes[2]}-${partes[1]}-${partes[0]}`; 
+  };
 
-  toggleFilter() {
-    this.isFilterVisible.update(v => !v);
-  }
+  // Aquí ya no debería dar error
+  const inicio = formatearFecha(options.fechaInicio);
+  const fin = formatearFecha(options.fechaFin);
 
+  this.loadHistory(inicio, fin, options.vendedor || undefined);
+}
   verDetalle(id: number) {
     this.router.navigate(['/ventas', id]);
   }
@@ -106,5 +111,8 @@ export class HistorialVentasComponent implements OnInit {
 
   handleAddSale(): void {
     this.router.navigate(['/ventas/crear']);
+  }
+  toggleFilter() {
+    this.isFilterVisible.update(v => !v);
   }
 }

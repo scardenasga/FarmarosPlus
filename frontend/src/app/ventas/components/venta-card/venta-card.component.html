@@ -1,7 +1,7 @@
 <article class="venta-card" (click)="onSelect()">
   <div class="venta-card-top">
-    <span class="venta-num">#{{ venta().idVenta }}</span>
-    <app-estado-venta [estado]="venta().estado"></app-estado-venta>
+<span class="venta-num">#{{ venta().id || venta().idVenta }}</span>    
+<app-estado-venta [estado]="venta().estado"></app-estado-venta>
   </div>
 
   <div class="venta-card-mid">

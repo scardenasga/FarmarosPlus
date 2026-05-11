@@ -33,7 +33,7 @@ export class BuscarProductoComponent {
   haySeleccion = computed(() => this.productosEnVenta().length > 0);
 
   handleBack() {
-    this.router.navigate(['/ventas/historial']);
+    this.router.navigate(['/ventas']);
   }
 
   handleSearch(termino: string) {

@@ -1,8 +1,9 @@
 <div class="main-container dark-theme">
-  <header class="header-vistas">
-    <h1>Orden De Compra</h1>
-    <p class="proveedor-txt">Proveedor: <span>{{ nombreProveedor }}</span></p>
-  </header>
+    <app-boton-retroceder 
+    [titulo]="'Orden De Compra'" 
+    [subtitulo]="'Proveedor: ' + nombreProveedor">
+  </app-boton-retroceder>
+  
 
   <div class="buscador-seccion">
     <app-search-bar (search)="onSearch($event)" [placeholder]="'Filtrar productos...'"></app-search-bar>

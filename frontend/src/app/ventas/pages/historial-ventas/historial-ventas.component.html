@@ -1,18 +1,12 @@
 <div class="inventory-page">
   <div class="sticky-header">
-    <app-top-bar
-      title="Historial de Ventas"
-      (back)="volver()"
-      (alert)="handleNotification()"
-    ></app-top-bar>
-
-    <div class="header-actions">
+    <div class="header-simple">
+      <span class="header-title">Historial de Ventas</span>
       <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
     </div>
   </div>
 
   <main class="content">
-    <!-- ... existing if blocks ... -->
     @if (errorMessage()) {
       <div class="error-msg">{{ errorMessage() }}</div>
     }
