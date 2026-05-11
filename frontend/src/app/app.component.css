@@ -1,9 +1,9 @@
-:host {
-  display: block;
-  max-width: var(--app-max-width);
-  width: 100%;
+.main-content {
+  padding-bottom: 80px; /* Altura de la BottomNavBar */
   min-height: 100vh;
-  background: var(--color-bg);
-  position: relative;
-  margin: 0 auto;
+  width: 100%;
+}
+
+.main-content.no-padding {
+  padding-bottom: 0;
 }

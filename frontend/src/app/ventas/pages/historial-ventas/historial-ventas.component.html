@@ -1,0 +1,33 @@
+<div class="inventory-page">
+  <div class="sticky-header">
+    <div class="header-simple">
+      <span class="header-title">Historial de Ventas</span>
+      <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
+    </div>
+  </div>
+
+  <main class="content">
+    @if (errorMessage()) {
+      <div class="error-msg">{{ errorMessage() }}</div>
+    }
+
+    @if (isLoading() && !errorMessage()) {
+      <div class="loading-msg">Cargando historial...</div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      <app-venta-list
+        [ventasAgrupadas]="ventasAgrupadas()"
+        (ventaSelected)="verDetalle($event)"
+      ></app-venta-list>
+    }
+  </main>
+
+  <app-fab-button (clicked)="handleAddSale()"></app-fab-button>
+
+  <app-sales-filter
+    [isVisible]="isFilterVisible()"
+    (close)="toggleFilter()"
+    (apply)="handleFilterApply($event)"
+  ></app-sales-filter>
+</div>

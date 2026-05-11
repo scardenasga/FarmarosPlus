@@ -55,6 +55,21 @@ public class VentaController {
         Venta ventaGuardada = ventaService.registrarVenta(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toVentaResponse(ventaGuardada));
     }
+    @GetMapping("/historico")
+@Operation(summary = "Consultar histórico de ventas")
+public ResponseEntity<List<VentaResponse>> consultarHistorico(
+        @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
+        @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
+        @RequestParam(required = false) Long idVendedor,
+        @RequestParam(required = false) String estado,
+        @RequestHeader("X-Username") String username
+) {
+    LocalDateTime inicio = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
+    LocalDateTime fin = fechaFin != null ? fechaFin.atTime(23, 59, 59) : null;
+    HistoricoFiltroRequest filtros = new HistoricoFiltroRequest(inicio, fin, idVendedor, estado);
+    List<Venta> ventas = ventaService.consultarHistorico(filtros, username);
+    return ResponseEntity.ok(ventas.stream().map(this::toVentaResponse).toList());
+}
 
     @GetMapping("/{id}")
     @Operation(summary = "Consultar venta por id")
@@ -65,21 +80,7 @@ public class VentaController {
     /**
      * Lista el histórico de ventas con filtros opcionales
      */
-    @GetMapping("/historico")
-    @Operation(summary = "Consultar histórico de ventas")
-    public ResponseEntity<List<VentaResponse>> consultarHistorico(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin,
-            @RequestParam(required = false) Long idVendedor,
-            @RequestParam(required = false) String estado,
-            @RequestHeader("X-Username") String username
-    ) {
-        LocalDateTime inicio = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
-        LocalDateTime fin = fechaFin != null ? fechaFin.atTime(23, 59, 59) : null;
-        HistoricoFiltroRequest filtros = new HistoricoFiltroRequest(inicio, fin, idVendedor, estado);
-        List<Venta> ventas = ventaService.consultarHistorico(filtros, username);
-        return ResponseEntity.ok(ventas.stream().map(this::toVentaResponse).toList());
-    }
+   
 
     /**
      * Descarga la factura de una venta en formato PDF.

@@ -1,0 +1,89 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Filtrar Productos"
+>
+  <div class="filter-header">
+    <h2>Filtrar Productos</h2>
+  </div>
+
+  <div class="filter-section">
+    <p class="section-title">Categoría</p>
+    <div class="chips-container">
+      @for (cat of categories(); track cat.id) {
+        <app-filter-chip 
+          [label]="cat.nombre" 
+          [selected]="selectedCategories().includes(cat.id)"
+          (toggle)="toggleCategory(cat.id)"
+        ></app-filter-chip>
+      }
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <p class="section-title">Estado</p>
+    <div class="chips-container">
+      @for (state of states; track state) {
+        <app-filter-chip 
+          [label]="state" 
+          [selected]="selectedStates().includes(state)"
+          (toggle)="toggleState(state)"
+        ></app-filter-chip>
+      }
+    </div>
+  </div>
+
+  <form [formGroup]="filterForm">
+    <div class="filter-section">
+      <p class="section-title">Precio de venta</p>
+      <div class="range-inputs">
+        <app-form-input 
+          label="Mínimo" 
+          type="number" 
+          [control]="minPriceControl"
+          placeholder="0"
+        ></app-form-input>
+        <app-form-input 
+          label="Máximo" 
+          type="number" 
+          [control]="maxPriceControl"
+          placeholder="999999"
+        ></app-form-input>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <p class="section-title">Margen de Ganancia (%)</p>
+      <div class="range-inputs">
+        <app-form-input 
+          label="Mínimo" 
+          type="number" 
+          [control]="minMarginControl"
+          suffix="%"
+          placeholder="0"
+        ></app-form-input>
+        <app-form-input 
+          label="Máximo" 
+          type="number" 
+          [control]="maxMarginControl"
+          suffix="%"
+          placeholder="100"
+        ></app-form-input>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <p class="section-title">Vencen antes de:</p>
+      <app-form-input 
+        label="Fecha de Corte" 
+        type="date" 
+        [control]="expirationDateControl"
+      ></app-form-input>
+    </div>
+  </form>
+
+  <div class="actions">
+    <button class="btn-clear" (click)="clearFilters()">Limpiar Filtros</button>
+    <button class="btn-apply" (click)="applyFilters()">Aplicar</button>
+  </div>
+</app-bottom-sheet>

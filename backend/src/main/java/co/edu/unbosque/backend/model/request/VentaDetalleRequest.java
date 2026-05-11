@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Positive;
  * @param cantidad cantidad vendida
  * @param precioUnitario precio aplicado; si es nulo se toma el precio actual del producto
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 public record VentaDetalleRequest(
         @NotNull(message = "El productoId es obligatorio")

@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
  * Sirve para trazabilidad de cambios de costo y precio de venta.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Data
 @NoArgsConstructor

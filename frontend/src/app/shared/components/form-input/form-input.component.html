@@ -1,0 +1,25 @@
+<div class="form-group">
+  <label>{{ label() }}</label>
+  <div class="input-container">
+    @if (type() === 'textarea') {
+      <textarea [formControl]="control()" [placeholder]="placeholder()"></textarea>
+    } @else if (type() === 'select') {
+      <select [formControl]="control()">
+        <option [value]="null">{{ placeholder() || 'Seleccione una opción' }}</option>
+        @for (opt of options(); track opt.id) {
+          <option [value]="opt.id">{{ opt.nombre }}</option>
+        }
+      </select>
+    } @else {
+      <input [type]="type()" [formControl]="control()" [placeholder]="placeholder()">
+      @if (suffix()) {
+        <span class="suffix-text">{{ suffix() }}</span>
+      }
+      @if (hasIcon()) {
+        <button type="button" class="icon-button">
+          <ng-content></ng-content>
+        </button>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,78 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog-container {
+  width: 280px;
+  background-color: var(--surface-container);
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-title {
+  color: var(--on-background);
+  font-family: "Roboto";
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.dialog-content {
+  color: var(--on-surface);
+  font-family: "Roboto";
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.dialog-btn {
+  font-family: "Roboto";
+  font-size: 18px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: opacity 0.2s;
+}
+
+.dialog-btn:active {
+  opacity: 0.7;
+}
+
+.dialog-btn-cancel {
+  color: var(--on-surface);
+}
+
+.dialog-btn-confirm {
+  color: var(--primary);
+  background-color: var(--primary-container);
+  border-radius: 20px;
+  padding: 8px 24px;
+}

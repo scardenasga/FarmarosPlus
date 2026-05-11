@@ -14,6 +14,7 @@ import java.util.List;
  * Permite consultar líneas vendidas por producto, venta o periodo.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Repository
 public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Long> {

@@ -1,0 +1,27 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-l);
+  height: 64px;
+  background: transparent;
+}
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--on-background);
+  flex-grow: 1;
+  text-align: center;
+}
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+}
+.icon-button:hover {
+  background-color: var(--surface-container-high);
+}

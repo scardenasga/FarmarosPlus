@@ -1,0 +1,80 @@
+<div class="container">
+
+  <!-- Encabezado -->
+  <div class="header">
+    <span class="titulo">Alertas</span>
+    <button class="btn-categorias" (click)="irCategorias()" title="Categorías">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+           fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Filtro -->
+  <div class="filtro-tabs">
+    <button class="tab" [class.activo]="soloNoLeidas" (click)="cambiarFiltro(true)">
+      No leídas
+      <span *ngIf="noLeidasCount() > 0" class="badge">{{ noLeidasCount() }}</span>
+    </button>
+    <button class="tab" [class.activo]="!soloNoLeidas" (click)="cambiarFiltro(false)">
+      Todas
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="msg-error">{{ error }}</div>
+
+  <!-- Carga -->
+  <div *ngIf="cargando && !error" class="msg-info">Escaneando inventario...</div>
+
+  <!-- Sin alertas -->
+  <div *ngIf="!cargando && !error && alertas.length === 0" class="msg-vacio">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+         fill="none" stroke="#90f4d3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <p>Sin alertas pendientes</p>
+  </div>
+
+  <!-- Lista de alertas -->
+  <div *ngIf="!cargando && !error && alertas.length > 0" class="contenido-scroll">
+
+    <!-- Botón marcar todas -->
+    <div *ngIf="noLeidasCount() > 0" class="barra-acciones">
+      <button class="btn-marcar-todas" (click)="marcarTodas()" [disabled]="marcandoTodas">
+        {{ marcandoTodas ? 'Marcando...' : 'Marcar todas como leídas' }}
+      </button>
+    </div>
+
+    <div *ngFor="let alerta of alertas"
+         class="alerta-card"
+         [class.leida]="alerta.leida"
+         [class.stock]="alerta.tipo === 'STOCK_MINIMO'"
+         [class.vencimiento]="alerta.tipo === 'PROXIMO_VENCIMIENTO'">
+
+      <div class="alerta-izq">
+        <span class="tipo-badge" [class.badge-stock]="alerta.tipo === 'STOCK_MINIMO'"
+              [class.badge-venc]="alerta.tipo === 'PROXIMO_VENCIMIENTO'">
+          {{ alerta.tipo === 'STOCK_MINIMO' ? 'Stock' : 'Vencimiento' }}
+        </span>
+        <span class="alerta-titulo">{{ alerta.titulo }}</span>
+        <span class="alerta-mensaje">{{ alerta.mensaje }}</span>
+        <span class="alerta-fecha">{{ alerta.fechaGeneracion | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+
+      <button *ngIf="!alerta.leida" class="btn-leer" (click)="marcarLeida(alerta.id)" title="Marcar como leída">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </button>
+
+    </div>
+  </div>
+
+</div>

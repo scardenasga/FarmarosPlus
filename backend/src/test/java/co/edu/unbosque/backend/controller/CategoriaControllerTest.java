@@ -1,5 +1,6 @@
 package co.edu.unbosque.backend.controller;
 
+import co.edu.unbosque.backend.exception.BusinessException;
 import co.edu.unbosque.backend.model.entity.Categoria;
 import co.edu.unbosque.backend.service.CategoriaService;
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CategoriaController.class)
 class CategoriaControllerTest {
@@ -39,14 +41,21 @@ class CategoriaControllerTest {
         mockMvc.perform(post("/api/categorias")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {
-                                  "nombre": "Analgesicos",
-                                  "descripcion": "Dolor"
-                                }
+                                {"nombre": "Analgesicos", "descripcion": "Dolor"}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.nombre").value("Analgesicos"));
+    }
+
+    @Test
+    void crearCategoria_sinNombre_debeRetornar400() throws Exception {
+        mockMvc.perform(post("/api/categorias")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"descripcion": "Dolor"}
+                                """))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -63,14 +72,47 @@ class CategoriaControllerTest {
     }
 
     @Test
-    void crearCategoria_sinNombre_debeRetornar400() throws Exception {
-        mockMvc.perform(post("/api/categorias")
+    void actualizarCategoria_debeRetornar200() throws Exception {
+        Categoria actualizada = new Categoria();
+        actualizada.setIdCategoria(1L);
+        actualizada.setNombre("Vitaminas");
+
+        when(categoriaService.actualizarCategoria(eq(1L), any())).thenReturn(actualizada);
+
+        mockMvc.perform(put("/api/categorias/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {
-                                  "descripcion": "Dolor"
-                                }
+                                {"nombre": "Vitaminas"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Vitaminas"));
+    }
+
+    @Test
+    void actualizarCategoria_sinNombre_debeRetornar400() throws Exception {
+        mockMvc.perform(put("/api/categorias/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"descripcion": "Solo descripcion"}
                                 """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void eliminarCategoria_debeRetornar204() throws Exception {
+        doNothing().when(categoriaService).eliminarCategoria(1L);
+
+        mockMvc.perform(delete("/api/categorias/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void eliminarCategoria_conProductosActivos_debeRetornar400() throws Exception {
+        doThrow(new BusinessException("Tiene productos activos"))
+                .when(categoriaService).eliminarCategoria(1L);
+
+        mockMvc.perform(delete("/api/categorias/1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Tiene productos activos"));
     }
 }

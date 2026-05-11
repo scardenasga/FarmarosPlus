@@ -12,23 +12,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
  * Controlador REST para operaciones de proveedores.
  *
+ * @author juanjo2748
  * @author Sebastian Cardenas Garcia
  */
 @RestController
 @RequestMapping("/api/proveedores")
+@CrossOrigin(origins = "*")
 @Tag(name = "Proveedores", description = "Operaciones de gestión de proveedores")
 public class ProveedorController {
 
@@ -63,9 +59,7 @@ public class ProveedorController {
                     }
             )
     )
-    public ResponseEntity<ProveedorResponse> crearProveedor(
-            @Valid @RequestBody CrearProveedorRequest request
-    ) {
+    public ResponseEntity<ProveedorResponse> crearProveedor(@Valid @RequestBody CrearProveedorRequest request) {
         Proveedor proveedorGuardado = proveedorService.crearProveedor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProveedorResponse(proveedorGuardado));
     }

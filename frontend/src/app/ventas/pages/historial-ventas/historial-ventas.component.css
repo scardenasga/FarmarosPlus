@@ -1,0 +1,57 @@
+.inventory-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--background);
+  display: flex;
+  flex-direction: column;
+}
+
+.header-actions {
+  padding: 0 var(--space-l) var(--space-m);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.content {
+  flex: 1;
+  padding-bottom: 80px;
+}
+
+.error-msg {
+  background-color: var(--error);
+  color: var(--on-error);
+  margin: var(--space-l);
+  padding: var(--space-l);
+  border-radius: var(--radius-m);
+  text-align: center;
+}
+
+.loading-msg {
+  color: var(--on-background);
+  text-align: center;
+  padding: var(--space-xl);
+  opacity: 0.7;
+}
+.header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px 8px;
+  background-color: var(--background);
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--on-background);
+  flex: 1;
+  text-align: center;
+}

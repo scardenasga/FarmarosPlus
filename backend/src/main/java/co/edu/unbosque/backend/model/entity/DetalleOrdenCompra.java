@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  * Especifica cantidad y precio pactado por cada producto en la orden.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Data
 @NoArgsConstructor

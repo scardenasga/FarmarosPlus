@@ -97,6 +97,15 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByCodigoBarrasForUpdate(@Param("codigoBarras") String codigoBarras);
 
     /**
+     * Verifica si una categoría tiene al menos un producto en el estado indicado.
+     *
+     * @param idCategoria identificador de la categoría
+     * @param estado      estado del producto (ej: "ACTIVO")
+     * @return {@code true} si existe al menos un producto con ese estado en la categoría
+     */
+    boolean existsByCategoria_IdCategoriaAndEstado(Long idCategoria, String estado);
+
+    /**
      * Recupera productos que ya alcanzaron o cruzaron su stock mínimo.
      *
      * @return productos con stock bajo

@@ -15,6 +15,7 @@ import java.util.List;
  * @param detalles líneas vendidas
  * @param pagos pagos registrados para la venta
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 public record CrearVentaRequest(
         @NotNull(message = "El usuarioId es obligatorio")

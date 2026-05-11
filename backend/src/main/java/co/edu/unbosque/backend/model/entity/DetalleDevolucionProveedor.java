@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Línea de detalle de una devolución a proveedor.
+ * Guarda snapshot de nombre y número de lote para trazabilidad.
+ *
  * Detalle de una devolución al proveedor.
  * Especifica qué productos y cantidades se devuelven de un recibo.
  *
@@ -28,8 +31,8 @@ public class DetalleDevolucionProveedor {
             foreignKey = @ForeignKey(name = "fk_detalle_devolucion_devolucion"))
     private DevolucionProveedor devolucion;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_detalle_recepcion", nullable = false,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_detalle_recepcion",
             foreignKey = @ForeignKey(name = "fk_detalle_devolucion_detalle_recepcion"))
     private DetalleRecepcionCompra detalleRecepcion;
 
@@ -44,7 +47,13 @@ public class DetalleDevolucionProveedor {
     private Lote lote;
 
     @Column(name = "cantidad_devuelta", nullable = false)
-    private Integer cantidadDevuelta;
+    private Integer cantidad;
+
+    @Column(name = "nombre_producto")
+    private String nombreProducto;
+
+    @Column(name = "numero_lote")
+    private String numeroLote;
 
     @Column(name = "costo_unitario_referencia")
     private Double costoUnitarioReferencia;

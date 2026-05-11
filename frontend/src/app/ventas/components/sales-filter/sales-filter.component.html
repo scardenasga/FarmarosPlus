@@ -1,0 +1,41 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Filtrar Historial"
+>
+  <div class="filter-header">
+    <h2>Filtrar Historial</h2>
+  </div>
+
+  <form [formGroup]="filterForm">
+    <div class="filter-section">
+      <p class="section-title">Rango de Fecha</p>
+      <div class="date-range">
+        <app-form-input 
+          label="Desde" 
+          type="date" 
+          [control]="startFormControl"
+        ></app-form-input>
+        <app-form-input 
+          label="Hasta" 
+          type="date" 
+          [control]="endFormControl"
+        ></app-form-input>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <p class="section-title">Vendedor</p>
+      <app-form-input 
+        label="Nombre del Vendedor" 
+        [control]="vendorFormControl"
+        placeholder="Ej: Juan Pérez"
+      ></app-form-input>
+    </div>
+  </form>
+
+  <div class="actions">
+    <button class="btn-clear" (click)="clearFilters()">Limpiar Filtros</button>
+    <button class="btn-apply" (click)="applyFilters()">Aplicar</button>
+  </div>
+</app-bottom-sheet>

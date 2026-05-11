@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
  * Cada fila vincula un producto y un lote específico dentro de una venta.
  *
  * @author Sebastian Cardenas Garcia
+ * @author Angie Tatiana Ortiz
  */
 @Data
 @NoArgsConstructor
@@ -34,12 +35,12 @@ public class DetalleVenta {
             foreignKey = @ForeignKey(name = "fk_detalle_venta"))
     private Venta venta;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "id_producto", nullable = false,
             foreignKey = @ForeignKey(name = "fk_detalle_producto"))
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "id_lote", nullable = false,
             foreignKey = @ForeignKey(name = "fk_detalle_lote"))
     private Lote lote;

@@ -1,0 +1,12 @@
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  padding: var(--space-l);
+  padding-bottom: 180px; /* Space for FAB and BottomNav */
+}
+.empty-state {
+  padding: var(--space-xl);
+  color: var(--on-surface-variant);
+  text-align: center;
+}

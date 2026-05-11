@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Route, Router } from '@angular/router'; // <--- 1. Importar Router
-import { CompraService } from '../../../services/compra.service'
-// Ruta corregida para llegar a app/shared/components/bottom-nav/...
-import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
+import { Route, Router } from '@angular/router'; 
+import { CompraService } from '../../../ventas/services/compra.service'
+import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 
 interface AlertaDetallada {
@@ -18,7 +17,7 @@ interface AlertaDetallada {
 @Component({
   selector: 'app-notificacion-pedidos',
   standalone: true,
-  imports: [CommonModule, BottomNavComponent, SearchBarComponent],
+  imports: [CommonModule, BottomNavBarComponent, SearchBarComponent],
   templateUrl: './notificacion-pedidos.component.html',
   styleUrl: './notificacion-pedidos.component.css'
 })
@@ -49,8 +48,8 @@ export class NotificacionPedidosComponent implements OnInit {
 
   onSearch(termino: string): void {
     const t = termino.toLowerCase();
-    this.alertasFiltradas = this.alertas.filter(a => 
-      a.codigoGenerado.toLowerCase().includes(t) || 
+    this.alertasFiltradas = this.alertas.filter(a =>
+      a.codigoGenerado.toLowerCase().includes(t) ||
       a.proveedorNombre.toLowerCase().includes(t)
     );
   }

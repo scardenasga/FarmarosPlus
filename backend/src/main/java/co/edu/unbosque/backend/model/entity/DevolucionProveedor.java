@@ -32,8 +32,8 @@ public class DevolucionProveedor extends Auditable {
             foreignKey = @ForeignKey(name = "fk_devolucion_proveedor"))
     private Proveedor proveedor;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_recepcion", nullable = false,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_recepcion",
             foreignKey = @ForeignKey(name = "fk_devolucion_recepcion"))
     private RecepcionCompra recepcion;
 
@@ -42,20 +42,23 @@ public class DevolucionProveedor extends Auditable {
             foreignKey = @ForeignKey(name = "fk_devolucion_usuario"))
     private Usuario usuario;
 
+    @Column(name = "usuario_responsable")
+    private String usuarioResponsable;
+
     @Column(name = "fecha_devolucion", nullable = false)
-    private LocalDateTime fechaDevolucion;
+    private LocalDateTime fecha;
 
     /**
      * Valores válidos: INMEDIATA_RECEPCION | POSTERIOR
      */
     @Column(name = "tipo_devolucion", nullable = false)
-    private String tipoDevolucion;
+    private String tipoDevolucion = "POSTERIOR";
 
     /**
      * Valores válidos: VENCIMIENTO | DANADO | DEFECTO | ERROR_DESPACHO | RETIRO_SANITARIO | OTRO
      */
     @Column(name = "motivo_principal", nullable = false)
-    private String motivoPrincipal;
+    private String motivo;
 
     /**
      * Valores válidos: PENDIENTE | ENVIADA | ACEPTADA | RECHAZADA | CERRADA
@@ -65,4 +68,7 @@ public class DevolucionProveedor extends Auditable {
 
     @Column(name = "observaciones")
     private String observaciones;
+
+    @OneToMany(mappedBy = "devolucion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<DetalleDevolucionProveedor> detalles = new java.util.ArrayList<>();
 }
