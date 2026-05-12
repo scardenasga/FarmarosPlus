@@ -66,22 +66,38 @@ export class BuscarProductoComponent {
     this.errorLote.set('');
     this.ventaService.obtenerLotesDisponibles(producto.id).subscribe({
       next: (lotes) => {
-        if (!lotes || lotes.length === 0) {
+        // 1. Comentamos el bloqueo (como ya hiciste)
+        /*if (!lotes || lotes.length === 0) {
           this.errorLote.set(`"${producto.nombre}" no tiene lotes disponibles`);
           return;
-        }
+        }*/
+
+        // 2. USAMOS PROTECCIÓN: Si hay lote lo pone, si no, pone null.
+        // Esto evita el error de "Cannot read properties of undefined (reading 'id')"
+        const primerLoteId = (lotes && lotes.length > 0) ? lotes[0].id : null;
+        const primerNumeroLote = (lotes && lotes.length > 0) ? lotes[0].numeroLote : 'SIN LOTE';
+
         this.productosEnVenta.update(prev => [
           ...prev,
           {
             ...producto,
             cantidad: 1,
-            loteId: lotes[0].id,
-            numeroLote: lotes[0].numeroLote
+            loteId: primerLoteId,      // Ya no explota si es null
+            numeroLote: primerNumeroLote
           }
         ]);
       },
       error: () => {
-        this.errorLote.set(`No se pudo obtener el lote de "${producto.nombre}"`);
+        // 3. Incluso si el servidor da error de lotes, deja agregar el producto
+        this.productosEnVenta.update(prev => [
+          ...prev,
+          {
+            ...producto,
+            cantidad: 1,
+            loteId: null,
+            numeroLote: 'SIN LOTE'
+          }
+        ]);
       }
     });
   }

@@ -32,15 +32,15 @@
 
     <div class="info-box">
       <div class="info-row">
-        <span class="info-lbl">Vendedor</span>
+        <span class="info-lbl">Vendedor:</span>
         <span class="info-val">{{ venta.usuario?.nombreCompleto }}</span>
       </div>
       <div class="info-row">
-        <span class="info-lbl">Fecha</span>
+        <span class="info-lbl">Fecha:</span>
         <span class="info-val fecha-verde">{{ venta.fecha | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-row">
-        <span class="info-lbl">Método de pago</span>
+        <span class="info-lbl">Método de pago:</span>
         <span class="info-val">{{ venta.pagos?.[0]?.tipo }}</span>
       </div>
     </div>

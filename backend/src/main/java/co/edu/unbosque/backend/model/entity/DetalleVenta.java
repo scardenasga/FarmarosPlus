@@ -40,8 +40,8 @@ public class DetalleVenta {
             foreignKey = @ForeignKey(name = "fk_detalle_producto"))
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "id_lote", nullable = false,
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
+    @JoinColumn(name = "id_lote", nullable = true,
             foreignKey = @ForeignKey(name = "fk_detalle_lote"))
     private Lote lote;
 

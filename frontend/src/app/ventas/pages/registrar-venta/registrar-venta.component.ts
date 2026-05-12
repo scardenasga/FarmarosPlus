@@ -48,35 +48,37 @@ export class RegistrarVentaComponent implements OnInit {
     return this.subtotal;
   }
 
-  confirmarVenta() {
-    this.cargando = true;
-    this.error = '';
+ confirmarVenta() {
+  this.cargando = true;
+  this.error = '';
 
-    const request = {
-      usuarioId: this.usuarioId,
-      detalles: this.productos.map(p => ({
+  const request = {
+    usuarioId: this.usuarioId,
+    detalles: this.productos.map(p => ({
         productoId: p.id,
-        loteId: p.loteId,
+        loteId: p.loteId?? null,
         cantidad: p.cantidad,
         precioUnitario: p.precioVenta
-      })),
-      pagos: [{ tipo: this.metodoPago, monto: this.total }],
-      descuento: 0.0
-    };
+      
+    })),
+    pagos: [{ tipo: this.metodoPago, monto: this.total }],
+    descuento: 0.0
+  };
 
-    console.log('REQUEST ENVIADO:', JSON.stringify(request));
+  console.log('REINTENTO DE REQUEST:', JSON.stringify(request));
 
-    this.ventaService.registrarVenta(request).subscribe({
-      next: (venta) => {
-        sessionStorage.removeItem('productosVenta');
-        this.router.navigate(['/ventas', venta.id]); // ← fix aquí
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Error al registrar la venta';
-        this.cargando = false;
-      }
-    });
-  }
+  this.ventaService.registrarVenta(request).subscribe({
+    next: (venta) => {
+      sessionStorage.removeItem('productosVenta');
+      this.router.navigate(['/ventas', venta.id]);
+    },
+    error: (err) => {
+      console.error('ERROR DEL SERVIDOR:', err);
+      this.error = err.error?.message || 'El servidor rechaza la venta sin lote';
+      this.cargando = false;
+    }
+  });
+}
 
   cancelar() {
     this.router.navigate(['/ventas/buscar']);
