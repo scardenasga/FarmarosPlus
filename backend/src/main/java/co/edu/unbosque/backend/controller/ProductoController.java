@@ -2,11 +2,15 @@ package co.edu.unbosque.backend.controller;
 
 import co.edu.unbosque.backend.model.entity.Categoria;
 import co.edu.unbosque.backend.model.entity.Producto;
+import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
+import co.edu.unbosque.backend.model.response.LoteProductoResponse;
+import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
+import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +52,7 @@ public class ProductoController {
     @PostMapping
     @Operation(
             summary = "Crear producto",
-            description = "Crea un producto con stock inicial obligatorio. Si se envia numeroLote, tambien crea el lote inicial y registra el movimiento de inventario."
+            description = "Crea un producto con stock inicial obligatorio. Si se envia numeroLote o fechaVencimiento, tambien crea el lote inicial y registra el movimiento de inventario."
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
@@ -64,7 +68,9 @@ public class ProductoController {
                                               "stockInicial": 20,
                                               "costo": 8500.0,
                                               "precioVenta": 12000.0,
-                                              "estado": "ACTIVO"
+                                              "porcentajeIva": 0.0,
+                                              "requierePrescripcion": false,
+                                              "fechaVencimiento": "2027-12-31"
                                             }
                                             """
                             ),
@@ -79,7 +85,9 @@ public class ProductoController {
                                               "stockInicial": 50,
                                               "costo": 15000.0,
                                               "precioVenta": 22000.0,
-                                              "estado": "ACTIVO",
+                                              "porcentajeIva": 19.0,
+                                              "requierePrescripcion": true,
+                                              "fechaVencimiento": "2027-12-31",
                                               "numeroLote": "AMX-2026-01"
                                             }
                                             """
@@ -87,9 +95,48 @@ public class ProductoController {
                     }
             )
     )
-    public ResponseEntity<ProductoResponse> guardarProducto(@Valid @org.springframework.web.bind.annotation.RequestBody CrearProductoRequest request) {
+    public ResponseEntity<ProductoResponse> guardarProducto(@Valid @RequestBody CrearProductoRequest request) {
         Producto productoGuardado = productoService.crearProducto(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProductoResponse(productoGuardado));
+    }
+
+    /**
+     * Actualiza un producto existente.
+     */
+    @PatchMapping("/{id}")
+    @Operation(
+            summary = "Actualizar producto",
+            description = "Actualiza los campos editables del producto. No permite cambiar id, stock inicial, lote ni fecha de vencimiento. El stock actual si puede corregirse manualmente. Para editar codigo de barras se recomienda un endpoint aparte."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Edicion parcial",
+                                    value = """
+                                            {
+                                              "categoriaId": 2,
+                                              "nombre": "Acetaminofen 650mg",
+                                              "descripcion": "Caja por 20 tabletas recubiertas",
+                                              "stockMinimo": 12,
+                                              "stockActual": 120,
+                                              "costo": 9000.0,
+                                              "precioVenta": 13500.0,
+                                              "porcentajeIva": 0.0,
+                                              "requierePrescripcion": false,
+                                              "estado": "ACTIVO"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProductoResponse> actualizarProducto(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarProductoRequest request
+    ) {
+        return ResponseEntity.ok(toProductoResponse(productoService.actualizarProducto(id, request)));
     }
 
     /**
@@ -98,7 +145,7 @@ public class ProductoController {
     @PostMapping("/codigo-barras/{codigoBarras}/ingresos")
     @Operation(
             summary = "Ingresar stock por codigo de barras",
-            description = "Aumenta el stock de un producto existente. Si se envia numeroLote, crea un nuevo lote. Si cambia el precio de venta, registra historial de precio."
+            description = "Aumenta el stock de un producto existente. La fecha de vencimiento es obligatoria para poder registrar el lote asociado. Si se envia numeroLote, crea un nuevo lote. Si cambia el precio de venta, registra historial de precio."
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
@@ -108,7 +155,8 @@ public class ProductoController {
                                     name = "Ingreso sin lote",
                                     value = """
                                             {
-                                              "cantidad": 25
+                                              "cantidad": 25,
+                                              "fechaVencimiento": "2027-12-31"
                                             }
                                             """
                             ),
@@ -119,7 +167,8 @@ public class ProductoController {
                                               "cantidad": 40,
                                               "numeroLote": "AMX-2026-02",
                                               "nuevoCosto": 16000.0,
-                                              "nuevoPrecioVenta": 23500.0
+                                              "nuevoPrecioVenta": 23500.0,
+                                              "fechaVencimiento": "2027-12-31"
                                             }
                                             """
                             )
@@ -128,7 +177,7 @@ public class ProductoController {
     )
     public ResponseEntity<ProductoResponse> ingresarStock(
             @PathVariable String codigoBarras,
-            @Valid @org.springframework.web.bind.annotation.RequestBody IngresoProductoRequest request
+            @Valid @RequestBody IngresoProductoRequest request
     ) {
         return ResponseEntity.ok(toProductoResponse(productoService.ingresarStock(codigoBarras, request)));
     }
@@ -140,6 +189,20 @@ public class ProductoController {
     @Operation(summary = "Consultar producto por id")
     public ResponseEntity<ProductoResponse> obtenerProductoPorId(@PathVariable Long id) {
         return ResponseEntity.ok(toProductoResponse(productoService.obtenerProductoPorId(id)));
+    }
+
+    /**
+     * Consulta un producto por identificador con detalle extendido y lotes asociados.
+     */
+    @GetMapping("/{id}/detalle")
+    @Operation(summary = "Consultar producto por id con lotes", description = "Devuelve el producto con todos sus datos y la lista de lotes asociados ordenados por fecha de vencimiento.")
+    public ResponseEntity<ProductoDetalleResponse> obtenerProductoDetallePorId(@PathVariable Long id) {
+        Producto producto = productoService.obtenerProductoPorId(id);
+        List<LoteProductoResponse> lotes = productoService.listarLotesPorProducto(id)
+                .stream()
+                .map(this::toLoteProductoResponse)
+                .toList();
+        return ResponseEntity.ok(toProductoDetalleResponse(producto, lotes));
     }
 
     /**
@@ -242,6 +305,34 @@ public class ProductoController {
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
                 producto.getEstado()
+        );
+    }
+
+    private ProductoDetalleResponse toProductoDetalleResponse(Producto producto, List<LoteProductoResponse> lotes) {
+        return new ProductoDetalleResponse(
+                producto.getUniqueID(),
+                toCategoriaResponse(producto.getCategoria()),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getCodigoBarras(),
+                producto.getStockMinimo(),
+                producto.getStockActual(),
+                producto.getCosto(),
+                producto.getPrecioVenta(),
+                producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
+                producto.getRequierePrescripcion(),
+                producto.getEstado(),
+                lotes
+        );
+    }
+
+    private LoteProductoResponse toLoteProductoResponse(Lote lote) {
+        return new LoteProductoResponse(
+                lote.getIdLote(),
+                lote.getNumeroLote(),
+                lote.getFechaVencimiento(),
+                lote.getCantidad()
         );
     }
 

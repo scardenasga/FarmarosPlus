@@ -30,6 +30,14 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findByProducto_UniqueIDOrderByFechaVencimientoAsc(Long idProducto);
 
     /**
+     * Verifica si ya existe un lote con el mismo numero, ignorando mayusculas.
+     *
+     * @param numeroLote numero de lote a validar
+     * @return {@code true} si ya existe un lote con ese numero
+     */
+    boolean existsByNumeroLoteIgnoreCase(String numeroLote);
+
+    /**
      * Lista los lotes cuya fecha de vencimiento cae dentro de un rango dado.
      *
      * @param fechaInicio fecha inicial inclusiva
