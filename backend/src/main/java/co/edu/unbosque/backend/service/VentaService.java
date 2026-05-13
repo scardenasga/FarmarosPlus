@@ -101,26 +101,47 @@ public class VentaService {
 
         for (VentaDetalleRequest detalleRequest : request.detalles()) {
 
-            Lote lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "No existe el lote con id " + detalleRequest.loteId()
-                    ));
+            Lote lote = null;
+Producto producto;
 
-            Producto producto = lote.getProducto();
+if (detalleRequest.loteId() != null) {
+    lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "No existe el lote con id " + detalleRequest.loteId()
+            ));
 
-            if (!producto.getUniqueID().equals(detalleRequest.productoId())) {
-                throw new BusinessException(
-                        "El lote " + detalleRequest.loteId() +
-                        " no pertenece al producto " + detalleRequest.productoId()
-                );
-            }
+    producto = lote.getProducto();
 
-            validarDisponibilidad(producto, lote, detalleRequest.cantidad());
+    if (!producto.getUniqueID().equals(detalleRequest.productoId())) {
+        throw new BusinessException(
+                "El lote " + detalleRequest.loteId() +
+                " no pertenece al producto " + detalleRequest.productoId()
+        );
+    }
 
+} else {
+    producto = productoRepository.findById(detalleRequest.productoId())
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "No existe el producto con id " + detalleRequest.productoId()
+            ));
+}
+
+if (lote != null) {
+    validarDisponibilidad(producto, lote, detalleRequest.cantidad());
+} else {
+    if (valorSeguro(producto.getStockActual()) < detalleRequest.cantidad()) {
+        throw new InsufficientStockException(
+                "Stock insuficiente para el producto " + producto.getNombre()
+        );
+    }
+}
             int stockAnterior = valorSeguro(producto.getStockActual());
             int stockNuevo = stockAnterior - detalleRequest.cantidad();
-            int cantidadLoteNueva = valorSeguro(lote.getCantidad()) - detalleRequest.cantidad();
+Integer cantidadLoteNueva = null;
 
+if (lote != null) {
+    cantidadLoteNueva = valorSeguro(lote.getCantidad()) - detalleRequest.cantidad();
+}
             Double precioUnitario = detalleRequest.precioUnitario() != null
                     ? detalleRequest.precioUnitario()
                     : producto.getPrecioVenta();
@@ -141,8 +162,9 @@ public class VentaService {
             ivaTotal += ivaLinea;
 
             producto.setStockActual(stockNuevo);
-            lote.setCantidad(cantidadLoteNueva);
-
+if (lote != null) {
+    lote.setCantidad(cantidadLoteNueva);
+}
             movimientos.add(construirMovimientoVenta(producto, lote, stockAnterior, stockNuevo, usuarioResponsable));
         }
 
@@ -389,9 +411,7 @@ public class VentaService {
             if (detalle.productoId() == null) {
                 throw new BusinessException("Cada detalle debe indicar un producto");
             }
-            if (detalle.loteId() == null) {
-                throw new BusinessException("Cada detalle debe indicar un lote");
-            }
+           
             if (detalle.cantidad() == null || detalle.cantidad() <= 0) {
                 throw new BusinessException("Cada detalle debe tener una cantidad mayor a cero");
             }

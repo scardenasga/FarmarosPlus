@@ -17,7 +17,6 @@ import jakarta.validation.constraints.Positive;
 public record VentaDetalleRequest(
         @NotNull(message = "El productoId es obligatorio")
         Long productoId,
-        @NotNull(message = "El loteId es obligatorio")
         Long loteId,
         @NotNull(message = "La cantidad es obligatoria")
         @Positive(message = "La cantidad debe ser mayor a cero")

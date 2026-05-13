@@ -51,7 +51,7 @@
         </div>
         <div class="prod-info">
           <span class="prod-nombre">{{ d.producto?.nombre }}</span>
-          <span class="prod-precio">${{ (d.precioUnitario || 0) | number }}</span>
+          <span class="prod-precio">${{ (d.precioUnitarioAplicado || 0) | number }}</span>
         </div>
         <span class="prod-stock">{{ d.cantidad }} und.</span>
       </div>

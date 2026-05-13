@@ -153,6 +153,9 @@ public ResponseEntity<List<VentaResponse>> consultarHistorico(
     }
 
     private LoteResumenResponse toLoteResumen(Lote lote) {
+        if (lote == null) {
+            return null;
+        }
         return new LoteResumenResponse(
                 lote.getIdLote(),
                 lote.getNumeroLote(),

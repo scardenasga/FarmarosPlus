@@ -34,19 +34,26 @@ export class VentaService {
   return this.http.get<any[]>(`${this.api}/inventario/productos/${productoId}/lotes-disponibles`);
 }
 
-consultarHistorico(inicio?: string, fin?: string): Observable<any[]> {
-  const url = 'http://localhost:8080/api/ventas/historico';
-  
-  let params = new HttpParams();
-  if (inicio) params = params.set('fechaInicio', inicio);
-  if (fin) params = params.set('fechaFin', fin);
+consultarHistorico(
+    inicio?: string,
+    fin?: string,
+    idVendedor?: number,
+    estado?: string,
+    username: string = 'SISTEMA'
+  ): Observable<any[]> {
+    let params = new HttpParams();
+    if (inicio) params = params.set('fechaInicio', inicio);
+    if (fin) params = params.set('fechaFin', fin);
+    if (idVendedor) params = params.set('idVendedor', idVendedor.toString());
+    if (estado) params = params.set('estado', estado);
 
-  const headers = new HttpHeaders().set('X-Username', 'Tatiana'); // ← esto debe estar
+    return this.http.get<any[]>(`${this.api}/ventas/historico`, {
+      params,
+      headers: { 'X-Username': username }
+    });
+  }
 
-  return this.http.get<any[]>(url, { params, headers }); // ← params Y headers juntos
-}
-
-obtenerPrevisualizacion(proveedorId: number): Observable<any> {
+  obtenerPrevisualizacion(proveedorId: number): Observable<any> {
     return this.http.get(`${this.api}/previsualizar/${proveedorId}`);
   }
 
