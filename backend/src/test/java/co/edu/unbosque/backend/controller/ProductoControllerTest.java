@@ -1,9 +1,10 @@
 package co.edu.unbosque.backend.controller;
 
 import co.edu.unbosque.backend.model.entity.Producto;
-import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
+import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
+import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.service.ProductoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
-import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -142,6 +142,31 @@ class ProductoControllerTest {
     }
 
     @Test
+    void buscarProductos_debeRetornarResultadosSinErroresDeParseo() throws Exception {
+        ProductoResponse respuesta = new ProductoResponse(
+                1L,
+                null,
+                "Acetaminofen",
+                null,
+                "7701234567890",
+                0,
+                20,
+                8500.0,
+                12000.0,
+                41.18,
+                0.0,
+                false,
+                "ACTIVO"
+        );
+
+        when(productoService.buscarActivosPorNombreOCodigo("acetaminofen")).thenReturn(List.of(respuesta));
+
+        mockMvc.perform(get("/api/productos/buscar").param("nombre", "acetaminofen"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].codigoBarras").value("7701234567890"));
+    }
+
+    @Test
     void crearProducto_sinStockInicial_debeRetornar400() throws Exception {
         mockMvc.perform(post("/api/productos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -188,49 +213,50 @@ class ProductoControllerTest {
 
     @Test
     void obtenerProductoDetalle_porId_debeRetornar200ConLotes() throws Exception {
-        Producto producto = new Producto();
-        producto.setUniqueID(1L);
-        producto.setNombre("Acetaminofen");
-        producto.setCodigoBarras("7701234567890");
-        producto.setStockActual(20);
-        producto.setCosto(8500.0);
-        producto.setPrecioVenta(12000.0);
-        producto.setPorcentajeIva(0.0);
-        producto.setRequierePrescripcion(false);
-        producto.setEstado("ACTIVO");
+        ProductoDetalleResponse respuesta = new ProductoDetalleResponse(
+                1L,
+                null,
+                "Acetaminofen",
+                null,
+                "7701234567890",
+                0,
+                20,
+                8500.0,
+                12000.0,
+                null,
+                0.0,
+                false,
+                "ACTIVO",
+                List.of()
+        );
 
-        Lote lote = new Lote();
-        lote.setIdLote(10L);
-        lote.setNumeroLote("LOT-001");
-        lote.setFechaVencimiento(LocalDate.now().plusYears(1));
-        lote.setCantidad(12);
-        lote.setProducto(producto);
-
-        when(productoService.obtenerProductoPorId(1L)).thenReturn(producto);
-        when(productoService.listarLotesPorProducto(1L)).thenReturn(List.of(lote));
+        when(productoService.obtenerProductoDetallePorId(1L)).thenReturn(respuesta);
 
         mockMvc.perform(get("/api/productos/1/detalle"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.codigoBarras").value("7701234567890"))
-                .andExpect(jsonPath("$.lotes[0].numeroLote").value("LOT-001"))
-                .andExpect(jsonPath("$.lotes[0].cantidad").value(12));
+                .andExpect(jsonPath("$.codigoBarras").value("7701234567890"));
     }
 
     @Test
     void obtenerProductoDetalle_porId_sinLotes_debeRetornarListaVacia() throws Exception {
-        Producto producto = new Producto();
-        producto.setUniqueID(2L);
-        producto.setNombre("Producto sin lotes");
-        producto.setCodigoBarras("7702222222222");
-        producto.setStockActual(5);
-        producto.setCosto(1000.0);
-        producto.setPrecioVenta(2000.0);
-        producto.setPorcentajeIva(0.0);
-        producto.setRequierePrescripcion(false);
-        producto.setEstado("ACTIVO");
+        ProductoDetalleResponse respuesta = new ProductoDetalleResponse(
+                2L,
+                null,
+                "Producto sin lotes",
+                null,
+                "7702222222222",
+                0,
+                5,
+                1000.0,
+                2000.0,
+                null,
+                0.0,
+                false,
+                "ACTIVO",
+                List.of()
+        );
 
-        when(productoService.obtenerProductoPorId(2L)).thenReturn(producto);
-        when(productoService.listarLotesPorProducto(2L)).thenReturn(List.of());
+        when(productoService.obtenerProductoDetallePorId(2L)).thenReturn(respuesta);
 
         mockMvc.perform(get("/api/productos/2/detalle"))
                 .andExpect(status().isOk())

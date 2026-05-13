@@ -11,15 +11,22 @@ import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
+import co.edu.unbosque.backend.model.response.CategoriaResponse;
+import co.edu.unbosque.backend.model.response.LoteProductoResponse;
+import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
+import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.repository.CategoriaRepository;
 import co.edu.unbosque.backend.repository.HistorialPrecioProductoRepository;
 import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
+import jakarta.persistence.Tuple;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -228,8 +235,52 @@ public class ProductoService {
 
     @Transactional(readOnly = true)
     public Producto obtenerProductoPorId(Long productoId) {
-        return productoRepository.findById(productoId)
+        return productoRepository.findByIdWithCategoria(productoId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+    }
+
+    @Transactional(readOnly = true)
+    public ProductoDetalleResponse obtenerProductoDetallePorId(Long productoId) {
+        if (productoId == null) {
+            throw new BusinessException("El id del producto es obligatorio");
+        }
+
+        Tuple productoDetalle = productoRepository.findDetalleProductoRowById(productoId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+        List<LoteProductoResponse> lotes = loteRepository.findDetalleLotesRowsByProducto(productoId).stream()
+                .map(this::toLoteProductoResponse)
+                .toList();
+
+        Long productoDetalleId = toLong(productoDetalle.get("productoId"));
+        CategoriaResponse categoria = toCategoriaResponse(productoDetalle);
+        String nombre = (String) productoDetalle.get("nombre");
+        String descripcion = (String) productoDetalle.get("descripcion");
+        String codigoBarras = (String) productoDetalle.get("codigoBarras");
+        Integer stockMinimo = toInteger(productoDetalle.get("stockMinimo"));
+        Integer stockActual = toInteger(productoDetalle.get("stockActual"));
+        Double costo = toDouble(productoDetalle.get("costo"));
+        Double precioVenta = toDouble(productoDetalle.get("precioVenta"));
+        Double margenGanancia = toDouble(productoDetalle.get("margenGanancia"));
+        Double porcentajeIva = toDouble(productoDetalle.get("porcentajeIva"));
+        Boolean requierePrescripcion = toBoolean(productoDetalle.get("requierePrescripcion"));
+        String estado = (String) productoDetalle.get("estado");
+
+        return new ProductoDetalleResponse(
+                productoDetalleId,
+                categoria,
+                nombre,
+                descripcion,
+                codigoBarras,
+                stockMinimo,
+                stockActual,
+                costo,
+                precioVenta,
+                margenGanancia,
+                porcentajeIva,
+                requierePrescripcion,
+                estado,
+                lotes
+        );
     }
 
     @Transactional(readOnly = true)
@@ -258,8 +309,10 @@ public class ProductoService {
      * @return productos activos coincidentes
      */
     @Transactional(readOnly = true)
-    public List<Producto> buscarActivosPorNombreOCodigo(String termino) {
-        return productoRepository.buscarActivosPorNombreOCodigo(termino);
+    public List<ProductoResponse> buscarActivosPorNombreOCodigo(String termino) {
+        return productoRepository.buscarActivosPorNombreOCodigo(termino).stream()
+                .map(this::toProductoResponse)
+                .toList();
     }
 
     @Transactional
@@ -465,4 +518,102 @@ public class ProductoService {
         if (texto == null || texto.isBlank()) return null;
         return texto.trim().replaceAll("\\s+", " ");
     }
+
+    private CategoriaResponse toCategoriaResponse(Categoria categoria) {
+        if (categoria == null) {
+            return null;
+        }
+        return new CategoriaResponse(
+                categoria.getIdCategoria(),
+                categoria.getNombre(),
+                categoria.getDescripcion()
+        );
+    }
+
+    private CategoriaResponse toCategoriaResponse(Tuple productoDetalle) {
+        Long categoriaId = toLong(productoDetalle.get("categoriaId"));
+        String categoriaNombre = (String) productoDetalle.get("categoriaNombre");
+        String categoriaDescripcion = (String) productoDetalle.get("categoriaDescripcion");
+        if (categoriaId == null && categoriaNombre == null && categoriaDescripcion == null) {
+            return null;
+        }
+        return new CategoriaResponse(categoriaId, categoriaNombre, categoriaDescripcion);
+    }
+
+    private LoteProductoResponse toLoteProductoResponse(Tuple loteDetalle) {
+        Long loteId = toLong(loteDetalle.get("loteId"));
+        String numeroLote = (String) loteDetalle.get("numeroLote");
+        LocalDate fechaVencimiento = toLocalDate(loteDetalle.get("fechaVencimiento"));
+        Integer cantidad = toInteger(loteDetalle.get("cantidad"));
+
+        return new LoteProductoResponse(
+                loteId,
+                numeroLote,
+                fechaVencimiento,
+                cantidad
+        );
+    }
+
+    private Long toLong(Object value) {
+        return value instanceof Number number ? number.longValue() : null;
+    }
+
+    private Integer toInteger(Object value) {
+        return value instanceof Number number ? number.intValue() : null;
+    }
+
+    private Double toDouble(Object value) {
+        return value instanceof Number number ? number.doubleValue() : null;
+    }
+
+    private Boolean toBoolean(Object value) {
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue;
+        }
+        if (value instanceof Number number) {
+            return number.intValue() != 0;
+        }
+        return null;
+    }
+
+    private LocalDate toLocalDate(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        String text = value.toString().trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+        if (text.matches("\\d+")) {
+            return toLocalDateFromEpoch(Long.parseLong(text));
+        }
+        return LocalDate.parse(text.length() > 10 ? text.substring(0, 10) : text);
+    }
+
+    private LocalDate toLocalDateFromEpoch(long epochValue) {
+        long epochSeconds = epochValue > 99_999_999_999L ? epochValue / 1000 : epochValue;
+        return Instant.ofEpochSecond(epochSeconds).atZone(ZoneOffset.UTC).toLocalDate();
+    }
+
+    private ProductoResponse toProductoResponse(Producto producto) {
+        return new ProductoResponse(
+                producto.getUniqueID(),
+                toCategoriaResponse(producto.getCategoria()),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getCodigoBarras(),
+                producto.getStockMinimo(),
+                producto.getStockActual(),
+                producto.getCosto(),
+                producto.getPrecioVenta(),
+                producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
+                producto.getRequierePrescripcion(),
+                producto.getEstado()
+        );
+    }
+
 }

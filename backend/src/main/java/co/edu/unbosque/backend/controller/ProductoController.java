@@ -7,10 +7,8 @@ import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
-import co.edu.unbosque.backend.model.response.LoteProductoResponse;
 import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
-import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -197,12 +195,7 @@ public class ProductoController {
     @GetMapping("/{id}/detalle")
     @Operation(summary = "Consultar producto por id con lotes", description = "Devuelve el producto con todos sus datos y la lista de lotes asociados ordenados por fecha de vencimiento.")
     public ResponseEntity<ProductoDetalleResponse> obtenerProductoDetallePorId(@PathVariable Long id) {
-        Producto producto = productoService.obtenerProductoPorId(id);
-        List<LoteProductoResponse> lotes = productoService.listarLotesPorProducto(id)
-                .stream()
-                .map(this::toLoteProductoResponse)
-                .toList();
-        return ResponseEntity.ok(toProductoDetalleResponse(producto, lotes));
+        return ResponseEntity.ok(productoService.obtenerProductoDetallePorId(id));
     }
 
     /**
@@ -243,10 +236,7 @@ public class ProductoController {
         if (termino == null || termino.isBlank()) {
             return ResponseEntity.ok(List.of());
         }
-        return ResponseEntity.ok(productoService.buscarActivosPorNombreOCodigo(termino)
-                .stream()
-                .map(this::toProductoResponse)
-                .toList());
+        return ResponseEntity.ok(productoService.buscarActivosPorNombreOCodigo(termino));
     }
 
     /**
@@ -305,34 +295,6 @@ public class ProductoController {
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
                 producto.getEstado()
-        );
-    }
-
-    private ProductoDetalleResponse toProductoDetalleResponse(Producto producto, List<LoteProductoResponse> lotes) {
-        return new ProductoDetalleResponse(
-                producto.getUniqueID(),
-                toCategoriaResponse(producto.getCategoria()),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getCodigoBarras(),
-                producto.getStockMinimo(),
-                producto.getStockActual(),
-                producto.getCosto(),
-                producto.getPrecioVenta(),
-                producto.getMargenGanancia(),
-                producto.getPorcentajeIva(),
-                producto.getRequierePrescripcion(),
-                producto.getEstado(),
-                lotes
-        );
-    }
-
-    private LoteProductoResponse toLoteProductoResponse(Lote lote) {
-        return new LoteProductoResponse(
-                lote.getIdLote(),
-                lote.getNumeroLote(),
-                lote.getFechaVencimiento(),
-                lote.getCantidad()
         );
     }
 

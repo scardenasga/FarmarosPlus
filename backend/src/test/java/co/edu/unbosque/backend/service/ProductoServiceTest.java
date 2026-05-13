@@ -10,11 +10,14 @@ import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
+import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
+import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.repository.CategoriaRepository;
 import co.edu.unbosque.backend.repository.HistorialPrecioProductoRepository;
 import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
+import jakarta.persistence.Tuple;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -366,6 +370,75 @@ class ProductoServiceTest {
         assertEquals(2, lotes.size());
         assertEquals("LOT-001", lotes.get(0).getNumeroLote());
         assertEquals("LOT-002", lotes.get(1).getNumeroLote());
+    }
+
+    @Test
+    void obtenerProductoDetallePorId_debeIncluirCategoriaYLotes() {
+        Tuple productoDetalle = mock(Tuple.class);
+        when(productoDetalle.get("productoId")).thenReturn(1L);
+        when(productoDetalle.get("categoriaId")).thenReturn(5L);
+        when(productoDetalle.get("categoriaNombre")).thenReturn("Analgesicos");
+        when(productoDetalle.get("categoriaDescripcion")).thenReturn("Dolor y fiebre");
+        when(productoDetalle.get("nombre")).thenReturn("Acetaminofen");
+        when(productoDetalle.get("descripcion")).thenReturn("Caja");
+        when(productoDetalle.get("codigoBarras")).thenReturn("7701234567890");
+        when(productoDetalle.get("stockMinimo")).thenReturn(5);
+        when(productoDetalle.get("stockActual")).thenReturn(20);
+        when(productoDetalle.get("costo")).thenReturn(8000.0);
+        when(productoDetalle.get("precioVenta")).thenReturn(12000.0);
+        when(productoDetalle.get("margenGanancia")).thenReturn(50.0);
+        when(productoDetalle.get("porcentajeIva")).thenReturn(0.0);
+        when(productoDetalle.get("requierePrescripcion")).thenReturn(false);
+        when(productoDetalle.get("estado")).thenReturn("ACTIVO");
+
+        Tuple loteDetalle = mock(Tuple.class);
+        when(loteDetalle.get("loteId")).thenReturn(9L);
+        when(loteDetalle.get("numeroLote")).thenReturn("LOT-009");
+        when(loteDetalle.get("fechaVencimiento")).thenReturn("1830229200");
+        when(loteDetalle.get("cantidad")).thenReturn(15);
+
+        when(productoRepository.findDetalleProductoRowById(1L)).thenReturn(Optional.of(productoDetalle));
+        when(loteRepository.findDetalleLotesRowsByProducto(1L)).thenReturn(List.of(loteDetalle));
+
+        ProductoDetalleResponse respuesta = productoService.obtenerProductoDetallePorId(1L);
+
+        assertEquals(1L, respuesta.id());
+        assertEquals("7701234567890", respuesta.codigoBarras());
+        assertEquals("Analgesicos", respuesta.categoria().nombre());
+        assertEquals(1, respuesta.lotes().size());
+        assertEquals("LOT-009", respuesta.lotes().get(0).numeroLote());
+        assertEquals(LocalDate.of(2027, 12, 31), respuesta.lotes().get(0).fechaVencimiento());
+    }
+
+    @Test
+    void buscarActivosPorNombreOCodigo_debeMapearAProductoResponse() {
+        Categoria categoria = new Categoria();
+        categoria.setIdCategoria(4L);
+        categoria.setNombre("Analgesicos");
+        categoria.setDescripcion("Dolor y fiebre");
+
+        Producto producto = new Producto();
+        producto.setUniqueID(7L);
+        producto.setCategoria(categoria);
+        producto.setNombre("Acetaminofen");
+        producto.setDescripcion("Caja");
+        producto.setCodigoBarras("7701234567890");
+        producto.setStockMinimo(5);
+        producto.setStockActual(20);
+        producto.setCosto(8000.0);
+        producto.setPrecioVenta(12000.0);
+        producto.setMargenGanancia(50.0);
+        producto.setPorcentajeIva(0.0);
+        producto.setRequierePrescripcion(false);
+        producto.setEstado("ACTIVO");
+
+        when(productoRepository.buscarActivosPorNombreOCodigo("acetaminofen")).thenReturn(List.of(producto));
+
+        List<ProductoResponse> resultado = productoService.buscarActivosPorNombreOCodigo("acetaminofen");
+
+        assertEquals(1, resultado.size());
+        assertEquals("7701234567890", resultado.get(0).codigoBarras());
+        assertEquals("Analgesicos", resultado.get(0).categoria().nombre());
     }
 
     @Test

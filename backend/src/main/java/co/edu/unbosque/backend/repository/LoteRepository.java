@@ -2,6 +2,7 @@ package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.model.entity.Lote;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.Tuple;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,6 +29,24 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
      * @return lotes asociados al producto
      */
     List<Lote> findByProducto_UniqueIDOrderByFechaVencimientoAsc(Long idProducto);
+
+    /**
+     * Lista los campos necesarios de los lotes para el detalle de producto.
+     * La fecha se devuelve como texto para evitar problemas de conversion del driver SQLite.
+     *
+     * @param idProducto identificador del producto
+     * @return filas planas con id, numero, fecha y cantidad
+     */
+    @Query(value = """
+            SELECT id_lote AS loteId,
+                   numero_lote AS numeroLote,
+                   CAST(fecha_vencimiento AS TEXT) AS fechaVencimiento,
+                   cantidad AS cantidad
+            FROM lote
+            WHERE id_producto = :idProducto
+            ORDER BY fecha_vencimiento ASC, numero_lote ASC
+            """, nativeQuery = true)
+    List<Tuple> findDetalleLotesRowsByProducto(@Param("idProducto") Long idProducto);
 
     /**
      * Verifica si ya existe un lote con el mismo numero, ignorando mayusculas.
