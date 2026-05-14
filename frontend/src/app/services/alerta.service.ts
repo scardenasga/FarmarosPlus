@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,6 +14,8 @@ export interface AlertaResponse {
 @Injectable({ providedIn: 'root' })
 export class AlertaService {
   private readonly base = 'http://localhost:8080/api/alertas';
+
+  contadorNoLeidas = signal<number>(0);
 
   constructor(private http: HttpClient) {}
 
@@ -31,5 +33,19 @@ export class AlertaService {
 
   marcarTodasLeidas(): Observable<void> {
     return this.http.patch<void>(`${this.base}/leer-todas`, {});
+  }
+
+  actualizarContador(): void {
+    this.listarAlertas(true).subscribe({
+      next: (alertas) => this.contadorNoLeidas.set(alertas.length),
+      error: () => {}
+    });
+  }
+
+  generarYActualizar(): void {
+    this.generarAlertas().subscribe({
+      next: (alertas) => this.contadorNoLeidas.set(alertas.filter(a => !a.leida).length),
+      error: () => this.actualizarContador()
+    });
   }
 }

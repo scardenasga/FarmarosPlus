@@ -31,6 +31,12 @@
       <span>Subtotal</span>
       <span class="t-val">${{ subtotal | number }}</span>
     </div>
+    @if (ivaTotal > 0) {
+      <div class="t-row">
+        <span>IVA</span>
+        <span class="t-val">${{ ivaTotal | number }}</span>
+      </div>
+    }
     <div class="t-row row-desc">
       <span>Descuento</span>
       <span class="t-val">- $0</span>
@@ -47,7 +53,6 @@
     <div class="metodo-grid">
       <button [class.active]="metodoPago==='EFECTIVO'" (click)="metodoPago='EFECTIVO'">Efectivo</button>
       <button [class.active]="metodoPago==='TARJETA'" (click)="metodoPago='TARJETA'">Tarjeta</button>
-      <button [class.active]="metodoPago==='MIXTO'" (click)="metodoPago='MIXTO'">Mixto</button>
     </div>
   </div>
 

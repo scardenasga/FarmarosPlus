@@ -27,9 +27,8 @@ export class RegistrarVentaComponent implements OnInit {
     const data = sessionStorage.getItem('productosVenta');
     if (data) {
       this.productos = JSON.parse(data);
-      console.log('PRODUCTOS CARGADOS:', JSON.stringify(this.productos));
     } else {
-      this.router.navigate(['/ventas/buscar']);
+      this.router.navigate(['/ventas/crear']);
     }
   }
 
@@ -44,8 +43,15 @@ export class RegistrarVentaComponent implements OnInit {
     return this.productos.reduce((acc, p) => acc + (p.precioVenta * p.cantidad), 0);
   }
 
+  get ivaTotal(): number {
+    return this.productos.reduce((acc, p) => {
+      const subtotalLinea = p.precioVenta * p.cantidad;
+      return acc + (subtotalLinea * (p.porcentajeIva || 0) / 100);
+    }, 0);
+  }
+
   get total(): number {
-    return this.subtotal;
+    return this.subtotal + this.ivaTotal;
   }
 
  confirmarVenta() {
@@ -65,8 +71,6 @@ export class RegistrarVentaComponent implements OnInit {
     descuento: 0.0
   };
 
-  console.log('REINTENTO DE REQUEST:', JSON.stringify(request));
-
   this.ventaService.registrarVenta(request).subscribe({
     next: (venta) => {
       sessionStorage.removeItem('productosVenta');
@@ -81,6 +85,6 @@ export class RegistrarVentaComponent implements OnInit {
 }
 
   cancelar() {
-    this.router.navigate(['/ventas/buscar']);
+    this.router.navigate(['/ventas/crear']);
   }
 }

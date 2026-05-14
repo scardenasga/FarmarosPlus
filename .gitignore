@@ -21,3 +21,4 @@ desktop.ini
 
 *.log
 .claude/worktrees/eager-kalam-808df1/
+.claude/settings.local.json

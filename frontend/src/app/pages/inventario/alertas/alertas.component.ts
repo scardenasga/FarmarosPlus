@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { AlertaService, AlertaResponse } from '../../../services/alerta.service';
+import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 
 @Component({
   selector: 'app-alertas',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, TopBarComponent],
   templateUrl: './alertas.component.html',
   styleUrl: './alertas.component.css'
 })
@@ -28,14 +29,8 @@ export class AlertasComponent implements OnInit {
     this.cargando = true;
     this.error = '';
     this.alertaService.generarAlertas().subscribe({
-      next: data => {
-        this.alertas = this.soloNoLeidas ? data : data;
-        this.cargando = false;
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar las alertas.';
-        this.cargando = false;
-      }
+      next: () => this.cambiarFiltro(this.soloNoLeidas),
+      error: () => this.cambiarFiltro(this.soloNoLeidas)
     });
   }
 
@@ -57,7 +52,10 @@ export class AlertasComponent implements OnInit {
 
   marcarLeida(id: number): void {
     this.alertaService.marcarLeida(id).subscribe({
-      next: () => this.cambiarFiltro(this.soloNoLeidas)
+      next: () => {
+        this.cambiarFiltro(this.soloNoLeidas);
+        this.alertaService.actualizarContador();
+      }
     });
   }
 
@@ -67,9 +65,14 @@ export class AlertasComponent implements OnInit {
       next: () => {
         this.marcandoTodas = false;
         this.cambiarFiltro(this.soloNoLeidas);
+        this.alertaService.actualizarContador();
       },
       error: () => (this.marcandoTodas = false)
     });
+  }
+
+  volver(): void {
+    this.router.navigate(['/inventario']);
   }
 
   irCategorias(): void {

@@ -95,7 +95,7 @@ export class PrevisualizarOrdenComponent implements OnInit {
       totalFinal: this.total
     }).subscribe(() => {
       alert('Orden confirmada');
-      this.router.navigate(['/compras/historial']);
+      this.router.navigate(['/entregas/compras']);
     });
   }
 }

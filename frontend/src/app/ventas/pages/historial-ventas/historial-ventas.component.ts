@@ -54,11 +54,8 @@ export class HistorialVentasComponent implements OnInit {
   this.isLoading.set(true);
   this.errorMessage.set('');
 
-  console.log("Intentando conectar con:", inicio, fin);
-
   this.ventaService.consultarHistorico(inicio, fin).subscribe({
     next: (data) => {
-      console.log("PRIMERA VENTA:", JSON.stringify(data[0]));
       // Si el vendedor viene en el filtro, filtramos localmente para que funcione sí o sí
       let finalData = data || [];
       if (vendedor) {
@@ -72,27 +69,17 @@ export class HistorialVentasComponent implements OnInit {
       this.isLoading.set(false);
     },
     error: (err) => {
-      // AQUÍ ESTÁ EL PROBLEMA: El servidor responde 500
-      console.error("EL SERVIDOR TIENE UN BUG (500):", err);
-      
-      this.errorMessage.set('El servidor de Java falló (Error 500)');
-      this.ventas.set([]); // Vaciamos la lista para que no se quede el spinner infinito
+      console.error("Error cargando historial:", err);
+      this.errorMessage.set('No se pudo cargar el historial de ventas.');
+      this.ventas.set([]);
       this.isLoading.set(false);
     }
   });
 }
 
  handleFilterApply(options: SalesFilterOptions) {
-  const formatearFecha = (fechaStr: string | null | undefined): string | undefined => {
-    if (!fechaStr) return undefined;
-    const partes = fechaStr.split('-'); 
-    return `${partes[2]}-${partes[1]}-${partes[0]}`; 
-  };
-
-  // Aquí ya no debería dar error
-  const inicio = formatearFecha(options.fechaInicio);
-  const fin = formatearFecha(options.fechaFin);
-
+  const inicio = options.fechaInicio || undefined;
+  const fin = options.fechaFin || undefined;
   this.loadHistory(inicio, fin, options.vendedor || undefined);
 }
   verDetalle(id: number) {

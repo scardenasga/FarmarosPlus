@@ -63,12 +63,26 @@ export class DetalleVentaComponent implements OnInit {
     this.router.navigate(['/ventas' , ventaId, 'anular']);
   }
 
+  descargarFactura() {
+    const ventaId = this.venta?.idVenta || this.venta?.id;
+    this.ventaService.descargarFactura(ventaId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factura-${ventaId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => alert('No se pudo generar la factura.')
+    });
+  }
+
   volver() {
-    this.router.navigate(['/ventas/crear']);
+    this.router.navigate(['/ventas']);
   }
 
   get esAdmin(): boolean {
-    // Cambiar por tu lógica de permisos real si es necesario
     return true;
   }
 }

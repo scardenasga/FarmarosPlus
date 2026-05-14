@@ -53,6 +53,10 @@ consultarHistorico(
     });
   }
 
+  descargarFactura(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/ventas/${id}/factura`, { responseType: 'blob' });
+  }
+
   obtenerPrevisualizacion(proveedorId: number): Observable<any> {
     return this.http.get(`${this.api}/previsualizar/${proveedorId}`);
   }

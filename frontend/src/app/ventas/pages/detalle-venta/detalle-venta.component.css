@@ -134,15 +134,35 @@
 }
 
 /* El botón rojo ahora usa la variable de error del tema */
-.btn-anular { 
-  background: var(--error); 
-  color: var(--on-error); 
+.btn-anular {
+  background: var(--error);
+  color: var(--on-error);
 }
 
-/* El botón verde ahora usa el color primario dinámico */
-.btn-confirmar { 
-  background: var(--primary); 
-  color: var(--on-primary); 
+.btn-factura {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  border: 1.5px solid var(--outline);
+  cursor: pointer;
+  font-size: 14px;
+  background: transparent;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .2s ease;
+}
+
+.btn-factura:active {
+  background: var(--surface-container-high);
+}
+
+.btn-confirmar {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 /* Modales */

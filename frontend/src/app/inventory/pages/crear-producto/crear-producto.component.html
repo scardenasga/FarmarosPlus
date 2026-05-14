@@ -89,7 +89,7 @@
           suffix="COP"
           [control]="getControl('precioVenta')">
         </app-form-input>
-        
+
         @if (productForm.errors?.['priceTooLow'] && (productForm.get('precioVenta')?.touched || productForm.get('costo')?.touched)) {
           <span class="error-text" style="color: var(--error); font-size: 12px; margin-top: -8px;">
             El precio de venta debe ser mayor al costo con IVA.

@@ -53,7 +53,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       precioVenta: [0, [Validators.required, Validators.min(0)]],
       porcentajeIva: [0, [Validators.required, Validators.min(0)]],
       requierePrescripcion: [false],
-      fechaVencimiento: ['', [Validators.required]], 
+      fechaVencimiento: ['', [Validators.required]],
       numeroLote: [''],
       hasLote: [false]
     }, { validators: this.priceValidator });
