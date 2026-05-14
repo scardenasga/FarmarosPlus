@@ -5,8 +5,11 @@
 
   <div class="info-container">
     <h3 class="product-name">{{ product().nombre }}</h3>
+    @if (product().categoria) {
+      <span class="category-tag">{{ product().categoria?.nombre }}</span>
+    }
     <div class="metrics">
-      <span class="price">{{ product().precioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
+      <span class="price">{{ product().precioVenta | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
       @if (product().trend) {
         <span class="trend" [class.positive]="product().trend! > 0">
               {{ product().trend! > 0 ? '+' : '' }}{{ product().trend }} %

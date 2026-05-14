@@ -7,7 +7,7 @@ import { FormInputComponent } from '../../../shared/components/form-input/form-i
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { InventoryService } from '../../services/inventory.service';
 import { CategoriaService } from '../../services/categoria.service';
-import { CreateProductRequest, Categoria } from '../../models/product.model';
+import {Categoria, CrearProductoRequest} from '../../models/product.model';
 
 @Component({
   selector: 'app-crear-producto',
@@ -43,17 +43,33 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.productForm = this.fb.group({
-      nombre: ['', [Validators.required]],
+      categoriaId: [null],
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
       descripcion: [''],
       codigoBarras: ['', [Validators.required]],
-      stockInicial: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
+      stockInicial: [0, [Validators.required, Validators.min(1)]],
       costo: [0, [Validators.required, Validators.min(0)]],
       precioVenta: [0, [Validators.required, Validators.min(0)]],
-      hasLote: [false],
+      porcentajeIva: [0, [Validators.required, Validators.min(0)]],
+      requierePrescripcion: [false],
+      fechaVencimiento: ['', [Validators.required]], 
       numeroLote: [''],
-      categoriaId: [null, [Validators.required]]
-    });
+      hasLote: [false]
+    }, { validators: this.priceValidator });
+  }
+
+  private priceValidator(group: FormGroup): { [key: string]: any } | null {
+    const costo = group.get('costo')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value || 0;
+    const iva = group.get('porcentajeIva')?.value || 0;
+
+    const minPrecio = costo * (1 + iva / 100);
+
+    if (precioVenta <= minPrecio && precioVenta > 0) {
+      return { priceTooLow: true };
+    }
+    return null;
   }
 
   private loadCategories(): void {
@@ -73,16 +89,19 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
 
   confirmCreation(): void {
     const formValue = this.productForm.value;
-    
-    const request: CreateProductRequest = {
+
+    const request: CrearProductoRequest = {
       nombre: formValue.nombre,
+      descripcion: formValue.descripcion || undefined,
       codigoBarras: formValue.codigoBarras,
+      categoriaId: formValue.categoriaId ? Number(formValue.categoriaId) : undefined,
       stockMinimo: formValue.stockMinimo,
       stockInicial: formValue.stockInicial,
       costo: formValue.costo,
       precioVenta: formValue.precioVenta,
-      estado: 'ACTIVO',
-      categoriaId: formValue.categoriaId,
+      porcentajeIva: formValue.porcentajeIva,
+      requierePrescripcion: formValue.requierePrescripcion,
+      fechaVencimiento: formValue.fechaVencimiento,
       numeroLote: formValue.hasLote ? formValue.numeroLote : undefined
     };
 
@@ -93,7 +112,6 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error creating product', err);
-        // Here we could add a toast or error message in the UI
         this.showConfirmation.set(false);
       }
     });

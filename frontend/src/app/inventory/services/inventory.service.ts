@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CreateProductRequest, Product, Categoria } from '../models/product.model';
+import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest } from '../models/product.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -20,7 +20,15 @@ export class InventoryService {
     return this.http.get<Product>(`${this.productsUrl}/${id}`);
   }
 
-  createProduct(product: CreateProductRequest): Observable<Product> {
+  getProductDetail(id: number): Observable<ProductoDetalleResponse> {
+    return this.http.get<ProductoDetalleResponse>(`${this.productsUrl}/${id}/detalle`);
+  }
+
+  updateProduct(id: number, product: ActualizarProductoRequest): Observable<Product> {
+    return this.http.patch<Product>(`${this.productsUrl}/${id}`, product);
+  }
+
+  createProduct(product: CrearProductoRequest): Observable<Product> {
     return this.http.post<Product>(this.productsUrl, product);
   }
 

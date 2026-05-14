@@ -6,7 +6,7 @@ import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.comp
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
-import { Product, Categoria } from '../../models/product.model';
+import {Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest} from '../../models/product.model';
 import { InventoryService } from '../../services/inventory.service';
 import { CategoriaService } from '../../services/categoria.service';
 
@@ -26,9 +26,15 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
   private categoriaService = inject(CategoriaService);
 
   productForm!: FormGroup;
-  product = signal<Product | null>(null);
+  product = signal<ProductoDetalleResponse | null>(null);
   categories = signal<Categoria[]>([]);
   showConfirmDialog = signal<boolean>(false);
+
+  states = [
+    { id: 'ACTIVO', nombre: 'ACTIVO' },
+    { id: 'INACTIVO', nombre: 'INACTIVO' },
+    { id: 'DESCONTINUADO', nombre: 'DESCONTINUADO' }
+  ];
 
   ngOnInit(): void {
     this.navService.hideNav();
@@ -46,7 +52,7 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
   }
 
   private loadProduct(id: number): void {
-    this.inventoryService.getProductById(id).subscribe({
+    this.inventoryService.getProductDetail(id).subscribe({
       next: (found) => {
         this.product.set(found);
         this.initForm(found);
@@ -58,13 +64,32 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private initForm(p: Product): void {
+  private initForm(p: ProductoDetalleResponse): void {
     this.productForm = this.fb.group({
-      nombre: [p.nombre, [Validators.required]],
-      precioVenta: [p.precioVenta, [Validators.required, Validators.min(0)]],
+      nombre: [p.nombre, [Validators.required, Validators.minLength(3)]],
+      descripcion: [p.descripcion],
+      categoriaId: [p.categoria?.id, [Validators.required]],
+      estado: [p.estado, [Validators.required]],
+      stockActual: [p.stockActual, [Validators.required, Validators.min(0)]],
       stockMinimo: [p.stockMinimo, [Validators.required, Validators.min(0)]],
-      categoriaId: [p.categoria?.id, [Validators.required]]
-    });
+      costo: [p.costo, [Validators.required, Validators.min(0)]],
+      porcentajeIva: [p.porcentajeIva, [Validators.required, Validators.min(0)]],
+      precioVenta: [p.precioVenta, [Validators.required, Validators.min(0)]],
+      requierePrescripcion: [p.requierePrescripcion]
+    }, { validators: this.priceValidator });
+  }
+
+  private priceValidator(group: FormGroup): { [key: string]: any } | null {
+    const costo = group.get('costo')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value || 0;
+    const iva = group.get('porcentajeIva')?.value || 0;
+
+    const minPrecio = costo * (1 + iva / 100);
+
+    if (precioVenta <= minPrecio && precioVenta > 0) {
+      return { priceTooLow: true };
+    }
+    return null;
   }
 
   private loadCategories(): void {
@@ -79,16 +104,41 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
   }
 
   onSaveRequest(): void {
-    if (this.productForm.invalid) return;
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      return;
+    }
     this.showConfirmDialog.set(true);
   }
 
   confirmUpdate(): void {
-    // Note: Documentation shows PATCH /api/productos/codigo-barras/{codigoBarras}/precio
-    // For now we simulate the update or log the intent as specified in the service.
-    console.log('Solicitud de actualización para:', this.product()?.id, this.productForm.value);
-    this.showConfirmDialog.set(false);
-    this.router.navigate(['/inventario', this.product()?.id]);
+    const id = this.product()?.id;
+    if (!id) return;
+
+    const formValue = this.productForm.value;
+    const updateRequest: ActualizarProductoRequest = {
+      nombre: formValue.nombre,
+      descripcion: formValue.descripcion,
+      categoriaId: Number(formValue.categoriaId),
+      estado: formValue.estado,
+      stockActual: formValue.stockActual,
+      stockMinimo: formValue.stockMinimo,
+      costo: formValue.costo,
+      porcentajeIva: formValue.porcentajeIva,
+      precioVenta: formValue.precioVenta,
+      requierePrescripcion: formValue.requierePrescripcion
+    };
+
+    this.inventoryService.updateProduct(id, updateRequest).subscribe({
+      next: () => {
+        this.showConfirmDialog.set(false);
+        this.router.navigate(['/inventario', id]);
+      },
+      error: (err) => {
+        console.error('Error updating product', err);
+        this.showConfirmDialog.set(false);
+      }
+    });
   }
 
   cancelUpdate(): void {

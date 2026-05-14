@@ -5,26 +5,26 @@
 
   <main class="content-area">
     <form [formGroup]="productForm">
-      
+
       <!-- Información Básica -->
       <section class="section-card">
         <span class="section-title">Información Básica</span>
-        
-        <app-form-input 
-          label="Nombre del producto" 
-          placeholder="Ej. Acetaminofen 500mg" 
+
+        <app-form-input
+          label="Nombre del producto"
+          placeholder="Ej. Acetaminofen 500mg"
           [control]="getControl('nombre')">
         </app-form-input>
 
-        <app-form-input 
-          label="Descripción" 
-          placeholder="Opcional..." 
+        <app-form-input
+          label="Descripción"
+          placeholder="Opcional..."
           type="textarea"
           [control]="getControl('descripcion')">
         </app-form-input>
 
-        <app-form-input 
-          label="Categoría" 
+        <app-form-input
+          label="Categoría"
           type="select"
           [options]="categories()"
           placeholder="Seleccione una categoría"
@@ -35,54 +35,80 @@
       <!-- Inventario y Costos -->
       <section class="section-card">
         <span class="section-title">Inventario y Costos</span>
-        
-        <app-form-input 
-          label="Código de Barras" 
-          placeholder="Escanea o escribe" 
+
+        <app-form-input
+          label="Código de Barras"
+          placeholder="Escanea o escribe"
           [control]="getControl('codigoBarras')"
           [hasIcon]="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
         </app-form-input>
 
         <div class="row">
-          <app-form-input 
-            label="Cantidad Inicial" 
+          <app-form-input
+            label="Fecha Vencimiento"
+            type="date"
+            [control]="getControl('fechaVencimiento')">
+          </app-form-input>
+
+          <app-form-input
+            label="Cantidad Inicial"
             type="number"
             [control]="getControl('stockInicial')">
           </app-form-input>
-          
-          <app-form-input 
-            label="Costo" 
-            type="number"
-            suffix="COP"
-            [control]="getControl('costo')">
-          </app-form-input>
         </div>
+
+        <app-form-input
+          label="Costo"
+          type="number"
+          suffix="COP"
+          [control]="getControl('costo')">
+        </app-form-input>
       </section>
 
       <!-- Parámetros de Venta -->
       <section class="section-card">
         <span class="section-title">Parámetros de Venta</span>
         <div class="row">
-          <app-form-input 
-            label="Precio Venta" 
+          <app-form-input
+            label="IVA (%)"
             type="number"
-            suffix="COP"
-            [control]="getControl('precioVenta')">
+            [control]="getControl('porcentajeIva')">
           </app-form-input>
-          
-          <app-form-input 
-            label="Stock Mínimo" 
+
+          <app-form-input
+            label="Stock Mínimo"
             type="number"
             [control]="getControl('stockMinimo')">
           </app-form-input>
         </div>
+
+        <app-form-input
+          label="Precio Venta"
+          type="number"
+          suffix="COP"
+          [control]="getControl('precioVenta')">
+        </app-form-input>
+        
+        @if (productForm.errors?.['priceTooLow'] && (productForm.get('precioVenta')?.touched || productForm.get('costo')?.touched)) {
+          <span class="error-text" style="color: var(--error); font-size: 12px; margin-top: -8px;">
+            El precio de venta debe ser mayor al costo con IVA.
+          </span>
+        }
       </section>
 
-      <!-- Configuración de Lote -->
+      <!-- Configuración Adicional -->
       <section class="section-card">
-        <span class="section-title">Gestión de Lotes</span>
+        <span class="section-title">Configuración Adicional</span>
         <div class="form-group-switch">
+          <div class="switch-group">
+            <label>¿Requiere Prescripción?</label>
+            <label class="switch">
+              <input type="checkbox" formControlName="requierePrescripcion">
+              <span class="slider"></span>
+            </label>
+          </div>
+
           <div class="switch-group">
             <label>¿Usar número de lote?</label>
             <label class="switch">
@@ -90,10 +116,11 @@
               <span class="slider"></span>
             </label>
           </div>
+
           @if (productForm.get('hasLote')?.value) {
-            <app-form-input 
-              label="Número de Lote" 
-              placeholder="Ingrese el número de lote" 
+            <app-form-input
+              label="Número de Lote"
+              placeholder="Ingrese el número de lote"
               [control]="getControl('numeroLote')">
             </app-form-input>
           }

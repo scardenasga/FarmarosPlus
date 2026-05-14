@@ -6,7 +6,7 @@ export interface Categoria {
 
 export interface Lote {
   id: number;
-  numeroLote: string;
+  numeroLote?: string;
   fechaVencimiento: string;
   cantidad: number;
 }
@@ -14,11 +14,15 @@ export interface Lote {
 export interface Product {
   id: number;
   nombre: string;
+  descripcion?: string;
   codigoBarras: string;
   stockMinimo: number;
   stockActual: number;
   costo: number;
   precioVenta: number;
+  margenGanancia?: number;
+  porcentajeIva?: number;
+  requierePrescripcion?: boolean;
   estado: string;
   categoria?: Categoria;
   numeroLote?: string;
@@ -26,19 +30,59 @@ export interface Product {
   trend?: number;
 }
 
-export interface CreateProductRequest {
-  nombre: string;
-  codigoBarras: string;
-  stockMinimo: number;
-  stockInicial: number;
-  costo: number;
-  precioVenta: number;
-  estado: string;
+
+export interface CrearProductoRequest {
+  categoriaId?: number; // Opcional -
+  nombre: string; //-
+  descripcion?: string; // Opcional-
+  codigoBarras: string;//-
+  stockMinimo?: number; // Opcional-
+  stockInicial: number;//-
+  costo: number;//-
+  precioVenta: number;// -
+  porcentajeIva?: number; // Opcional -
+  requierePrescripcion: boolean;
+  fechaVencimiento: string | Date; // Opcional (ISO string 2027-12-31)
+  numeroLote?: string; // Opcional
+}
+
+export interface ActualizarProductoRequest {
   categoriaId?: number;
-  numeroLote?: string;
+  nombre?: string;
+  descripcion?: string;
+  stockMinimo?: number;
+  stockActual?: number;
+  costo?: number;
+  precioVenta?: number;
+  porcentajeIva?: number;
+  requierePrescripcion?: boolean;
+  estado?: string;
 }
 
 export interface CreateCategoriaRequest {
   nombre: string;
   descripcion: string;
+}
+
+export interface ProductoDetalleResponse {
+  id: number;
+  categoria: Categoria;
+  nombre: string;
+  descripcion: string;
+  codigoBarras: string;
+  stockMinimo: number;
+  stockActual: number;
+  costo: number;
+  precioVenta: number;
+  margenGanancia: number;
+  porcentajeIva: number;
+  requierePrescripcion: boolean;
+  estado: string;
+  lotes: Lote[];
+}
+
+// Interfaces adicionales necesarias:
+export interface CategoriaResponse {
+  id: number;
+  nombre: string;
 }

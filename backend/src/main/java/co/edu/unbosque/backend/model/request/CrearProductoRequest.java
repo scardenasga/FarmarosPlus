@@ -56,6 +56,7 @@ public record CrearProductoRequest(
         Boolean requierePrescripcion,
         @FutureOrPresent(message = "La fecha de vencimiento no puede estar en el pasado")
         @Schema(description = "Fecha de vencimiento opcional del lote inicial. Si se envia, se crea el lote aunque numeroLote sea null.", example = "2027-12-31")
+        @NotNull(message = "Debe existir una fecha de vencimiento.")
         LocalDate fechaVencimiento,
         @Schema(description = "Numero de lote opcional. Si se envia, tambien se crea un lote inicial.", example = "AMX-2026-01")
         String numeroLote
