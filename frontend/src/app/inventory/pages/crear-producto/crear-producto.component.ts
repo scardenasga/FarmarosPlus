@@ -27,6 +27,11 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
   categories = signal<Categoria[]>([]);
   showConfirmation = signal<boolean>(false);
 
+  readonly ivaOptions = [
+    { id: 0,  nombre: '0% — Medicamentos' },
+    { id: 19, nombre: '19% — Cosméticos / otros' }
+  ];
+
   ngOnInit(): void {
     this.navService.hideNav();
     this.initForm();
@@ -50,6 +55,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
       costo: [0, [Validators.required, Validators.min(0)]],
       precioVenta: [0, [Validators.required, Validators.min(0)]],
+      porcentajeIva: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       hasLote: [false],
       numeroLote: [''],
       categoriaId: [null, [Validators.required]]
@@ -81,6 +87,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       stockInicial: formValue.stockInicial,
       costo: formValue.costo,
       precioVenta: formValue.precioVenta,
+      porcentajeIva: formValue.porcentajeIva ?? 0,
       estado: 'ACTIVO',
       categoriaId: formValue.categoriaId,
       numeroLote: formValue.hasLote ? formValue.numeroLote : undefined

@@ -64,19 +64,26 @@
       <section class="section-card">
         <span class="section-title">Parámetros de Venta</span>
         <div class="row">
-          <app-form-input 
-            label="Precio Venta" 
+          <app-form-input
+            label="Precio Venta"
             type="number"
             suffix="COP"
             [control]="getControl('precioVenta')">
           </app-form-input>
-          
-          <app-form-input 
-            label="Stock Mínimo" 
+
+          <app-form-input
+            label="Stock Mínimo"
             type="number"
             [control]="getControl('stockMinimo')">
           </app-form-input>
         </div>
+        <app-form-input
+          label="IVA (%)"
+          type="select"
+          [options]="ivaOptions"
+          placeholder="Seleccione IVA"
+          [control]="getControl('porcentajeIva')">
+        </app-form-input>
       </section>
 
       <!-- Configuración de Lote -->

@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
+import { AlertaService } from '../../../services/alerta.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -11,4 +12,6 @@ export class TopBarComponent {
   showAlert = input<boolean>(true);
   back = output<void>();
   alert = output<void>();
+
+  alertaService = inject(AlertaService);
 }

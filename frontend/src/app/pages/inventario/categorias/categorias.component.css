@@ -1,69 +1,34 @@
-.container {
-  position: relative;
-  background-color: #121814;
+.page {
   min-height: 100vh;
-  width: 100%;
-  max-width: 450px;
-  margin: 0 auto;
+  background: var(--background);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 20px 15px;
-  background-color: #121814;
-}
-
-.titulo {
-  color: white;
-  font-size: 1.2rem;
-  font-weight: bold;
-  flex: 1;
-}
-
-.btn-volver {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  margin-right: 4px;
-}
-
-.btn-nueva {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
+  position: relative;
 }
 
 .msg-error {
-  background-color: rgba(255, 68, 68, 0.1);
-  color: #ff4444;
-  margin: 10px 15px;
-  padding: 12px 15px;
-  border-radius: 10px;
+  background: var(--error-container);
+  color: var(--on-error-container);
+  margin: 12px 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
   font-size: 0.9rem;
-  border: 1px solid rgba(255, 68, 68, 0.2);
 }
 
-.msg-info {
-  color: #a5b4ba;
-  margin: 20px 15px;
+.msg-estado {
+  color: var(--on-surface-variant);
+  margin: 40px 16px;
   text-align: center;
   font-size: 0.9rem;
 }
 
 .msg-vacio {
-  color: #a5b4ba;
-  margin: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 60px 20px;
+  color: var(--on-surface-variant);
   text-align: center;
   font-size: 0.95rem;
   line-height: 1.5;
@@ -71,19 +36,31 @@
 
 .contenido-scroll {
   flex: 1;
-  overflow-y: auto;
-  padding: 8px 0 120px;
+  padding: 12px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cat-card {
-  background-color: white;
-  margin: 0 15px 10px;
-  padding: 14px 15px;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
   border-radius: 14px;
+  padding: 14px 12px 14px 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  gap: 12px;
+}
+
+.cat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .cat-info {
@@ -97,12 +74,12 @@
 .cat-nombre {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #1a1a1a;
+  color: var(--on-surface);
 }
 
 .cat-desc {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--on-surface-variant);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,15 +88,14 @@
 .cat-acciones {
   display: flex;
   gap: 6px;
-  margin-left: 10px;
   flex-shrink: 0;
 }
 
 .btn-icono {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,47 +103,23 @@
   transition: opacity 0.15s;
 }
 
-.btn-icono:active {
-  opacity: 0.7;
-}
+.btn-icono:active { opacity: 0.7; }
 
 .btn-editar {
-  background-color: #e8f5f1;
-  color: #0F6E56;
+  background: var(--secondary-container, #e8f5f1);
+  color: var(--on-secondary-container, #0F6E56);
 }
 
 .btn-eliminar {
-  background-color: #fdecea;
-  color: #c0392b;
-}
-
-.btn-flotante-accion {
-  position: absolute;
-  bottom: 90px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  background-color: #0d4d3e;
-  border: none;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  z-index: 100;
-  cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.btn-flotante-accion:active {
-  transform: scale(0.92);
+  background: var(--error-container);
+  color: var(--on-error-container);
 }
 
 /* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,7 +128,8 @@
 }
 
 .modal-card {
-  background: white;
+  background: var(--surface-container-high);
+  border: 1px solid var(--outline-variant);
   width: 100%;
   max-width: 400px;
   border-radius: 20px;
@@ -186,13 +139,13 @@
 .modal-titulo {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--on-surface);
   margin-bottom: 20px;
 }
 
 .modal-texto {
   font-size: 0.95rem;
-  color: #333;
+  color: var(--on-surface-variant);
   line-height: 1.5;
   margin-bottom: 24px;
 }
@@ -207,27 +160,29 @@
 .campo label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #444;
+  color: var(--on-surface-variant);
 }
 
 .campo input {
-  border: 1.5px solid #ddd;
+  border: 1.5px solid var(--outline);
   border-radius: 10px;
   padding: 11px 13px;
   font-size: 0.95rem;
   outline: none;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
   transition: border-color 0.2s;
 }
 
 .campo input:focus {
-  border-color: #0F6E56;
+  border-color: var(--primary);
 }
 
 .form-error {
-  color: #c0392b;
+  color: var(--on-error-container);
   font-size: 0.85rem;
   margin-bottom: 12px;
-  background: #fdecea;
+  background: var(--error-container);
   padding: 8px 12px;
   border-radius: 8px;
 }
@@ -241,12 +196,12 @@
 .btn-cancelar {
   flex: 1;
   padding: 12px;
-  border: 1.5px solid #ddd;
+  border: 1.5px solid var(--outline);
   border-radius: 10px;
-  background: white;
+  background: transparent;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #555;
+  color: var(--on-surface);
   cursor: pointer;
 }
 
@@ -255,10 +210,10 @@
   padding: 12px;
   border: none;
   border-radius: 10px;
-  background-color: #0F6E56;
+  background: var(--primary);
   font-size: 0.95rem;
   font-weight: 600;
-  color: white;
+  color: var(--on-primary);
   cursor: pointer;
 }
 
@@ -273,10 +228,10 @@
   padding: 12px;
   border: none;
   border-radius: 10px;
-  background-color: #c0392b;
+  background: var(--error);
   font-size: 0.95rem;
   font-weight: 600;
-  color: white;
+  color: var(--on-error);
   cursor: pointer;
 }
 

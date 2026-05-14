@@ -104,7 +104,11 @@ export class InventoryComponent implements OnInit {
   }
 
   handleAlerts(): void {
-    this.router.navigate(['/inventario/alertas']);
+    this.router.navigate(['/alertas']);
+  }
+
+  handleCategorias(): void {
+    this.router.navigate(['/inventario/categorias']);
   }
 
   handleAddProduct(): void {

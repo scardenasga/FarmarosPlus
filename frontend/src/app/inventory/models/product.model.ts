@@ -33,6 +33,7 @@ export interface CreateProductRequest {
   stockInicial: number;
   costo: number;
   precioVenta: number;
+  porcentajeIva: number;
   estado: string;
   categoriaId?: number;
   numeroLote?: string;

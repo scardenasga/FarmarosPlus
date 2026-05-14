@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CategoriaService, CategoriaResponse } from '../../../services/categoria.service';
+import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
+import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TopBarComponent, FabButtonComponent],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.css'
 })

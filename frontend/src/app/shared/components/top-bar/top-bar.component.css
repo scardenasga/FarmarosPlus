@@ -25,3 +25,23 @@
 .icon-button:hover {
   background-color: var(--surface-container-high);
 }
+.alert-btn {
+  position: relative;
+}
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--error, #B3261E);
+  color: var(--on-error, #FFFFFF);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
