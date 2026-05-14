@@ -1,0 +1,106 @@
+<div class="category-page">
+  <div class="sticky-header">
+    <app-top-bar 
+      title="Gestionar Categorías" 
+      [showAlert]="false" 
+      [showActions]="false"
+      (back)="volver()"
+    ></app-top-bar>
+  </div>
+
+  <main class="content-area">
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando categorías...</p>
+      </div>
+    } @else if (categorias().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🏷️</div>
+        <h3>No hay categorías</h3>
+        <p>Registra la primera categoría para organizar tus productos.</p>
+        <button class="btn-primary-outline" (click)="abrirCrear()">Crear Categoría</button>
+      </div>
+    } @else {
+      <div class="category-list">
+        @for (cat of categorias(); track cat.id) {
+          <div class="category-card">
+            <div class="card-content">
+              <div class="info">
+                <span class="cat-name">{{ cat.nombre }}</span>
+                <span class="cat-desc">{{ cat.descripcion || 'Sin descripción' }}</span>
+              </div>
+              <div class="actions">
+                <button class="icon-btn edit" (click)="abrirEditar(cat)" aria-label="Editar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="icon-btn delete" (click)="pedirConfirmacionEliminar(cat)" aria-label="Eliminar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Modal Crear/Editar -->
+@if (modalVisible()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ modoEdicion() ? 'Editar Categoría' : 'Nueva Categoría' }}</h2>
+        <button class="close-btn" (click)="cerrarModal()">&times;</button>
+      </div>
+
+      <form [formGroup]="categoriaForm" (ngSubmit)="guardar()" class="modal-form">
+        <app-form-input
+          label="Nombre de la Categoría"
+          placeholder="Ej. Antibióticos"
+          [control]="getControl('nombre')"
+        ></app-form-input>
+
+        <app-form-input
+          label="Descripción"
+          placeholder="Opcional..."
+          type="textarea"
+          [control]="getControl('descripcion')"
+        ></app-form-input>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-text" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="categoriaForm.invalid">
+            {{ modoEdicion() ? 'Guardar Cambios' : 'Crear Categoría' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Diálogo de Confirmación de Eliminación -->
+@if (confirmandoEliminar(); as cat) {
+  <app-confirmation-dialog
+    title="¿Eliminar Categoría?"
+    [content]="'¿Estás seguro de que deseas eliminar la categoría \'' + cat.nombre + '\'? Esta acción no se puede deshacer.'"
+    cancelText="Cancelar"
+    confirmText="Eliminar"
+    (onCancel)="cancelarEliminar()"
+    (onConfirm)="confirmarEliminar()">
+  </app-confirmation-dialog>
+}
+
+<!-- Diálogo de Error -->
+@if (showErrorDialog()) {
+  <app-confirmation-dialog
+    title="Atención"
+    [content]="errorMessage()"
+    confirmText="Entendido"
+    [showCancel]="false"
+    (onConfirm)="closeError()">
+  </app-confirmation-dialog>
+}
+
+<app-fab-button (clicked)="abrirCrear()"></app-fab-button>

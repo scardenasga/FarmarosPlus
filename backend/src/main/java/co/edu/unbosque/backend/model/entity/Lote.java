@@ -27,7 +27,7 @@ public class Lote extends Auditable {
     @Column(name = "id_lote")
     private Long idLote;
 
-    @Column(name = "numero_lote", nullable = false)
+    @Column(name = "numero_lote", unique = true)
     private String numeroLote;
 
     @Column(name = "fecha_vencimiento")

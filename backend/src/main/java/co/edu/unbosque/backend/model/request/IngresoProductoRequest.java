@@ -2,8 +2,11 @@ package co.edu.unbosque.backend.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
+import java.time.LocalDate;
 
 /**
  * Comando de entrada para aumentar stock de un producto existente.
@@ -12,6 +15,7 @@ import jakarta.validation.constraints.Positive;
  * @param numeroLote numero de lote opcional
  * @param nuevoCosto nuevo costo opcional
  * @param nuevoPrecioVenta nuevo precio de venta opcional
+ * @param fechaVencimiento fecha de vencimiento obligatoria del lote asociado al ingreso
  * @author Sebastian Cardenas Garcia
  */
 public record IngresoProductoRequest(
@@ -26,6 +30,11 @@ public record IngresoProductoRequest(
         Double nuevoCosto,
         @DecimalMin(value = "0.0", inclusive = true, message = "El nuevo precio de venta no puede ser negativo")
         @Schema(description = "Nuevo precio de venta opcional. Si cambia, se registra historial de precio.", example = "23500.0")
-        Double nuevoPrecioVenta
+        Double nuevoPrecioVenta,
+
+        @NotNull(message = "La fecha de vencimiento es obligatoria")
+        @FutureOrPresent(message = "La fecha de vencimiento no puede estar en el pasado")
+        @Schema(description = "Fecha de vencimiento obligatoria del lote asociado al ingreso.", example = "2027-12-31")
+        LocalDate fechaVencimiento
 ) {
 }

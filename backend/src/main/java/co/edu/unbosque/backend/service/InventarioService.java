@@ -61,6 +61,7 @@ public class InventarioService {
 
         int stockAnterior = valorSeguro(producto.getStockActual());
 
+        validarNumeroLoteUnico(request.numeroLote());
         Lote lote = new Lote();
         lote.setProducto(producto);
         lote.setNumeroLote(request.numeroLote());
@@ -208,6 +209,19 @@ public class InventarioService {
         }
         if (request.cantidad() == null || request.cantidad() <= 0) {
             throw new BusinessException("La cantidad del lote debe ser mayor a cero");
+        }
+    }
+
+    private void validarNumeroLoteUnico(String numeroLote) {
+        if (numeroLote == null) {
+            return;
+        }
+        String numeroNormalizado = numeroLote.trim();
+        if (numeroNormalizado.isBlank()) {
+            throw new BusinessException("El número de lote no puede estar vacío");
+        }
+        if (loteRepository.existsByNumeroLoteIgnoreCase(numeroNormalizado)) {
+            throw new BusinessException("Ya existe un lote con el número " + numeroNormalizado);
         }
     }
 

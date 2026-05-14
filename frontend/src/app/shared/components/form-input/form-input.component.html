@@ -5,9 +5,9 @@
       <textarea [formControl]="control()" [placeholder]="placeholder()"></textarea>
     } @else if (type() === 'select') {
       <select [formControl]="control()">
-        <option [value]="null">{{ placeholder() || 'Seleccione una opción' }}</option>
+        <option [ngValue]="null">{{ placeholder() || 'Seleccione una opción' }}</option>
         @for (opt of options(); track opt.id) {
-          <option [value]="opt.id">{{ opt.nombre }}</option>
+          <option [ngValue]="opt.id">{{ opt.nombre }}</option>
         }
       </select>
     } @else {

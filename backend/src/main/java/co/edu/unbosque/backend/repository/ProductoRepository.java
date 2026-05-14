@@ -2,8 +2,10 @@ package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.model.entity.Producto;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.Tuple;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -87,6 +89,45 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByIdForUpdate(@Param("id") Long id);
 
     /**
+     * Obtiene un producto junto con su categoria para evitar inicializacion perezosa fuera de transaccion.
+     *
+     * @param id identificador del producto
+     * @return producto con categoria cargada si existe
+     */
+    @EntityGraph(attributePaths = {"categoria"})
+    @Query("SELECT p FROM Producto p WHERE p.uniqueID = :id")
+    Optional<Producto> findByIdWithCategoria(@Param("id") Long id);
+
+    /**
+     * Obtiene solo los campos necesarios para el detalle del producto.
+     * Evita hidratar columnas de auditoria que no se exponen en la respuesta.
+     *
+     * @param id identificador del producto
+     * @return fila plana con datos de producto y categoria
+     */
+    @Query("""
+            SELECT p.uniqueID AS productoId,
+                   c.idCategoria AS categoriaId,
+                   c.nombre AS categoriaNombre,
+                   c.descripcion AS categoriaDescripcion,
+                   p.nombre AS nombre,
+                   p.descripcion AS descripcion,
+                   p.codigoBarras AS codigoBarras,
+                   p.stockMinimo AS stockMinimo,
+                   p.stockActual AS stockActual,
+                   p.costo AS costo,
+                   p.precioVenta AS precioVenta,
+                   p.margenGanancia AS margenGanancia,
+                   p.porcentajeIva AS porcentajeIva,
+                   p.requierePrescripcion AS requierePrescripcion,
+                   p.estado AS estado
+            FROM Producto p
+            LEFT JOIN p.categoria c
+            WHERE p.uniqueID = :id
+            """)
+    Optional<Tuple> findDetalleProductoRowById(@Param("id") Long id);
+
+    /**
      * Obtiene y bloquea un producto por código de barras para actualización.
      *
      * @param codigoBarras código de barras del producto
@@ -124,15 +165,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * @param termino criterio de búsqueda libre
      * @return productos activos coincidentes
      */
-    @Query(value = """
-            SELECT p.*
-            FROM producto p
+    @Query("""
+            SELECT DISTINCT p
+            FROM Producto p
+            LEFT JOIN FETCH p.categoria
             WHERE p.estado = 'ACTIVO'
               AND (
-                    LOWER(p.nombre) LIKE LOWER('%' || :termino || '%')
-                    OR LOWER(COALESCE(p.codigo_barras, '')) LIKE LOWER('%' || :termino || '%')
+                    LOWER(p.nombre) LIKE LOWER(CONCAT('%', :termino, '%'))
+                    OR LOWER(COALESCE(p.codigoBarras, '')) LIKE LOWER(CONCAT('%', :termino, '%'))
                   )
             ORDER BY p.nombre ASC
-            """, nativeQuery = true)
+            """)
     List<Producto> buscarActivosPorNombreOCodigo(@Param("termino") String termino);
 }

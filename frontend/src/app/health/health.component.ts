@@ -8,8 +8,6 @@ import {SearchBarComponent} from '../shared/components/search-bar/search-bar.com
 @Component({
   selector: 'app-health',
   imports: [
-    ProductListComponent,
-    ProductCardComponent,
     TopBarComponent,
     SearchBarComponent
   ],
