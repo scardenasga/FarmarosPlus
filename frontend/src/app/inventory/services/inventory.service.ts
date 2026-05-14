@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest } from '../models/product.model';
+import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest, IngresoStockRequest } from '../models/product.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -30,6 +30,10 @@ export class InventoryService {
 
   createProduct(product: CrearProductoRequest): Observable<Product> {
     return this.http.post<Product>(this.productsUrl, product);
+  }
+
+  registrarIngreso(codigoBarras: string, request: IngresoStockRequest): Observable<any> {
+    return this.http.post(`${this.productsUrl}/codigo-barras/${codigoBarras}/ingresos`, request);
   }
 
   searchProducts(nombre?: string, codigo?: string): Observable<Product[]> {

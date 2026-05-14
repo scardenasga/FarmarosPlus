@@ -86,3 +86,11 @@ export interface CategoriaResponse {
   id: number;
   nombre: string;
 }
+
+export interface IngresoStockRequest {
+  cantidad: number;
+  fechaVencimiento: string;
+  numeroLote?: string;
+  nuevoCosto?: number;
+  nuevoPrecioVenta?: number;
+}
