@@ -1,11 +1,10 @@
 package co.edu.unbosque.backend.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.*;
+
+import java.time.LocalDate;
 
 /**
  * Comando de entrada para crear un producto.
@@ -18,7 +17,8 @@ import jakarta.validation.constraints.Positive;
  * @param stockInicial stock inicial opcional
  * @param costo costo del producto
  * @param precioVenta precio de venta del producto
- * @param estado estado funcional opcional
+ * @param porcentajeIva porcentaje de IVA aplicable al producto
+ * @param requierePrescripcion indica si el producto requiere prescripción médica
  * @param numeroLote numero de lote opcional
  * @author Sebastian Cardenas Garcia
  */
@@ -34,7 +34,7 @@ public record CrearProductoRequest(
         @Schema(description = "Codigo de barras unico del producto", example = "7701234567890")
         String codigoBarras,
         @Schema(description = "Stock minimo recomendado", example = "10")
-        @jakarta.validation.constraints.PositiveOrZero(message = "El stock minimo no puede ser negativo")
+        @PositiveOrZero(message = "El stock minimo no puede ser negativo")
         Integer stockMinimo,
         @NotNull(message = "El stock inicial es obligatorio")
         @Positive(message = "El stock inicial debe ser mayor a cero")
@@ -51,12 +51,13 @@ public record CrearProductoRequest(
         @DecimalMin(value = "0.0", inclusive = true, message = "El porcentaje de IVA no puede ser negativo")
         @Schema(description = "Porcentaje de IVA. Medicamentos: 0.0, Cosméticos/otros: 19.0", example = "0.0")
         Double porcentajeIva,
-        @Pattern(
-                regexp = "^$|ACTIVO|INACTIVO|DESCONTINUADO",
-                message = "El estado debe ser ACTIVO, INACTIVO o DESCONTINUADO"
-        )
-        @Schema(description = "Estado funcional del producto", example = "ACTIVO")
-        String estado,
+        @NotNull(message = "El campo requierePrescripcion es obligatorio")
+        @Schema(description = "Indica si el producto requiere prescripcion medica", example = "false")
+        Boolean requierePrescripcion,
+        @FutureOrPresent(message = "La fecha de vencimiento no puede estar en el pasado")
+        @Schema(description = "Fecha de vencimiento opcional del lote inicial. Si se envia, se crea el lote aunque numeroLote sea null.", example = "2027-12-31")
+        @NotNull(message = "Debe existir una fecha de vencimiento.")
+        LocalDate fechaVencimiento,
         @Schema(description = "Numero de lote opcional. Si se envia, tambien se crea un lote inicial.", example = "AMX-2026-01")
         String numeroLote
 ) {

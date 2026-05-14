@@ -1,83 +1,144 @@
-<div class="edit-page">
+<div class="create-page">
   <div class="sticky-header">
     <app-top-bar title="Editar Producto" [showAlert]="false" (back)="onCancel()"></app-top-bar>
   </div>
 
   <main class="content-area">
     @if (product(); as p) {
-      <!-- System Info (Read-only) -->
+      <!-- Datos de Sistema (Solo Lectura) -->
       <section class="section-card">
         <span class="section-title">Datos del Sistema</span>
-        <div class="readonly-info">
-          <div class="info-row">
-            <span class="info-label">ID Referencia:</span>
-            <span class="info-value">#{{ p.id }}</span>
+        <div class="readonly-grid">
+          <div class="readonly-item">
+            <span class="readonly-label">ID Referencia</span>
+            <span class="readonly-value">#{{ p.id }}</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">Stock Actual:</span>
-            <span class="info-value">{{ p.stockActual }} und.</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Código:</span>
-            <span class="info-value">{{ p.codigoBarras }}</span>
+          <div class="readonly-item">
+            <span class="readonly-label">Código de Barras</span>
+            <span class="readonly-value">{{ p.codigoBarras }}</span>
           </div>
         </div>
       </section>
 
-      <!-- Editable Info -->
       <form [formGroup]="productForm">
+        <!-- Información Básica -->
         <section class="section-card">
           <span class="section-title">Información Básica</span>
-          
-          <app-form-input 
-            label="Nombre Comercial" 
+
+          <app-form-input
+            label="Nombre del producto"
+            placeholder="Ej. Acetaminofen 500mg"
             [control]="getControl('nombre')">
           </app-form-input>
 
-          <app-form-input 
-            label="Categoría" 
-            type="select"
-            [options]="categories()"
-            [control]="getControl('categoriaId')">
+          <app-form-input
+            label="Descripción"
+            placeholder="Opcional..."
+            type="textarea"
+            [control]="getControl('descripcion')">
           </app-form-input>
-        </section>
 
-        <section class="section-card">
-          <span class="section-title">Parámetros de Venta</span>
           <div class="row">
-            <app-form-input 
-              label="Precio de Venta" 
-              type="number"
-              suffix="COP"
-              [control]="getControl('precioVenta')">
+            <app-form-input
+              label="Categoría"
+              type="select"
+              [options]="categories()"
+              placeholder="Seleccione categoría"
+              [control]="getControl('categoriaId')">
             </app-form-input>
 
-            <app-form-input 
-              label="Stock Mínimo" 
+            <app-form-input
+              label="Estado"
+              type="select"
+              [options]="states"
+              [control]="getControl('estado')">
+            </app-form-input>
+          </div>
+        </section>
+
+        <!-- Inventario -->
+        <section class="section-card">
+          <span class="section-title">Inventario</span>
+          <div class="row">
+            <app-form-input
+              label="Stock Actual"
+              type="number"
+              [control]="getControl('stockActual')">
+            </app-form-input>
+
+            <app-form-input
+              label="Stock Mínimo"
               type="number"
               [control]="getControl('stockMinimo')">
             </app-form-input>
           </div>
         </section>
+
+        <!-- Costos y Venta -->
+        <section class="section-card">
+          <span class="section-title">Costos y Parámetros de Venta</span>
+
+          <div class="row">
+            <app-form-input
+              label="Costo"
+              type="number"
+              suffix="COP"
+              [control]="getControl('costo')">
+            </app-form-input>
+
+            <app-form-input
+              label="IVA (%)"
+              type="number"
+              [control]="getControl('porcentajeIva')">
+            </app-form-input>
+          </div>
+
+          <app-form-input
+            label="Precio de Venta"
+            type="number"
+            suffix="COP"
+            [control]="getControl('precioVenta')">
+          </app-form-input>
+
+          @if (productForm.errors?.['priceTooLow'] && (productForm.get('precioVenta')?.touched || productForm.get('costo')?.touched)) {
+            <span class="error-text" style="color: var(--error); font-size: 12px; margin-top: -8px;">
+              El precio de venta debe ser mayor al costo con IVA.
+            </span>
+          }
+        </section>
+
+        <!-- Configuración Adicional -->
+        <section class="section-card">
+          <span class="section-title">Configuración Adicional</span>
+          <div class="form-group-switch">
+            <div class="switch-group">
+              <label>¿Requiere Prescripción?</label>
+              <label class="switch">
+                <input type="checkbox" formControlName="requierePrescripcion">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </section>
       </form>
+
+      <footer class="sticky-footer">
+        <button type="button" class="btn btn-cancel" (click)="onCancel()">Descartar</button>
+        <button type="button" class="btn btn-save" [disabled]="productForm.invalid" (click)="onSaveRequest()">Guardar Cambios</button>
+      </footer>
     } @else {
       <div class="loading-state">
         <p>Cargando datos del producto...</p>
       </div>
     }
   </main>
-
-  <footer class="sticky-footer">
-    <button class="btn btn-cancel" (click)="onCancel()">Descartar</button>
-    <button class="btn btn-save" [disabled]="productForm.invalid" (click)="onSaveRequest()">Guardar Cambios</button>
-  </footer>
 </div>
 
 <!-- Confirmation Dialog -->
 @if (showConfirmDialog()) {
   <app-confirmation-dialog
     title="¿Guardar Cambios?"
-    content="Está a punto de actualizar la información de este producto. Estos cambios serán visibles inmediatamente en el inventario."
+    content="Está a punto de actualizar la información de este producto. ¿Desea continuar?"
     cancelText="Revisar"
     confirmText="Actualizar"
     (onCancel)="cancelUpdate()"

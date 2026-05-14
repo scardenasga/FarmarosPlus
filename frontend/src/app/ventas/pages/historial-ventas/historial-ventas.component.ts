@@ -16,7 +16,6 @@ import { SalesFilterComponent, SalesFilterOptions } from '../../components/sales
     RouterModule,
     FilterButtonComponent,
     FabButtonComponent,
-    TopBarComponent,
     VentaListComponent,
     SalesFilterComponent
   ],

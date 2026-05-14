@@ -13,6 +13,7 @@ export class ConfirmationDialogComponent {
   content = input.required<string>();
   cancelText = input<string>('Cancelar');
   confirmText = input<string>('Confirmar');
+  showCancel = input<boolean>(true);
 
   onCancel = output<void>();
   onConfirm = output<void>();

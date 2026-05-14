@@ -6,56 +6,110 @@
   <main class="content-area">
     @if (product(); as p) {
       <div class="receipt-card">
+        <!-- Header -->
         <div class="receipt-header">
-          <span class="product-id">REFERENCIA #{{ p.id }}</span>
+          <div class="header-top">
+            <span class="product-id">REF #{{ p.id }}</span>
+            @if (p.requierePrescripcion) {
+              <span class="rx-badge">Rx Prescripción</span>
+            }
+          </div>
           <h2 class="product-name">{{ p.nombre }}</h2>
-          <span class="category-badge">{{ p.categoria?.nombre || 'Sin Categoría' }}</span>
+          <div class="header-info">
+            <span class="category-badge">{{ p.categoria.nombre || 'Sin Categoría' }}</span>
+            <span class="status-badge" [attr.data-status]="p.estado">{{ p.estado }}</span>
+          </div>
         </div>
 
         <div class="receipt-divider"></div>
 
+        <!-- Descripción -->
         <div class="info-section">
-          <span class="section-label">Descripción del Producto</span>
-          <div class="description-box">
-            <p class="description-text">Producto registrado en el sistema con código de barras {{ p.codigoBarras }}. Estado: {{ p.estado }}</p>
-          </div>
+          <span class="section-label">Descripción</span>
+          <p class="description-text">{{ p.descripcion || 'Sin descripción disponible.' }}</p>
         </div>
 
+        <!-- Estadísticas -->
         <div class="stats-grid">
           <div class="stat-card">
-            <span class="stat-label">Inventario</span>
+            <span class="stat-label">Stock Actual</span>
             <div class="stat-main">
               <span class="stat-value">{{ p.stockActual }}</span>
-              <span class="stat-unit">und.</span>
+              <span class="stat-unit">uds</span>
             </div>
+            <span class="stat-sub">Mín: {{ p.stockMinimo }}</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Demanda</span>
-            <div class="stat-main">
-              <span class="stat-value" [class.positive]="(p.trend || 0) > 0" [class.negative]="(p.trend || 0) < 0">
-                {{ (p.trend || 0) > 0 ? '↑' : '↓' }} {{ (p.trend || 0) | number:'1.1-1' }}%
-              </span>
+            <span class="stat-label">Finanzas</span>
+            <div class="stat-row">
+              <span class="stat-sub-label">IVA:</span>
+              <span class="stat-sub-value">{{ p.porcentajeIva }}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-sub-label">Margen:</span>
+              <span class="stat-sub-value highlight">{{ p.margenGanancia | number:'1.1-2' }}%</span>
             </div>
           </div>
         </div>
 
         <div class="receipt-divider dotted"></div>
 
+        <!-- Lotes / Vencimientos -->
+        <div class="lotes-accordion" [class.open]="isLotesOpen()">
+          <button class="accordion-header" (click)="toggleLotes()">
+            <div class="header-content">
+              <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V21H3V8M1 3H23V8H1V3M10 12H14"/></svg>
+              <span>Gestión de Lotes y Vencimientos</span>
+            </div>
+            <svg class="chevron" [class.rotated]="isLotesOpen()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          
+          <div class="accordion-content">
+            @if (p.lotes && p.lotes.length > 0) {
+              <div class="lotes-list">
+                @for (lote of p.lotes; track lote.id) {
+                  <div class="lote-item">
+                    <div class="lote-info">
+                      <span class="lote-number">{{ lote.numeroLote || 'Sin número de lote' }}</span>
+                      <span class="lote-date">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <span class="lote-qty">{{ lote.cantidad }} uds</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-lotes">No hay lotes registrados para este producto.</p>
+            }
+          </div>
+        </div>
+
+        <div class="receipt-divider dotted"></div>
+
+        <!-- Precio -->
         <div class="price-section">
-          <span class="price-label">Precio de Venta</span>
+          <div class="price-detail">
+            <span class="price-label">Precio de Venta</span>
+            <span class="cost-label">Costo: {{ p.costo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
           <span class="price-amount">{{ p.precioVenta | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
         </div>
 
+        <!-- Footer / Barcode -->
         <div class="receipt-footer">
           <div class="barcode-visual">
-            <div class="barcode-bars"></div>
+            <div class="barcode-container">
+              @for (bar of getBarcodePattern(p.codigoBarras); track $index) {
+                <div class="bar" [style.width.px]="bar"></div>
+              }
+            </div>
             <span class="barcode-number">{{ p.codigoBarras }}</span>
           </div>
         </div>
       </div>
     } @else {
       <div class="loading-state">
-        <p>Cargando información...</p>
+        <div class="spinner"></div>
+        <p>Cargando información detallada...</p>
       </div>
     }
   </main>

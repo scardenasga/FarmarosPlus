@@ -2,8 +2,10 @@
   <div class="sticky-header">
     <app-top-bar
       title="Inventario"
+      [showActions]="true"
       (back)="handleBack()"
       (alert)="handleAlerts()"
+      (action)="toggleActions()"
     ></app-top-bar>
 
     <app-inventory-search
@@ -11,13 +13,19 @@
       (search)="handleSearch($event)"
       (toggleFilter)="toggleFilter()"
     ></app-inventory-search>
+
+    <app-inventory-summary
+      [totalProducts]="filteredProducts().length"
+      (openSort)="toggleSort()"
+    ></app-inventory-summary>
+
+    <app-active-filters
+      [filters]="activeFilterChips()"
+      (remove)="handleRemoveFilter($event)"
+    ></app-active-filters>
   </div>
 
   <main class="content">
-    <app-inventory-summary
-      [totalProducts]="filteredProducts().length"
-    ></app-inventory-summary>
-
     <app-product-list
       [products]="filteredProducts()"
       (productSelected)="handleProductSelect($event)"
@@ -33,4 +41,18 @@
     (close)="toggleFilter()"
     (apply)="handleFilterApply($event)"
   ></app-inventory-filter>
+
+  <app-inventory-sort
+    [isVisible]="isSortVisible()"
+    [currentField]="sortField()"
+    [currentOrder]="sortOrder()"
+    (close)="toggleSort()"
+    (sort)="handleSortApply($event)"
+  ></app-inventory-sort>
+
+  <app-inventory-actions
+    [isVisible]="isActionsVisible()"
+    (close)="toggleActions()"
+    (actionSelected)="handleActionSelection($event)"
+  ></app-inventory-actions>
 </div>
