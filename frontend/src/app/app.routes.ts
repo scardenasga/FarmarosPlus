@@ -6,7 +6,7 @@ import {HealthComponent} from './health/health.component';
 import { CrearProductoComponent } from './inventory/pages/crear-producto/crear-producto.component';
 import { ProductDetailComponent } from './inventory/pages/product-detail/product-detail.component';
 import { EditarProductoComponent } from './inventory/pages/editar-producto/editar-producto.component';
-import { CategoriasComponent } from './pages/inventario/categorias/categorias.component';
+import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
 import { AlertasComponent } from './pages/inventario/alertas/alertas.component';
 import { HistorialDevolucionesComponent } from './pages/entregas/historial-devoluciones/historial-devoluciones.component';
 import { RegistrarDevolucionComponent } from './pages/entregas/registrar-devolucion/registrar-devolucion.component';

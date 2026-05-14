@@ -9,6 +9,8 @@ import { Component, input, output } from '@angular/core';
 export class TopBarComponent {
   title = input<string>('');
   showAlert = input<boolean>(true);
+  showActions = input<boolean>(false);
   back = output<void>();
   alert = output<void>();
+  action = output<void>();
 }

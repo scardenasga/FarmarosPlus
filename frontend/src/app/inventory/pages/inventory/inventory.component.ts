@@ -12,6 +12,7 @@ import { InventoryService } from '../../services/inventory.service';
 import { CategoriaService } from '../../services/categoria.service';
 import { ActiveFiltersComponent, ActiveFilter } from '../../components/active-filters/active-filters.component';
 import { InventorySortComponent, SortOption, SortField, SortOrder } from '../../components/inventory-sort/inventory-sort.component';
+import { InventoryActionsComponent } from '../../components/inventory-actions/inventory-actions.component';
 
 @Component({
   selector: 'app-inventory',
@@ -24,7 +25,8 @@ import { InventorySortComponent, SortOption, SortField, SortOrder } from '../../
     ProductListComponent,
     InventoryFilterComponent,
     ActiveFiltersComponent,
-    InventorySortComponent
+    InventorySortComponent,
+    InventoryActionsComponent
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css'
@@ -40,6 +42,7 @@ export class InventoryComponent implements OnInit {
   searchTerm = signal<string>('');
   isFilterVisible = signal<boolean>(false);
   isSortVisible = signal<boolean>(false);
+  isActionsVisible = signal<boolean>(false);
   filterOptions = signal<InventoryFilterOptions | null>(null);
   
   sortField = signal<SortField>('nombre');
@@ -143,12 +146,6 @@ export class InventoryComponent implements OnInit {
       if (options.maxMargin !== null) {
         products = products.filter(p => (p.margenGanancia ?? 0) <= (options.maxMargin ?? 100));
       }
-
-      if (options.expirationDate) {
-        const cutOff = new Date(options.expirationDate);
-        // Nota: Asumiendo que tenemos fecha de vencimiento en el producto o lote
-        // Por ahora lo dejamos como placeholder si no está en el modelo base de lista
-      }
     }
 
     // Aplicar Ordenamiento
@@ -182,6 +179,20 @@ export class InventoryComponent implements OnInit {
 
   toggleSort(): void {
     this.isSortVisible.update(v => !v);
+  }
+
+  toggleActions(): void {
+    this.isActionsVisible.update(v => !v);
+  }
+
+  handleActionSelection(action: string): void {
+    if (action === 'categorias') {
+      this.router.navigate(['/inventario/categorias']);
+    } else if (action === 'ingreso') {
+      this.router.navigate(['/inventario/ingreso']);
+    } else if (action === 'crear') {
+      this.handleAddProduct();
+    }
   }
 
   handleFilterApply(options: InventoryFilterOptions): void {
@@ -236,4 +247,3 @@ export class InventoryComponent implements OnInit {
     this.router.navigate(['/inventario', product.id]);
   }
 }
-

@@ -2,8 +2,10 @@
   <div class="sticky-header">
     <app-top-bar
       title="Inventario"
+      [showActions]="true"
       (back)="handleBack()"
       (alert)="handleAlerts()"
+      (action)="toggleActions()"
     ></app-top-bar>
 
     <app-inventory-search
@@ -47,4 +49,10 @@
     (close)="toggleSort()"
     (sort)="handleSortApply($event)"
   ></app-inventory-sort>
+
+  <app-inventory-actions
+    [isVisible]="isActionsVisible()"
+    (close)="toggleActions()"
+    (actionSelected)="handleActionSelection($event)"
+  ></app-inventory-actions>
 </div>
