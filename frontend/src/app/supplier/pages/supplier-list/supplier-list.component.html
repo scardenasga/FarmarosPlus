@@ -1,0 +1,57 @@
+<div class="supplier-page">
+  <div class="sticky-header">
+    <app-top-bar
+      title="Proveedores"
+      [showActions]="false"
+      (back)="handleBack()">
+    </app-top-bar>
+
+    <app-supplier-search
+      [activeFilters]="activeFilterCount()"
+      (search)="handleSearch($event)"
+      (toggleFilter)="toggleFilter()"
+    ></app-supplier-search>
+
+    <app-supplier-summary
+      [totalSuppliers]="filteredSuppliers().length"
+      (openSort)="toggleSort()"
+    ></app-supplier-summary>
+
+    <app-active-filters
+      [filters]="activeFilterChips()"
+      (remove)="handleRemoveFilter($event)"
+    ></app-active-filters>
+  </div>
+
+  <main class="content">
+    @for (supplier of filteredSuppliers(); track supplier.idProveedor) {
+      <app-supplier-card
+        [supplier]="supplier"
+        (clicked)="handleSupplierClick(supplier)">
+      </app-supplier-card>
+    } @empty {
+      <div class="empty-state">
+        <span class="empty-icon">🏢</span>
+        <p>No se encontraron proveedores.</p>
+      </div>
+    }
+  </main>
+
+  <app-fab-button
+    (clicked)="handleAddSupplier()">
+  </app-fab-button>
+
+  <app-supplier-filter
+    [isVisible]="isFilterVisible()"
+    (close)="toggleFilter()"
+    (apply)="handleFilterApply($event)"
+  ></app-supplier-filter>
+
+  <app-supplier-sort
+    [isVisible]="isSortVisible()"
+    [currentField]="sortField()"
+    [currentOrder]="sortOrder()"
+    (close)="toggleSort()"
+    (sort)="handleSortApply($event)"
+  ></app-supplier-sort>
+</div>

@@ -1,0 +1,81 @@
+<div class="create-page">
+  <div class="sticky-header">
+    <app-top-bar title="Nuevo Proveedor" [showAlert]="false" (back)="onCancel()"></app-top-bar>
+  </div>
+
+  <main class="content-area">
+    <form [formGroup]="supplierForm">
+
+      <!-- Información Básica -->
+      <section class="section-card">
+        <span class="section-title">Información Básica</span>
+
+        <app-form-input
+          label="Nombre del proveedor"
+          placeholder="Ej. Farmacéutica XYZ S.A."
+          [control]="getControl('nombre')">
+        </app-form-input>
+
+        <app-form-input
+          label="NIT"
+          placeholder="Ej. 860123456-7"
+          [control]="getControl('nit')">
+        </app-form-input>
+      </section>
+
+      <!-- Detalles de Contacto -->
+      <section class="section-card">
+        <span class="section-title">Detalles de Contacto</span>
+
+        <app-form-input
+          label="Persona de Contacto"
+          placeholder="Ej. Juan Pérez"
+          [control]="getControl('contacto')">
+        </app-form-input>
+
+        <div class="row">
+          <app-form-input
+            label="Teléfono"
+            placeholder="Ej. +57 1 1234567"
+            [control]="getControl('telefono')">
+          </app-form-input>
+
+          <app-form-input
+            label="Email"
+            type="email"
+            placeholder="Ej. contacto@empresa.com"
+            [control]="getControl('email')">
+          </app-form-input>
+        </div>
+      </section>
+
+      <!-- Información Comercial -->
+      <section class="section-card">
+        <span class="section-title">Información Comercial</span>
+
+        <app-form-input
+          label="Condición de Pago"
+          placeholder="Ej. Neto 30 días"
+          [control]="getControl('condicionPago')">
+        </app-form-input>
+      </section>
+    </form>
+  </main>
+
+  <footer class="sticky-footer">
+    <button type="button" class="btn btn-cancel" (click)="onCancel()">Cancelar</button>
+    <button type="button" class="btn btn-save" [disabled]="supplierForm.invalid" (click)="onSave()">Guardar Proveedor</button>
+  </footer>
+</div>
+
+<!-- Confirmation Dialog -->
+@if (showConfirmation()) {
+  <app-confirmation-dialog
+    title="¿Crear Proveedor?"
+    content="Está a punto de registrar un nuevo proveedor. ¿Desea continuar?"
+    cancelText="Revisar"
+    confirmText="Crear"
+    (onCancel)="cancelCreation()"
+    (onConfirm)="confirmCreation()">
+  </app-confirmation-dialog>
+}

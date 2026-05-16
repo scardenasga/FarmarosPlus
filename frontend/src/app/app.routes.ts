@@ -22,6 +22,8 @@ import {AnularVentaComponent} from './ventas/pages/anular-venta/anular-venta.com
 import {NotificacionPedidosComponent} from './pages/compras/notificacion-pedidos/notificacion-pedidos.component';
 import {PrevisualizarOrdenComponent} from './pages/compras/previsualizar-orden/previsualizar-orden.component';
 import {SettingsComponent} from './configuracion/pages/settings/settings.component';
+import { SupplierListComponent } from './supplier/pages/supplier-list/supplier-list.component';
+import { CreateSupplierComponent } from './supplier/pages/create-supplier/create-supplier.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'health', pathMatch: 'full' },
@@ -41,6 +43,9 @@ export const routes: Routes = [
   { path: 'entregas/nueva', component: RegistrarDevolucionComponent },
   { path: 'entregas/compras', component: HistorialComprasComponent },
   { path: 'entregas/compras/nueva', component: RegistrarCompraComponent },
+
+  { path: 'proveedores', component: SupplierListComponent },
+  { path: 'proveedores/nuevo', component: CreateSupplierComponent },
 
   { path: 'inventario', component: InventoryComponent },
   { path: 'previsualizar-orden/:id', component: PrevisualizarOrdenComponent },

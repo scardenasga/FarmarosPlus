@@ -1,0 +1,29 @@
+<article class="card" (click)="clicked.emit()" role="button" tabindex="0" (keydown.enter)="clicked.emit()">
+  <div class="icon-container">
+    🏢
+  </div>
+
+  <div class="info-container">
+    <h3 class="supplier-name">{{ supplier().nombre }}</h3>
+    @if (supplier().nit) {
+      <span class="nit-tag">NIT: {{ supplier().nit }}</span>
+    }
+    <div class="contact-info">
+      @if (supplier().contacto) {
+        <span class="contact-person">👤 {{ supplier().contacto }}</span>
+      }
+      @if (supplier().telefono) {
+        <span class="phone">📞 {{ supplier().telefono }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="stock-container">
+    <span class="status-badge" [class.activo]="supplier().estado === 'ACTIVO'" [class.inactivo]="supplier().estado === 'INACTIVO'">
+      {{ supplier().estado }}
+    </span>
+    <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="var(--on-surface)"/>
+    </svg>
+  </div>
+</article>
