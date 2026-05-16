@@ -12,5 +12,6 @@ import java.util.List;
 @Repository
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByNombreIgnoreCaseAndIdProveedorNot(String nombre, Long idProveedor);
     List<Proveedor> findByEstadoOrderByNombreAsc(String estado);
 }
