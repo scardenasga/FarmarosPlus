@@ -1,0 +1,59 @@
+<div class="dashboard-page">
+  <div class="sticky-header">
+    <app-top-bar title="Supply Chain Hub" [showAlert]="false"></app-top-bar>
+  </div>
+
+  <!-- Background Mesh Gradient -->
+  <div class="mesh-bg"></div>
+
+  <main class="content-area">
+    <header class="hero-section">
+      <div class="hero-content">
+        <span class="hero-tag">Suministros & Compras</span>
+        <h1 class="hero-title">Gestión de <span>Suministros</span></h1>
+        <p class="hero-subtitle">Controle proactivamente su cadena de abastecimiento desde una central inteligente.</p>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-circle circle-1"></div>
+        <div class="floating-circle circle-2"></div>
+      </div>
+    </header>
+
+    <div class="cards-layout">
+      @for (card of cards; track card.link; let i = $index) {
+        <div 
+          class="card-wrapper" 
+          [style.--delay]="i * 0.1 + 's'"
+        >
+          <button 
+            class="premium-card" 
+            (click)="navigateTo(card.link)"
+          >
+            <div class="card-accent" [style.background]="card.gradient"></div>
+            
+            <div class="card-header">
+              <span class="tag">{{ card.tag }}</span>
+              <div class="icon-box" [style.background]="card.iconBg">
+                {{ card.icon }}
+              </div>
+            </div>
+
+            <div class="card-body">
+              <h2 class="title">{{ card.title }}</h2>
+              <p class="description">{{ card.description }}</p>
+            </div>
+
+            <div class="card-footer">
+              <span class="action-text">Gestionar</span>
+              <div class="arrow-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+        </div>
+      }
+    </div>
+  </main>
+</div>

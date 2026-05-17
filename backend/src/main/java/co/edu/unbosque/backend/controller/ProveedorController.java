@@ -1,8 +1,15 @@
 package co.edu.unbosque.backend.controller;
 
 import co.edu.unbosque.backend.model.entity.Proveedor;
+import co.edu.unbosque.backend.model.entity.ProveedorProducto;
 import co.edu.unbosque.backend.model.request.ActualizarEstadoProveedorRequest;
+import co.edu.unbosque.backend.model.request.ActualizarEstadoProductoProveedorRequest;
+import co.edu.unbosque.backend.model.request.ActualizarProveedorRequest;
+import co.edu.unbosque.backend.model.request.AsociarProductoProveedorRequest;
 import co.edu.unbosque.backend.model.request.CrearProveedorRequest;
+import co.edu.unbosque.backend.model.response.ProductoProveedorResponse;
+import co.edu.unbosque.backend.model.response.ProveedorConsultaResponse;
+import co.edu.unbosque.backend.model.response.ProveedorDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProveedorResponse;
 import co.edu.unbosque.backend.service.ProveedorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,9 +76,18 @@ public class ProveedorController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Consultar proveedor por id")
-    public ResponseEntity<ProveedorResponse> obtenerProveedorPorId(@PathVariable Long id) {
+    public ResponseEntity<ProveedorConsultaResponse> obtenerProveedorPorId(@PathVariable Long id) {
         Proveedor proveedor = proveedorService.obtenerProveedorPorId(id);
-        return ResponseEntity.ok(toProveedorResponse(proveedor));
+        return ResponseEntity.ok(toProveedorConsultaResponse(proveedor));
+    }
+
+    /**
+     * Consulta un proveedor por su identificador con sus productos asociados.
+     */
+    @GetMapping("/{id}/detalle")
+    @Operation(summary = "Consultar proveedor por id con productos")
+    public ResponseEntity<ProveedorDetalleResponse> obtenerProveedorDetallePorId(@PathVariable Long id) {
+        return ResponseEntity.ok(proveedorService.obtenerProveedorDetallePorId(id));
     }
 
     /**
@@ -79,11 +95,11 @@ public class ProveedorController {
      */
     @GetMapping("/activos")
     @Operation(summary = "Listar proveedores activos")
-    public ResponseEntity<List<ProveedorResponse>> listarProveedoresActivos() {
+    public ResponseEntity<List<ProveedorConsultaResponse>> listarProveedoresActivos() {
         return ResponseEntity.ok(
                 proveedorService.listarProveedoresActivos()
                         .stream()
-                        .map(this::toProveedorResponse)
+                        .map(this::toProveedorConsultaResponse)
                         .toList()
         );
     }
@@ -93,11 +109,11 @@ public class ProveedorController {
      */
     @GetMapping
     @Operation(summary = "Listar todos los proveedores")
-    public ResponseEntity<List<ProveedorResponse>> listarTodosProveedores() {
+    public ResponseEntity<List<ProveedorConsultaResponse>> listarTodosProveedores() {
         return ResponseEntity.ok(
                 proveedorService.listarTodosProveedores()
                         .stream()
-                        .map(this::toProveedorResponse)
+                        .map(this::toProveedorConsultaResponse)
                         .toList()
         );
     }
@@ -130,6 +146,77 @@ public class ProveedorController {
         return ResponseEntity.ok(toProveedorResponse(proveedorActualizado));
     }
 
+    /**
+     * Actualiza datos del proveedor.
+     */
+    @PatchMapping("/{id}")
+    @Operation(summary = "Actualizar proveedor")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Editar proveedor",
+                                    value = """
+                                            {
+                                              "nombre": "Farmacéutica XYZ Actualizada",
+                                              "telefono": "+57 601 7654321",
+                                              "email": "compras@farmaxyz.com",
+                                              "contacto": "Ana Gómez",
+                                              "condicionPago": "Contra Entrega"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProveedorResponse> actualizarProveedor(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarProveedorRequest request
+    ) {
+        return ResponseEntity.ok(toProveedorResponse(proveedorService.actualizarProveedor(id, request)));
+    }
+
+    /**
+     * Asocia un producto a un proveedor.
+     */
+    @PostMapping("/{id}/productos")
+    @Operation(summary = "Asociar producto a proveedor")
+    public ResponseEntity<ProductoProveedorResponse> asociarProducto(
+            @PathVariable Long id,
+            @Valid @RequestBody AsociarProductoProveedorRequest request
+    ) {
+        ProveedorProducto relacion = proveedorService.asociarProducto(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toProductoProveedorResponse(relacion));
+    }
+
+    /**
+     * Actualiza el estado de una relación proveedor-producto.
+     */
+    @PatchMapping("/{id}/productos/{productoId}/estado")
+    @Operation(summary = "Actualizar estado de producto asociado al proveedor")
+    public ResponseEntity<ProductoProveedorResponse> actualizarEstadoProductoProveedor(
+            @PathVariable Long id,
+            @PathVariable Long productoId,
+            @Valid @RequestBody ActualizarEstadoProductoProveedorRequest request
+    ) {
+        ProveedorProducto relacion = proveedorService.actualizarEstadoProductoProveedor(id, productoId, request);
+        return ResponseEntity.ok(toProductoProveedorResponse(relacion));
+    }
+
+    /**
+     * Elimina una relación proveedor-producto.
+     */
+    @DeleteMapping("/{id}/productos/{productoId}")
+    @Operation(summary = "Eliminar producto asociado al proveedor")
+    public ResponseEntity<Void> eliminarProductoProveedor(
+            @PathVariable Long id,
+            @PathVariable Long productoId
+    ) {
+        proveedorService.eliminarProductoProveedor(id, productoId);
+        return ResponseEntity.noContent().build();
+    }
+
     private ProveedorResponse toProveedorResponse(Proveedor proveedor) {
         return new ProveedorResponse(
                 proveedor.getIdProveedor(),
@@ -142,6 +229,32 @@ public class ProveedorController {
                 proveedor.getCondicionPago(),
                 proveedor.getFechaCreacion(),
                 proveedor.getFechaModificacion()
+        );
+    }
+
+    private ProveedorConsultaResponse toProveedorConsultaResponse(Proveedor proveedor) {
+        return new ProveedorConsultaResponse(
+                proveedor.getIdProveedor(),
+                proveedor.getNombre(),
+                proveedor.getNit(),
+                proveedor.getTelefono(),
+                proveedor.getEmail(),
+                proveedor.getContacto(),
+                proveedor.getEstado(),
+                proveedor.getCondicionPago()
+        );
+    }
+
+    private ProductoProveedorResponse toProductoProveedorResponse(ProveedorProducto relacion) {
+        return new ProductoProveedorResponse(
+                relacion.getProducto().getUniqueID(),
+                relacion.getProducto().getNombre(),
+                relacion.getProducto().getDescripcion(),
+                relacion.getProducto().getCodigoBarras(),
+                relacion.getProducto().getEstado(),
+                relacion.getCodigoProductoProveedor(),
+                relacion.getPrecioReferencia(),
+                relacion.getEstado()
         );
     }
 }
