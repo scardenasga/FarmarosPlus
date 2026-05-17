@@ -1,0 +1,106 @@
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-m);
+  background-color: var(--surface-container-low);
+  border-radius: var(--radius-s);
+  border-left: 4px solid var(--primary);
+  transition: all 0.2s ease;
+}
+
+.product-item.inactive {
+  border-left-color: var(--outline);
+  opacity: 0.7;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--error);
+}
+
+.status-dot.active {
+  background-color: var(--success);
+}
+
+.detail-row {
+  display: flex;
+  gap: var(--space-m);
+  font-size: 13px;
+  color: var(--outline);
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  margin-top: 4px;
+}
+
+.price-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--outline);
+  text-transform: uppercase;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-m);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-container);
+  border: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.action-btn.delete:hover {
+  background-color: var(--error-container);
+  color: var(--on-error-container);
+}
+
+.action-btn svg {
+  width: 20px;
+  height: 20px;
+}

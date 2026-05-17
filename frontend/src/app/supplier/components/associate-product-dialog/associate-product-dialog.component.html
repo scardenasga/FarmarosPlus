@@ -1,0 +1,69 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Asociar Producto"
+>
+  <div class="dialog-content">
+    @if (!selectedProduct()) {
+      <div class="search-step">
+        <p class="step-desc">Busque el producto que desea asociar a este proveedor.</p>
+        <app-search-bar
+          placeholder="Nombre o código de barras"
+          (search)="handleSearch($event)"
+        ></app-search-bar>
+
+        <div class="results-container">
+          @for (product of searchResults(); track product.id) {
+            <button class="result-item" (click)="selectProduct(product)">
+              <div class="product-info">
+                <span class="product-name">{{ product.nombre }}</span>
+                <span class="product-barcode">{{ product.codigoBarras }}</span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          } @empty {
+            @if (searchResults().length === 0) {
+              <div class="empty-results">
+                <p>No hay resultados. Empiece a escribir para buscar.</p>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="detail-step">
+        <div class="selected-product-card">
+          <div class="card-header">
+            <span class="step-label">Producto Seleccionado</span>
+            <button class="btn-change" (click)="clearSelection()">Cambiar</button>
+          </div>
+          <div class="product-summary">
+            <span class="name">{{ selectedProduct()?.nombre }}</span>
+            <span class="barcode">{{ selectedProduct()?.codigoBarras }}</span>
+          </div>
+        </div>
+
+        <form [formGroup]="assocForm" class="assoc-form">
+          <app-form-input
+            label="Código de Producto del Proveedor (Opcional)"
+            placeholder="Ej. REF-XYZ-123"
+            [control]="getControl('codigoProductoProveedor')"
+          ></app-form-input>
+
+          <app-form-input
+            label="Precio de Referencia (Opcional)"
+            type="number"
+            placeholder="0.00"
+            [control]="getControl('precioReferencia')"
+          ></app-form-input>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-save" (click)="confirmAssociation()" [disabled]="assocForm.invalid">
+              Confirmar Asociación
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
+</app-bottom-sheet>

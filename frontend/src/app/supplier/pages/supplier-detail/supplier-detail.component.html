@@ -1,0 +1,66 @@
+<div class="detail-page">
+  <div class="sticky-header">
+    <app-top-bar title="Detalle del Proveedor" [showAlert]="false" (back)="onBack()"></app-top-bar>
+  </div>
+
+  <main class="content-area">
+    @if (supplier(); as s) {
+      <div class="receipt-card">
+        <app-supplier-info-card [supplier]="s"></app-supplier-info-card>
+
+        <div class="receipt-divider dotted"></div>
+
+        <app-supplier-product-list
+          [products]="s.productos"
+          (toggleStatus)="handleToggleProductStatus($event)"
+          (remove)="handleRemoveProduct($event)"
+          (addProduct)="openAssociateDialog()"
+        ></app-supplier-product-list>
+      </div>
+    } @else {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información detallada...</p>
+      </div>
+    }
+  </main>
+
+  @if (supplier(); as s) {
+    <footer class="sticky-footer">
+      <button class="btn btn-secondary" (click)="toggleSupplierStatus()">
+        {{ s.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
+      </button>
+      <button class="btn btn-primary" (click)="onEdit()">Editar Información</button>
+    </footer>
+  }
+</div>
+
+<!-- Diálogos y Confirmaciones (Iguales) -->
+@if (showStatusConfirmation()) {
+  <app-confirmation-dialog
+    [title]="supplier()?.estado === 'ACTIVO' ? '¿Desactivar Proveedor?' : '¿Activar Proveedor?'"
+    [content]="'¿Está seguro que desea cambiar el estado del proveedor ' + supplier()?.nombre + '?'"
+    cancelText="Cancelar"
+    confirmText="Confirmar"
+    (onCancel)="showStatusConfirmation.set(false)"
+    (onConfirm)="confirmStatusChange()">
+  </app-confirmation-dialog>
+}
+
+@if (showDeleteRelationConfirmation()) {
+  <app-confirmation-dialog
+    title="¿Eliminar Relación?"
+    [content]="'¿Desea eliminar la relación con el producto ' + selectedProduct()?.nombre + '? Esta acción no se puede deshacer.'"
+    cancelText="Volver"
+    confirmText="Eliminar"
+    (onCancel)="showDeleteRelationConfirmation.set(false)"
+    (onConfirm)="confirmRemoveRelation()">
+  </app-confirmation-dialog>
+}
+
+<app-associate-product-dialog
+  [isVisible]="showAssociateDialog()"
+  [supplierId]="supplier()?.idProveedor || 0"
+  (close)="showAssociateDialog.set(false)"
+  (associated)="handleProductAssociated()"
+></app-associate-product-dialog>

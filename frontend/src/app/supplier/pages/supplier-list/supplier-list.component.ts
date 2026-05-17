@@ -161,6 +161,6 @@ export class SupplierListComponent implements OnInit {
   }
 
   handleSupplierClick(supplier: Supplier): void {
-    console.log('Supplier clicked:', supplier);
+    this.router.navigate(['/proveedores', supplier.idProveedor]);
   }
 }

@@ -8,7 +8,6 @@ import { ProductDetailComponent } from './inventory/pages/product-detail/product
 import { EditarProductoComponent } from './inventory/pages/editar-producto/editar-producto.component';
 import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
 import { IngresoStockComponent } from './inventory/pages/ingreso-stock/ingreso-stock.component';
-import { AlertasComponent } from './pages/inventario/alertas/alertas.component';
 import { HistorialDevolucionesComponent } from './pages/entregas/historial-devoluciones/historial-devoluciones.component';
 import { RegistrarDevolucionComponent } from './pages/entregas/registrar-devolucion/registrar-devolucion.component';
 import { HistorialComprasComponent } from './pages/entregas/historial-compras/historial-compras.component';
@@ -24,6 +23,10 @@ import {PrevisualizarOrdenComponent} from './pages/compras/previsualizar-orden/p
 import {SettingsComponent} from './configuracion/pages/settings/settings.component';
 import { SupplierListComponent } from './supplier/pages/supplier-list/supplier-list.component';
 import { CreateSupplierComponent } from './supplier/pages/create-supplier/create-supplier.component';
+import { SupplierDetailComponent } from './supplier/pages/supplier-detail/supplier-detail.component';
+import { EditSupplierComponent } from './supplier/pages/edit-supplier/edit-supplier.component';
+import { PurchasingDashboardComponent } from './purchasing/pages/purchasing-dashboard/purchasing-dashboard.component';
+import {AlertasComponent} from './inventory/pages/alertas/alertas.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'health', pathMatch: 'full' },
@@ -34,25 +37,32 @@ export const routes: Routes = [
   { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
   { path: 'ventas/:id', component: DetalleVentaComponent },
   { path: 'ventas/:id/anular', component: AnularVentaComponent },
-  { path: 'compras/notificaciones', component: NotificacionPedidosComponent },
-  { path: 'compras/previsualizar-orden', component: PrevisualizarOrdenComponent },
 
   { path: 'alertas', component: AlertasComponent },
-  { path: 'inventario/categorias', component: CategoriasComponent },
+
+
   { path: 'entregas', component: HistorialDevolucionesComponent },
   { path: 'entregas/nueva', component: RegistrarDevolucionComponent },
   { path: 'entregas/compras', component: HistorialComprasComponent },
   { path: 'entregas/compras/nueva', component: RegistrarCompraComponent },
 
+  { path: 'inventario/categorias', component: CategoriasComponent },
   { path: 'proveedores', component: SupplierListComponent },
   { path: 'proveedores/nuevo', component: CreateSupplierComponent },
+  { path: 'proveedores/:id', component: SupplierDetailComponent },
+  { path: 'proveedores/:id/editar', component: EditSupplierComponent },
+
+  { path: 'compras-gestion', component: PurchasingDashboardComponent },
 
   { path: 'inventario', component: InventoryComponent },
-  { path: 'previsualizar-orden/:id', component: PrevisualizarOrdenComponent },
   { path: 'inventario/crear', component: CrearProductoComponent },
   { path: 'inventario/ingreso', component: IngresoStockComponent },
   { path: 'inventario/:id', component: ProductDetailComponent },
   { path: 'inventario/editar/:id', component: EditarProductoComponent },
+
+  { path: 'compras/notificaciones', component: NotificacionPedidosComponent },
+  { path: 'compras/previsualizar-orden', component: PrevisualizarOrdenComponent },
+  { path: 'previsualizar-orden/:id', component: PrevisualizarOrdenComponent },
 
   { path: 'health', component: HealthComponent },
   { path: 'configuracion', component: SettingsComponent },
