@@ -1,0 +1,47 @@
+<div class="page">
+  <app-top-bar 
+    title="Notificaciones" 
+    [showAlert]="false" 
+    (back)="handleBack()">
+  </app-top-bar>
+
+  <main class="content">
+    <header class="header-vistas">
+      <p>Seguimiento de pedidos pendientes</p>
+    </header>
+
+    <section class="buscador-seccion">
+      <app-search-bar 
+        (search)="onSearch($event)" 
+        [placeholder]="'Buscar por OC o Proveedor...'">
+      </app-search-bar>
+    </section>
+
+    <div class="lista-alertas">
+      @for (item of alertasFiltradas(); track item.idOrden) {
+        <article class="tarjeta-alerta" (click)="irAPrevisualizar(item.idOrden)">
+          <div class="fila-superior">
+            <span class="id-pedido">{{ item.codigoGenerado }}</span>
+            <span class="dias-cont" [class.urgente]="item.diasTranscurridos > 5">
+              {{ item.diasTranscurridos }} {{ item.diasTranscurridos === 1 ? 'día' : 'días' }} transcurridos
+            </span>
+          </div>
+          
+          <div class="fila-medio">
+            <h3 class="proveedor">{{ item.proveedorNombre }}</h3>
+          </div>
+
+          <div class="fila-inferior">
+            <span class="fecha">Registrado: {{ item.fechaCreacionFormateada }}</span>
+          </div>
+        </article>
+      } @empty {
+        <div class="sin-datos">
+          <p>No hay pedidos pendientes que coincidan.</p>
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-bottom-nav-bar></app-bottom-nav-bar>
+</div>

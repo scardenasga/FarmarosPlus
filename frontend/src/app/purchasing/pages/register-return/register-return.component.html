@@ -1,0 +1,140 @@
+<div class="page">
+  <app-top-bar 
+    title="Nueva devolución" 
+    [showAlert]="false" 
+    (back)="volver()">
+  </app-top-bar>
+
+  <main class="content">
+    <div class="form-scroll">
+      <!-- Proveedor -->
+      <section class="seccion-card">
+        <label class="label-campo">Proveedor *</label>
+        <select class="select-campo" [value]="idProveedorSeleccionado() || 'null'" (change)="onProveedorChange($event)">
+          <option value="null" disabled>Seleccionar proveedor...</option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <option [value]="p.idProveedor">{{ p.nombre }}</option>
+          }
+        </select>
+        @if (!cargandoProveedores() && proveedores().length === 0) {
+          <span class="hint-vacio">No hay proveedores activos.</span>
+        }
+      </section>
+
+      <!-- Motivo -->
+      <section class="seccion-card">
+        <label class="label-campo">Motivo (opcional)</label>
+        <input type="text" class="input-campo" [ngModel]="motivo()" (ngModelChange)="motivo.set($event)"
+               placeholder="Ej: Producto vencido, error de pedido..." maxlength="200"/>
+      </section>
+
+      <!-- Productos -->
+      <section class="seccion-card">
+        <div class="seccion-header">
+          <label class="label-campo">Productos a devolver *</label>
+          <button class="btn-agregar" (click)="abrirModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar
+          </button>
+        </div>
+
+        <div class="lista-productos">
+          @for (item of items(); track item.idLote; let i = $index) {
+            <article class="item-card">
+              <div class="item-info">
+                <h4 class="item-nombre">{{ item.nombreProducto }}</h4>
+                <span class="item-lote">Lote: {{ item.numeroLote }}</span>
+              </div>
+              <div class="item-derecha">
+                <span class="item-cantidad">× {{ item.cantidad }}</span>
+                <button class="btn-quitar" (click)="quitarItem(i)" aria-label="Quitar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="lista-vacia">Aún no agregaste productos.</div>
+          }
+        </div>
+      </section>
+
+      @if (error()) {
+        <div class="msg-error">{{ error() }}</div>
+      }
+
+      <button class="btn-enviar" (click)="enviar()" [disabled]="!puedeEnviar()">
+        {{ enviando() ? 'Registrando...' : 'Registrar devolución' }}
+      </button>
+    </div>
+  </main>
+
+  <!-- Modal buscar producto -->
+  @if (modalVisible()) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        @if (paso() === 'buscar') {
+          <h2 class="modal-titulo">Buscar producto</h2>
+          <div class="busqueda-row">
+            <input type="text" [ngModel]="termino()" (ngModelChange)="termino.set($event)" 
+                   placeholder="Nombre del producto..." class="input-busqueda" (keyup.enter)="buscar()"/>
+            <button class="btn-buscar" (click)="buscar()">Buscar</button>
+          </div>
+          
+          @if (buscando()) {
+            <div class="modal-info">Buscando...</div>
+          } @else if (!buscando() && resultados().length === 0 && termino()) {
+            <div class="modal-info">Sin resultados para "{{ termino() }}"</div>
+          }
+
+          <div class="lista-resultados">
+            @for (prod of resultados(); track prod.id) {
+              <div class="resultado-item" (click)="seleccionarProducto(prod)">
+                <span class="res-nombre">{{ prod.nombre }}</span>
+                <span class="res-stock">Stock: {{ prod.stockActual }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <h2 class="modal-titulo">{{ productoSeleccionado()?.nombre }}</h2>
+
+          <div class="campo-modal">
+            <label>Lote *</label>
+            <div class="lotes-scroll">
+              @for (l of lotes(); track l.id) {
+                <div class="lote-item"
+                     [class.lote-activo]="idLoteSeleccionado() === l.id"
+                     (click)="idLoteSeleccionado.set(l.id)">
+                  <span class="lote-num">{{ l.numeroLote || 'SIN LOTE' }}</span>
+                  <span class="lote-info">Stock: {{ l.cantidad }} · Vence: {{ l.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                </div>
+              } @empty {
+                <div class="modal-info">Sin lotes disponibles.</div>
+              }
+            </div>
+          </div>
+
+          <div class="campo-modal">
+            <label>Cantidad a devolver *</label>
+            <input type="number" [ngModel]="cantidadModal()" (ngModelChange)="cantidadModal.set($event)" min="1" class="input-campo"/>
+          </div>
+
+          @if (errorModal()) {
+            <div class="form-error">{{ errorModal() }}</div>
+          }
+
+          <div class="modal-acciones">
+            <button class="btn-cancelar" (click)="paso.set('buscar')">Atrás</button>
+            <button class="btn-guardar" (click)="agregarItem()">Agregar</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
