@@ -1,0 +1,72 @@
+<div class="page">
+  <app-top-bar 
+    title="Orden De Compra" 
+    [showAlert]="false" 
+    (back)="handleBack()">
+  </app-top-bar>
+
+  <main class="content">
+    <header class="header-info">
+      <h2 class="proveedor-txt">{{ nombreProveedor() }}</h2>
+      <p class="subtitulo">Previsualización de orden sugerida</p>
+    </header>
+
+    <section class="buscador-seccion">
+      <app-search-bar (search)="onSearch($event)" [placeholder]="'Filtrar productos...'"></app-search-bar>
+    </section>
+
+    <div class="contenido-orden">
+      <table class="tabla-compacta">
+        <thead>
+          <tr>
+            <th>PRODUCTO</th>
+            <th class="text-center">CANT.</th>
+            <th class="text-right">SUBTOTAL</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of productosFiltrados(); track $index) {
+            <tr>
+              <td>
+                <div class="prod-info">
+                  <span class="nombre">{{ item.nombreProducto }}</span>
+                  <span class="motivo">{{ item.justificacion }}</span>
+                </div>
+              </td>
+              <td class="text-center">
+                <input type="number" class="input-mini" [(ngModel)]="item.cantidadSugerida">
+              </td>
+              <td class="text-right valor">{{ (item.cantidadSugerida * item.costo) | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              <td class="text-center">
+                <button class="btn-delete" (click)="eliminarProducto($index)" aria-label="Eliminar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="text-center empty-msg">No hay productos en la orden.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="footer-fijo">
+    <div class="card-resumen">
+      <div class="fila-total">
+        <span class="txt-estimado">Total Estimado</span>
+        <span class="monto-total">{{ total() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+      </div>
+      <button class="btn-confirmar" (click)="confirmarOrdenCompleta()" [disabled]="total() <= 0 || isSubmitting()">
+        {{ isSubmitting() ? 'PROCESANDO...' : 'CONFIRMAR ORDEN' }}
+      </button>
+    </div>
+    <app-bottom-nav-bar></app-bottom-nav-bar>
+  </footer>
+</div>

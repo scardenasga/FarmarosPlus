@@ -1,0 +1,58 @@
+<div class="page">
+  <app-top-bar 
+    title="Devoluciones" 
+    [showAlert]="false" 
+    (back)="volver()">
+  </app-top-bar>
+
+  <main class="content">
+    <header class="header-actions">
+      <a class="link-compras" routerLink="/purchasing/purchase-history">Ver compras</a>
+    </header>
+
+    @if (error()) {
+      <div class="msg-error">{{ error() }}</div>
+    }
+
+    @if (cargando() && !error()) {
+      <div class="msg-info">Cargando historial...</div>
+    }
+
+    <div class="contenido-scroll">
+      @for (dev of devoluciones(); track dev.id) {
+        <article class="dev-card">
+          <div class="dev-top">
+            <h3 class="dev-proveedor">{{ dev.nombreProveedor }}</h3>
+            <span class="dev-fecha">{{ dev.fecha | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="dev-mid">
+            <span class="dev-usuario">Responsable: {{ dev.usuarioResponsable }}</span>
+            <span class="dev-items">{{ totalProductos(dev) }} unid. devueltas</span>
+          </div>
+          @if (dev.motivo) {
+            <p class="dev-motivo">{{ dev.motivo }}</p>
+          }
+          <div class="dev-detalles">
+            @for (d of dev.detalles; track d.idProducto) {
+              <span class="chip-producto">
+                {{ d.nombreProducto }} × {{ d.cantidad }}
+              </span>
+            }
+          </div>
+        </article>
+      } @empty {
+        @if (!cargando() && !error()) {
+          <div class="msg-vacio">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>Sin devoluciones registradas</p>
+          </div>
+        }
+      }
+    </div>
+  </main>
+
+  <app-fab-button (clicked)="nueva()"></app-fab-button>
+</div>

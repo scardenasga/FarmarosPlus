@@ -29,6 +29,7 @@ class DevolucionServiceTest {
     @Mock private ProductoRepository productoRepository;
     @Mock private LoteRepository loteRepository;
     @Mock private MovimientoInventarioRepository movimientoRepository;
+    @Mock private UsuarioRepository usuarioRepository;
 
     @InjectMocks
     private DevolucionService devolucionService;
@@ -38,6 +39,16 @@ class DevolucionServiceTest {
         p.setIdProveedor(1L);
         p.setNombre("Proveedor ABC");
         return p;
+    }
+
+    private Usuario buildUsuario() {
+        Usuario u = new Usuario();
+        u.setIdUsuario(1L);
+        u.setUsername("admin");
+        u.setNombreCompleto("Administrador");
+        u.setEstado("ACTIVO");
+        u.setRol("ADMIN");
+        return u;
     }
 
     private Producto buildProducto(Long id, int stock) {
@@ -71,10 +82,12 @@ class DevolucionServiceTest {
     @Test
     void registrar_debeDescontarStockDeLoteYProducto() {
         Proveedor proveedor = buildProveedor();
+        Usuario usuario = buildUsuario();
         Producto producto = buildProducto(10L, 50);
         Lote lote = buildLote(1L, producto, 20);
 
         when(proveedorRepository.findById(1L)).thenReturn(Optional.of(proveedor));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
         when(loteRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(lote));
         when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(producto));
         when(devolucionRepository.save(any())).thenAnswer(i -> {
@@ -97,10 +110,12 @@ class DevolucionServiceTest {
     @Test
     void registrar_cuandoStockLoteInsuficiente_debeLanzarInsufficientStockException() {
         Proveedor proveedor = buildProveedor();
+        Usuario usuario = buildUsuario();
         Producto producto = buildProducto(10L, 3);
         Lote lote = buildLote(1L, producto, 3);
 
         when(proveedorRepository.findById(1L)).thenReturn(Optional.of(proveedor));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
         when(loteRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(lote));
         when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(producto));
 
@@ -115,11 +130,13 @@ class DevolucionServiceTest {
     @Test
     void registrar_cuandoLoteNoPertenece_debeLanzarBusinessException() {
         Proveedor proveedor = buildProveedor();
+        Usuario usuario = buildUsuario();
         Producto productoReal = buildProducto(10L, 50);
         Producto otroProducto = buildProducto(99L, 50);
         Lote lote = buildLote(1L, otroProducto, 20);
 
         when(proveedorRepository.findById(1L)).thenReturn(Optional.of(proveedor));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
         when(loteRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(lote));
         when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(productoReal));
 

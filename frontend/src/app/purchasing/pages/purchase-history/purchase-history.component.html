@@ -1,0 +1,85 @@
+<div class="page">
+  <app-top-bar 
+    title="Historial de Compras" 
+    [showAlert]="false" 
+    (back)="volver()">
+  </app-top-bar>
+
+  <main class="content">
+    <section class="filtro-bar">
+      <select class="select-filtro" [value]="filtroIdProveedor() || 'null'" (change)="aplicarFiltro($event)">
+        <option value="null">Todos los proveedores</option>
+        @for (p of proveedores(); track p.idProveedor) {
+          <option [value]="p.idProveedor">{{ p.nombre }}</option>
+        }
+      </select>
+    </section>
+
+    @if (error()) {
+      <div class="msg-error">{{ error() }}</div>
+    }
+
+    @if (cargando() && !error()) {
+      <div class="msg-info">Cargando historial...</div>
+    }
+
+    <div class="contenido-scroll">
+      @for (c of compras(); track c.id) {
+        <article class="compra-card">
+          <div class="compra-top">
+            <h3 class="compra-proveedor">{{ c.nombreProveedor }}</h3>
+            <span class="compra-fecha">{{ c.fechaRecepcion | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="compra-mid">
+            <span class="compra-factura">
+              @if (c.numeroFactura) {
+                Fact. {{ c.numeroFactura }}
+              } @else {
+                Sin número de factura
+              }
+            </span>
+            <span class="compra-total">{{ c.total | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+
+          @if (c.notas) {
+            <p class="compra-notas">{{ c.notas }}</p>
+          }
+
+          <button class="btn-expandir" (click)="toggleDetalles(c.id)">
+            <span>{{ totalUnidades(c) }} unid. · {{ c.detalles.length }} productos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
+                 [style.transform]="idExpandida() === c.id ? 'rotate(180deg)' : 'rotate(0deg)'"
+                 style="transition: transform 0.2s">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          @if (idExpandida() === c.id) {
+            <div class="compra-detalles">
+              @for (d of c.detalles; track d.idProducto) {
+                <div class="detalle-row">
+                  <span class="det-nombre">{{ d.nombreProducto }}</span>
+                  <span class="det-info">× {{ d.cantidad }} · {{ d.precioUnitario | currency:'COP':'symbol-narrow':'1.0-0' }} c/u</span>
+                </div>
+              }
+            </div>
+          }
+        </article>
+      } @empty {
+        @if (!cargando() && !error()) {
+          <div class="msg-vacio">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <p>Sin compras registradas</p>
+          </div>
+        }
+      }
+    </div>
+  </main>
+
+  <app-fab-button (clicked)="nueva()"></app-fab-button>
+</div>
