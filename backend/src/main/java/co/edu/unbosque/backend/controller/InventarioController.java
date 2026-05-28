@@ -6,7 +6,7 @@ import co.edu.unbosque.backend.model.entity.MovimientoInventario;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.request.AjusteInventarioRequest;
 import co.edu.unbosque.backend.model.request.IngresoLoteRequest;
-import co.edu.unbosque.backend.model.response.CategoriaResponse;
+import co.edu.unbosque.backend.model.response.LoteProductoResponse;
 import co.edu.unbosque.backend.model.response.LoteResponse;
 import co.edu.unbosque.backend.model.response.MovimientoInventarioResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -143,7 +144,8 @@ public class InventarioController {
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                Collections.emptyList()
         );
     }
 
