@@ -100,72 +100,82 @@ public class VentaService {
         double ivaTotal = 0.0;
 
         for (VentaDetalleRequest detalleRequest : request.detalles()) {
+            Producto producto = productoRepository.findById(detalleRequest.productoId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el producto con id " + detalleRequest.productoId()
+                    ));
 
-            Lote lote = null;
-Producto producto;
+            if (!"ACTIVO".equalsIgnoreCase(producto.getEstado())) {
+                throw new BusinessException("El producto " + producto.getNombre() + " no está activo");
+            }
 
-if (detalleRequest.loteId() != null) {
-    lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
-            .orElseThrow(() -> new ResourceNotFoundException(
-                    "No existe el lote con id " + detalleRequest.loteId()
-            ));
+            int cantidadSolicitada = detalleRequest.cantidad();
+            int stockTotalAnterior = valorSeguro(producto.getStockActual());
 
-    producto = lote.getProducto();
+            if (stockTotalAnterior < cantidadSolicitada) {
+                throw new InsufficientStockException("Stock insuficiente para el producto " + producto.getNombre());
+            }
 
-    if (!producto.getUniqueID().equals(detalleRequest.productoId())) {
-        throw new BusinessException(
-                "El lote " + detalleRequest.loteId() +
-                " no pertenece al producto " + detalleRequest.productoId()
-        );
-    }
+            List<Lote> lotesParaVenta = new ArrayList<>();
+            if (detalleRequest.loteId() != null) {
+                Lote lote = loteRepository.findByIdForUpdate(detalleRequest.loteId())
+                        .orElseThrow(() -> new ResourceNotFoundException("No existe el lote con id " + detalleRequest.loteId()));
+                if (!lote.getProducto().getUniqueID().equals(producto.getUniqueID())) {
+                    throw new BusinessException("El lote " + lote.getNumeroLote() + " no pertenece al producto " + producto.getNombre());
+                }
+                if (valorSeguro(lote.getCantidad()) < cantidadSolicitada) {
+                    throw new InsufficientStockException("Stock insuficiente en el lote " + lote.getNumeroLote());
+                }
+                lotesParaVenta.add(lote);
+            } else {
+                lotesParaVenta = loteRepository.findLotesDisponiblesPorProducto(producto.getUniqueID());
+                if (lotesParaVenta.isEmpty()) {
+                    throw new BusinessException("El producto " + producto.getNombre() + " no tiene lotes disponibles");
+                }
+            }
 
-} else {
-    producto = productoRepository.findById(detalleRequest.productoId())
-            .orElseThrow(() -> new ResourceNotFoundException(
-                    "No existe el producto con id " + detalleRequest.productoId()
-            ));
-}
+            int cantidadPendiente = cantidadSolicitada;
+            for (Lote lote : lotesParaVenta) {
+                if (cantidadPendiente <= 0) break;
 
-if (lote != null) {
-    validarDisponibilidad(producto, lote, detalleRequest.cantidad());
-} else {
-    if (valorSeguro(producto.getStockActual()) < detalleRequest.cantidad()) {
-        throw new InsufficientStockException(
-                "Stock insuficiente para el producto " + producto.getNombre()
-        );
-    }
-}
-            int stockAnterior = valorSeguro(producto.getStockActual());
-            int stockNuevo = stockAnterior - detalleRequest.cantidad();
-Integer cantidadLoteNueva = null;
+                int disponibleEnLote = valorSeguro(lote.getCantidad());
+                int aVender = Math.min(cantidadPendiente, disponibleEnLote);
 
-if (lote != null) {
-    cantidadLoteNueva = valorSeguro(lote.getCantidad()) - detalleRequest.cantidad();
-}
-            Double precioUnitario = detalleRequest.precioUnitario() != null
-                    ? detalleRequest.precioUnitario()
-                    : producto.getPrecioVenta();
+                // Actualizar stock del lote (el producto se actualiza al final del bucle de lotes o aquí)
+                int stockLoteAnterior = disponibleEnLote;
+                int stockLoteNuevo = stockLoteAnterior - aVender;
+                lote.setCantidad(stockLoteNuevo);
 
-            double subtotalLinea = precioUnitario * detalleRequest.cantidad();
-            double ivaLinea = subtotalLinea * (valorMonetarioSeguro(producto.getPorcentajeIva()) / 100.0);
+                // Datos de la línea
+                Double precioUnitario = detalleRequest.precioUnitario() != null
+                        ? detalleRequest.precioUnitario()
+                        : producto.getPrecioVenta();
 
-            DetalleVenta detalle = new DetalleVenta();
-            detalle.setVenta(venta);
-            detalle.setProducto(producto);
-            detalle.setLote(lote);
-            detalle.setCantidad(detalleRequest.cantidad());
-            detalle.setPrecioUnitarioAplicado(precioUnitario);
-            detalle.setSubtotalLinea(subtotalLinea);
-            detalle.setIvaLinea(ivaLinea);
-            detalles.add(detalle);
-            subtotal += subtotalLinea;
-            ivaTotal += ivaLinea;
+                double subtotalLinea = precioUnitario * aVender;
+                double ivaLinea = subtotalLinea * (valorMonetarioSeguro(producto.getPorcentajeIva()) / 100.0);
 
-            producto.setStockActual(stockNuevo);
-if (lote != null) {
-    lote.setCantidad(cantidadLoteNueva);
-}
-            movimientos.add(construirMovimientoVenta(producto, lote, stockAnterior, stockNuevo, usuarioResponsable));
+                DetalleVenta detalle = new DetalleVenta();
+                detalle.setVenta(venta);
+                detalle.setProducto(producto);
+                detalle.setLote(lote);
+                detalle.setCantidad(aVender);
+                detalle.setPrecioUnitarioAplicado(precioUnitario);
+                detalle.setSubtotalLinea(subtotalLinea);
+                detalle.setIvaLinea(ivaLinea);
+                detalles.add(detalle);
+
+                subtotal += subtotalLinea;
+                ivaTotal += ivaLinea;
+                cantidadPendiente -= aVender;
+
+                movimientos.add(construirMovimientoVenta(producto, lote, stockLoteAnterior, stockLoteNuevo, usuarioResponsable));
+            }
+
+            if (cantidadPendiente > 0) {
+                throw new InsufficientStockException("No fue posible cubrir la cantidad solicitada con los lotes disponibles");
+            }
+
+            producto.setStockActual(stockTotalAnterior - cantidadSolicitada);
         }
 
         double montoDescuento = subtotal * porcentajeDescuento;

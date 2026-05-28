@@ -46,7 +46,7 @@ export class IngresoStockComponent implements OnInit, OnDestroy {
       codigoBarras: ['', [Validators.required]],
       cantidad: [null, [Validators.required, Validators.min(1)]],
       fechaVencimiento: ['', [Validators.required]],
-      numeroLote: [''],
+      numeroLote: ['', [Validators.required]],
       nuevoCosto: [null, [Validators.min(0)]],
       nuevoPrecioVenta: [null, [Validators.min(0)]]
     });

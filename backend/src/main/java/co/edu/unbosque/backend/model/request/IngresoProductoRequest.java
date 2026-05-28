@@ -23,7 +23,8 @@ public record IngresoProductoRequest(
         @Positive(message = "La cantidad debe ser mayor a cero")
         @Schema(description = "Cantidad a ingresar al inventario", example = "30")
         Integer cantidad,
-        @Schema(description = "Numero de lote opcional para el ingreso", example = "AMX-2026-02")
+        @NotBlank(message = "El numero de lote es obligatorio")
+        @Schema(description = "Numero de lote obligatorio para el ingreso", example = "AMX-2026-02")
         String numeroLote,
         @DecimalMin(value = "0.0", inclusive = true, message = "El nuevo costo no puede ser negativo")
         @Schema(description = "Nuevo costo opcional. Si cambia el precio, puede acompañar la actualizacion.", example = "16000.0")
