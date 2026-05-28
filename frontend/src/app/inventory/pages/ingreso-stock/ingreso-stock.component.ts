@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
@@ -19,6 +19,7 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'r
 export class IngresoStockComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private navService = inject(NavigationService);
   private inventoryService = inject(InventoryService);
 
@@ -31,6 +32,11 @@ export class IngresoStockComponent implements OnInit, OnDestroy {
     this.navService.hideNav();
     this.initForm();
     this.setupBarcodeSearch();
+
+    const barcode = this.route.snapshot.queryParamMap.get('barcode');
+    if (barcode) {
+      this.stockForm.patchValue({ codigoBarras: barcode });
+    }
   }
 
   ngOnDestroy(): void {

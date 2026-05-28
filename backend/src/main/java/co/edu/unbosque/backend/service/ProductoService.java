@@ -599,6 +599,11 @@ public class ProductoService {
     }
 
     private ProductoResponse toProductoResponse(Producto producto) {
+        List<LoteProductoResponse> lotes = loteRepository.findByProducto_UniqueIDOrderByFechaVencimientoAsc(producto.getUniqueID())
+                .stream()
+                .map(l -> new LoteProductoResponse(l.getIdLote(), l.getNumeroLote(), l.getFechaVencimiento(), l.getCantidad()))
+                .toList();
+
         return new ProductoResponse(
                 producto.getUniqueID(),
                 toCategoriaResponse(producto.getCategoria()),
@@ -612,7 +617,8 @@ public class ProductoService {
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                lotes
         );
     }
 

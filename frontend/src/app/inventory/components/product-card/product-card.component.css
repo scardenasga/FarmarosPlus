@@ -52,12 +52,56 @@
   font-weight: 600;
   color: var(--on-surface);
 }
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
 .category-tag {
   font-size: 11px;
   color: var(--outline);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
+}
+.lotes-count {
+  font-size: 10px;
+  color: var(--primary);
+  background-color: var(--primary-container);
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.lotes-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.lote-mini-tag {
+  font-size: 9px;
+  background-color: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  border-radius: 3px;
+  padding: 1px 4px;
+  display: flex;
+  gap: 4px;
+}
+.l-num {
+  font-weight: 700;
+}
+.l-qty {
+  color: var(--primary);
+  font-weight: 600;
+}
+.more-lotes {
+  font-size: 9px;
+  color: var(--outline);
+  align-self: center;
 }
 .metrics {
   display: flex;

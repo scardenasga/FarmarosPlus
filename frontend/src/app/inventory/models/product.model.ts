@@ -26,6 +26,7 @@ export interface Product {
   estado: string;
   categoria?: Categoria;
   numeroLote?: string;
+  lotes?: Lote[];
   // UI related fields (optional/computed in FE if needed)
   trend?: number;
 }
