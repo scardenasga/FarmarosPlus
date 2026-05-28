@@ -19,7 +19,12 @@
         <span class="p-name">{{ p.nombre }}</span>
         <div class="p-metadata">
           <span class="p-price">${{ p.precioVenta | number }} <small>/ und.</small></span>
-          <span class="p-lote">Lote: {{ p.numeroLote || 'Auto-FEFO' }}</span>
+          <span class="p-lote">
+            Lote: {{ p.numeroLote || 'Auto-FEFO' }} 
+            <ng-container *ngIf="p.loteId">
+              | {{ p.cantidadDisponibleLote }} und. | Vence: {{ p.fechaVencimientoLote | date:'yyyy-MM-dd' }}
+            </ng-container>
+          </span>
         </div>
       </div>
       
