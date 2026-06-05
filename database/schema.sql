@@ -63,7 +63,7 @@ CREATE TABLE producto
 CREATE TABLE lote
 (
     id_lote            INTEGER PRIMARY KEY AUTOINCREMENT,
-    numero_lote        TEXT    NOT NULL,
+    numero_lote        TEXT,
     fecha_vencimiento  TEXT,
     cantidad           INTEGER NOT NULL DEFAULT 0,
     id_producto        INTEGER NOT NULL,
