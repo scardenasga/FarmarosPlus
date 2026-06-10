@@ -1,0 +1,93 @@
+<div class="batch-entry-page">
+  <div class="sticky-header">
+    <app-top-bar 
+      title="Gestión de Lotes" 
+      [showAlert]="false" 
+      (back)="onBack()">
+    </app-top-bar>
+  </div>
+
+  <main class="content">
+    <div class="batch-card">
+      <div class="card-header">
+        <h3>Lista de Lotes a Registrar</h3>
+        <span>{{ rows().length }} filas</span>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th class="prod-cell">Producto</th>
+              <th>Cantidad</th>
+              <th>Lote</th>
+              <th>Vencimiento</th>
+              <th>Nuevo Costo</th>
+              <th>Nuevo Precio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.idTemp; let i = $index) {
+              <tr>
+                <td class="prod-cell">
+                  <div style="position: relative;">
+                    <input 
+                      type="text" 
+                      class="input-small" 
+                      placeholder="Buscar producto..." 
+                      [(ngModel)]="row.busqueda"
+                      (input)="onSearchChange(i, $event)"
+                    />
+                    @if (row.resultados.length > 0) {
+                      <div class="search-results">
+                        @for (p of row.resultados; track p.id) {
+                          <div class="search-item" (click)="selectProduct(i, p)">
+                            <span class="p-name">{{ p.nombre }}</span>
+                            <span class="p-code">{{ p.codigoBarras }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <input type="number" class="input-small qty-input" [(ngModel)]="row.cantidad" placeholder="Cant." />
+                </td>
+                <td>
+                  <input type="text" class="input-small lote-input" [(ngModel)]="row.numeroLote" placeholder="Num. Lote" />
+                </td>
+                <td>
+                  <input type="date" class="input-small date-input" [(ngModel)]="row.fechaVencimiento" />
+                </td>
+                <td>
+                  <input type="number" class="input-small price-input" [(ngModel)]="row.nuevoCosto" placeholder="Costo" />
+                </td>
+                <td>
+                  <input type="number" class="input-small price-input" [(ngModel)]="row.nuevoPrecioVenta" placeholder="Precio" />
+                </td>
+                <td>
+                  <button class="btn-remove" (click)="removeRow(i)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn-add-row" (click)="addRow()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir otra fila
+      </button>
+
+      <div class="footer-actions">
+        <button class="btn btn-secondary" (click)="onBack()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="cargando()" (click)="guardarTodo()">
+          {{ cargando() ? 'Guardando...' : 'Confirmar Gestión de Lotes' }}
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

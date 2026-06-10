@@ -40,3 +40,81 @@
 .categorias-link:active {
   background: var(--surface-container-high);
 }
+
+.lotes-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  padding: 0 var(--space-l) 100px;
+}
+
+.product-group {
+  background: white;
+  border-radius: var(--radius-l);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.group-header {
+  padding: var(--space-m) var(--space-l);
+  background-color: var(--surface-container-low);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--surface-container-highest);
+}
+
+.group-header .p-name {
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.group-header .p-stock-total {
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.lotes-table {
+  padding: 0 var(--space-l);
+}
+
+.lote-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-m) 0;
+  border-bottom: 1px solid var(--surface-container-lowest);
+}
+
+.lote-row:last-child {
+  border-bottom: none;
+}
+
+.lote-row .l-num {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--on-surface);
+  flex: 1;
+}
+
+.lote-row .l-date {
+  font-size: 12px;
+  color: var(--outline);
+  flex: 1;
+  text-align: center;
+}
+
+.lote-row .l-qty {
+  font-weight: 700;
+  color: var(--on-surface);
+  flex: 1;
+  text-align: right;
+}
+
+.empty-lotes {
+  padding: var(--space-m);
+  text-align: center;
+  font-size: 13px;
+  color: var(--outline);
+}

@@ -16,7 +16,9 @@
 
     <app-inventory-summary
       [totalProducts]="filteredProducts().length"
+      [viewMode]="viewMode()"
       (openSort)="toggleSort()"
+      (toggleView)="handleToggleView()"
     ></app-inventory-summary>
 
     <app-active-filters
@@ -26,10 +28,34 @@
   </div>
 
   <main class="content">
-    <app-product-list
-      [products]="filteredProducts()"
-      (productSelected)="handleProductSelect($event)"
-    ></app-product-list>
+    @if (viewMode() === 'grid') {
+      <app-product-list
+        [products]="filteredProducts()"
+        (productSelected)="handleProductSelect($event)"
+      ></app-product-list>
+    } @else {
+      <div class="lotes-view">
+        @for (p of filteredProducts(); track p.id) {
+          <div class="product-group">
+            <div class="group-header">
+              <span class="p-name">{{ p.nombre }}</span>
+              <span class="p-stock-total">{{ p.stockActual }} total</span>
+            </div>
+            <div class="lotes-table">
+              @for (lote of p.lotes; track lote.id) {
+                <div class="lote-row">
+                  <span class="l-num">{{ lote.numeroLote }}</span>
+                  <span class="l-date">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                  <span class="l-qty">{{ lote.cantidad }} uds</span>
+                </div>
+              } @empty {
+                <div class="empty-lotes">Sin lotes registrados</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   </main>
 
   <app-fab-button

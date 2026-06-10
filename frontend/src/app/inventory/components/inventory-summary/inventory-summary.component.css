@@ -1,0 +1,36 @@
+.summary-container {
+  padding: 0 var(--space-l) var(--space-s);
+  display: flex;
+  flex-direction: column;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.actions {
+  display: flex;
+  gap: var(--space-m);
+}
+.count {
+  margin: 0;
+  font-size: 14px;
+  color: var(--on-background);
+}
+.highlight {
+  font-weight: 700;
+}
+.sort-btn, .view-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--on-background);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.view-btn {
+  color: var(--primary);
+  font-weight: 600;
+}

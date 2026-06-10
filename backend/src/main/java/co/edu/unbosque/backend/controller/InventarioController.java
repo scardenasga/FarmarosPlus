@@ -6,6 +6,7 @@ import co.edu.unbosque.backend.model.entity.MovimientoInventario;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.request.AjusteInventarioRequest;
 import co.edu.unbosque.backend.model.request.IngresoLoteRequest;
+import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.LoteProductoResponse;
 import co.edu.unbosque.backend.model.response.LoteResponse;
 import co.edu.unbosque.backend.model.response.MovimientoInventarioResponse;
@@ -150,13 +151,13 @@ public class InventarioController {
     }
 
     private CategoriaResponse toCategoriaResponse(Categoria categoria) {
-        if (categoria == null) {
-            return null;
-        }
-        return new CategoriaResponse(
-                categoria.getIdCategoria(),
-                categoria.getNombre(),
-                categoria.getDescripcion()
-        );
+    if (categoria == null) {
+        return null;
     }
+    return new CategoriaResponse(
+            categoria.getIdCategoria(),
+            categoria.getNombre(),
+            categoria.getDescripcion()
+    );
+}
 }
