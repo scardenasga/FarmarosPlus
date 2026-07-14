@@ -45,7 +45,7 @@
               @for (lote of p.lotes; track lote.id) {
                 <div class="lote-row">
                   <span class="l-num">{{ lote.numeroLote }}</span>
-                  <span class="l-date">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                  <span class="l-date">{{ lote.fechaVencimiento ? 'Vence: ' + (lote.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin fecha de vencimiento' }}</span>
                   <span class="l-qty">{{ lote.cantidad }} uds</span>
                 </div>
               } @empty {

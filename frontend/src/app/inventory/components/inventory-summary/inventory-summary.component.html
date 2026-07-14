@@ -11,7 +11,7 @@
         } @else if (viewMode === 'lotes') {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
         }
-        <span>{{ viewMode === 'grid' ? 'Ver Lotes' : 'Ver Grid' }}</span>
+        <span>{{ viewMode === 'grid' ? 'Ver Lotes' : 'Ver Inventario' }}</span>
       </button>
 
       <button class="sort-btn flex-center" aria-label="Ordenar" (click)="openSort.emit()">

@@ -71,7 +71,7 @@
                   <div class="lote-item">
                     <div class="lote-info">
                       <span class="lote-number">{{ lote.numeroLote || 'Sin número de lote' }}</span>
-                      <span class="lote-date">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                      <span class="lote-date">{{ lote.fechaVencimiento ? 'Vence: ' + (lote.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin fecha de vencimiento' }}</span>
                     </div>
                     <span class="lote-qty">{{ lote.cantidad }} uds</span>
                   </div>
