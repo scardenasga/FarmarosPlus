@@ -16,6 +16,13 @@
           (remove)="handleRemoveProduct($event)"
           (addProduct)="openAssociateDialog()"
         ></app-supplier-product-list>
+
+        <div class="receipt-divider dotted"></div>
+
+        <app-supplier-notes-list
+          [notes]="notes()"
+          (addNote)="openAddNoteDialog()"
+        ></app-supplier-notes-list>
       </div>
     } @else {
       <div class="loading-state">
@@ -64,3 +71,10 @@
   (close)="showAssociateDialog.set(false)"
   (associated)="handleProductAssociated()"
 ></app-associate-product-dialog>
+
+<app-add-note-dialog
+  [isVisible]="showAddNoteDialog()"
+  [supplierId]="supplier()?.idProveedor || 0"
+  (close)="showAddNoteDialog.set(false)"
+  (added)="handleNoteAdded()"
+></app-add-note-dialog>
