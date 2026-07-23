@@ -2,7 +2,10 @@
   <div class="sticky-header">
     <div class="header-simple">
       <span class="header-title">Historial de Ventas</span>
-      <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
+      <div class="header-simple-actions">
+        <button class="btn-reportes" (click)="irAReportes()">Reportes</button>
+        <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
+      </div>
     </div>
   </div>
 

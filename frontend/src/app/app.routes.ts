@@ -21,6 +21,7 @@ import { SupplierDetailComponent } from './supplier/pages/supplier-detail/suppli
 import { EditSupplierComponent } from './supplier/pages/edit-supplier/edit-supplier.component';
 import { PurchasingDashboardComponent } from './purchasing/pages/purchasing-dashboard/purchasing-dashboard.component';
 import {AlertasComponent} from './inventory/pages/alertas/alertas.component';
+import { ReporteVentasComponent } from './reportes/pages/reporte-ventas/reporte-ventas.component';
 
 // --- NUEVOS COMPONENTES DE COMPRAS Y DEVOLUCIONES ---
 import { ReturnHistoryComponent } from './purchasing/pages/return-history/return-history.component';
@@ -37,6 +38,7 @@ export const routes: Routes = [
   { path: 'ventas/crear', component: BuscarProductoComponent },
   { path: 'ventas/registrar', component: RegistrarVentaComponent },
   { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
+  { path: 'reportes/ventas', component: ReporteVentasComponent },
   { path: 'ventas/:id', component: DetalleVentaComponent },
   { path: 'ventas/:id/anular', component: AnularVentaComponent },
 
