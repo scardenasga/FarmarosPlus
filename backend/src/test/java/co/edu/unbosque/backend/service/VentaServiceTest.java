@@ -86,6 +86,7 @@ class VentaServiceTest {
         Lote lote = buildLote(producto);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
         when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
         when(ventaRepository.saveAndFlush(any())).thenAnswer(inv -> {
             Venta v = inv.getArgument(0);
@@ -114,7 +115,10 @@ class VentaServiceTest {
 
     @Test
     void registrarVenta_loteNoExiste_lanzaResourceNotFoundException() {
+        Producto producto = buildProducto();
+
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
         when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
@@ -123,6 +127,7 @@ class VentaServiceTest {
 
     @Test
     void registrarVenta_loteNoPerteneceAlProducto_lanzaBusinessException() {
+        Producto producto = buildProducto();
         Producto otro = buildProducto();
         otro.setUniqueID(99L);
         Lote lote = buildLote(otro);
@@ -132,6 +137,7 @@ class VentaServiceTest {
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
         when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
 
         assertThrows(BusinessException.class,
@@ -149,7 +155,8 @@ class VentaServiceTest {
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
-        when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
+        lenient().when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
 
         assertThrows(InsufficientStockException.class,
                 () -> ventaService.registrarVenta(request));
@@ -166,6 +173,7 @@ class VentaServiceTest {
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
         when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
 
         assertThrows(InsufficientStockException.class,
@@ -179,7 +187,8 @@ class VentaServiceTest {
         Lote lote = buildLote(producto);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
-        when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
+        lenient().when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
 
         assertThrows(BusinessException.class,
                 () -> ventaService.registrarVenta(buildRequestValido()));
@@ -187,40 +196,46 @@ class VentaServiceTest {
 
     @Test
     void registrarVenta_descuentoMayorA1_lanzaBusinessException() {
-        Producto producto = buildProducto();
-        Lote lote = buildLote(producto);
-
         VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 7000.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 1.5, List.of(detalle), List.of(pago));
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
-        lenient().when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
 
         assertThrows(BusinessException.class,
                 () -> ventaService.registrarVenta(request));
     }
 
     @Test
-    void registrarVenta_pagosNoCoinciden_lanzaBusinessException() {
-        Producto producto = buildProducto();
-        Lote lote = buildLote(producto);
+void registrarVenta_pagosNoCoinciden_lanzaBusinessException() {
+    Producto producto = buildProducto();
+    Lote lote = buildLote(producto);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
-        PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 999.0);
-        CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
+    VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
+    PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 999.0);
+    CrearVentaRequest request = new CrearVentaRequest(
+            1L,
+            0.0,
+            List.of(detalle),
+            List.of(pago)
+    );
 
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
-        when(loteRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(lote));
-        lenient().when(ventaRepository.saveAndFlush(any())).thenAnswer(inv -> {
-            Venta v = inv.getArgument(0);
-            v.setIdVenta(1L);
-            return v;
-        });
+    when(usuarioRepository.findById(1L))
+            .thenReturn(Optional.of(buildVendedor()));
 
-        assertThrows(BusinessException.class,
-                () -> ventaService.registrarVenta(request));
-    }
+    when(productoRepository.findById(10L))
+            .thenReturn(Optional.of(producto));
+
+    when(loteRepository.findByIdForUpdate(5L))
+            .thenReturn(Optional.of(lote));
+
+    assertThrows(
+            BusinessException.class,
+            () -> ventaService.registrarVenta(request)
+    );
+
+    verify(ventaRepository, never()).saveAndFlush(any());
+}
 
     @Test
     void registrarVenta_sinDetalles_lanzaBusinessException() {
@@ -230,6 +245,97 @@ class VentaServiceTest {
                 () -> ventaService.registrarVenta(request));
 
         verify(usuarioRepository, never()).findById(any());
+    }
+
+    // ================================================================
+    // FEFO automatico (sin loteId explicito)
+    // ================================================================
+
+    @Test
+    void registrarVenta_sinLoteId_seleccionaLoteAutomaticamenteFEFO() {
+        Producto producto = buildProducto();
+        Lote lote = buildLote(producto);
+
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, null, 2, null);
+        PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 7000.0);
+        CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
+        when(loteRepository.findLotesDisponiblesPorProducto(10L)).thenReturn(List.of(lote));
+        when(ventaRepository.saveAndFlush(any())).thenAnswer(inv -> {
+            Venta v = inv.getArgument(0);
+            v.setIdVenta(100L);
+            return v;
+        });
+        when(ventaRepository.findWithDetallesAndPagosByIdVenta(100L))
+                .thenReturn(Optional.empty());
+
+        ventaService.registrarVenta(request);
+
+        assertEquals(48, producto.getStockActual());
+        assertEquals(18, lote.getCantidad());
+        verify(loteRepository).findLotesDisponiblesPorProducto(10L);
+    }
+
+    @Test
+    void registrarVenta_sinLoteId_repartidoEntreVariosLotes() {
+        Producto producto = buildProducto();
+
+        Lote lote1 = new Lote();
+        lote1.setIdLote(1L);
+        lote1.setNumeroLote("LOT-001");
+        lote1.setCantidad(3);
+        lote1.setProducto(producto);
+
+        Lote lote2 = new Lote();
+        lote2.setIdLote(2L);
+        lote2.setNumeroLote("LOT-002");
+        lote2.setCantidad(10);
+        lote2.setProducto(producto);
+
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, null, 5, null);
+        PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 17500.0);
+        CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
+        when(loteRepository.findLotesDisponiblesPorProducto(10L)).thenReturn(List.of(lote1, lote2));
+        when(ventaRepository.saveAndFlush(any())).thenAnswer(inv -> {
+            Venta v = inv.getArgument(0);
+            v.setIdVenta(100L);
+            return v;
+        });
+        when(ventaRepository.findWithDetallesAndPagosByIdVenta(100L))
+                .thenReturn(Optional.empty());
+
+        ventaService.registrarVenta(request);
+
+        assertEquals(0, lote1.getCantidad());
+        assertEquals(8, lote2.getCantidad());
+        assertEquals(45, producto.getStockActual());
+    }
+
+    @Test
+    void registrarVenta_sinLoteId_stockInsuficienteEnLotes_lanzaInsufficientStockException() {
+        Producto producto = buildProducto();
+
+        Lote lote1 = new Lote();
+        lote1.setIdLote(1L);
+        lote1.setNumeroLote("LOT-001");
+        lote1.setCantidad(2);
+        lote1.setProducto(producto);
+
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, null, 10, null);
+        PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 35000.0);
+        CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buildVendedor()));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
+        when(loteRepository.findLotesDisponiblesPorProducto(10L)).thenReturn(List.of(lote1));
+
+        assertThrows(InsufficientStockException.class,
+                () -> ventaService.registrarVenta(request));
     }
 
     // ================================================================

@@ -29,36 +29,44 @@
           </thead>
           <tbody>
             @for (row of rows(); track row.idTemp; let i = $index) {
-              <tr>
+              <tr [class.fila-invalida]="filasInvalidas().has(row.idTemp)">
                 <td class="prod-cell">
-                  <div style="position: relative;">
-                    <input 
-                      type="text" 
-                      class="input-small" 
-                      placeholder="Buscar producto..." 
-                      [(ngModel)]="row.busqueda"
-                      (input)="onSearchChange(i, $event)"
-                    />
-                    @if (row.resultados.length > 0) {
-                      <div class="search-results">
-                        @for (p of row.resultados; track p.id) {
-                          <div class="search-item" (click)="selectProduct(i, p)">
-                            <span class="p-name">{{ p.nombre }}</span>
-                            <span class="p-code">{{ p.codigoBarras }}</span>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
+                  <input 
+                    type="text" 
+                    class="input-small" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.producto"
+                    placeholder="Buscar producto..." 
+                    [(ngModel)]="row.busqueda"
+                    (input)="onSearchChange(i, $event)"
+                    (focus)="onInputFocus(i, $event)"
+                    (blur)="onInputBlur(i)"
+                  />
                 </td>
                 <td>
-                  <input type="number" class="input-small qty-input" [(ngModel)]="row.cantidad" placeholder="Cant." />
+                  <input 
+                    type="number" 
+                    class="input-small qty-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.cantidad"
+                    [(ngModel)]="row.cantidad" 
+                    (ngModelChange)="onCampoChange(i)"
+                    placeholder="Cant." />
                 </td>
                 <td>
-                  <input type="text" class="input-small lote-input" [(ngModel)]="row.numeroLote" placeholder="Num. Lote" />
+                  <input 
+                    type="text" 
+                    class="input-small lote-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.numeroLote"
+                    [(ngModel)]="row.numeroLote" 
+                    (ngModelChange)="onCampoChange(i)"
+                    placeholder="Num. Lote" />
                 </td>
                 <td>
-                  <input type="date" class="input-small date-input" [(ngModel)]="row.fechaVencimiento" />
+                  <input 
+                    type="date" 
+                    class="input-small date-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.fechaVencimiento"
+                    [(ngModel)]="row.fechaVencimiento" 
+                    (ngModelChange)="onCampoChange(i)" />
                 </td>
                 <td>
                   <input type="number" class="input-small price-input" [(ngModel)]="row.nuevoCosto" placeholder="Costo" />
@@ -72,6 +80,13 @@
                   </button>
                 </td>
               </tr>
+              @if (filasInvalidas().has(row.idTemp)) {
+                <tr class="fila-invalida-mensaje">
+                  <td colspan="7">
+                    <span class="mensaje-error">⚠ Esta fila no se guardó: complete los campos faltantes.</span>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -90,4 +105,19 @@
       </div>
     </div>
   </main>
+
+  @if (activeRowIndex() !== null && rows()[activeRowIndex()!].resultados.length > 0 && dropdownPos()) {
+    <div 
+      class="search-results-fixed"
+      [style.top.px]="dropdownPos()!.top"
+      [style.left.px]="dropdownPos()!.left"
+      [style.width.px]="dropdownPos()!.width">
+      @for (p of rows()[activeRowIndex()!].resultados; track p.id) {
+        <div class="search-item" (mousedown)="selectProduct(activeRowIndex()!, p)">
+          <span class="p-name">{{ p.nombre }}</span>
+          <span class="p-code">{{ p.codigoBarras }}</span>
+        </div>
+      }
+    </div>
+  }
 </div>

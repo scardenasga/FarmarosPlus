@@ -20,6 +20,12 @@ interface RowGestionLote {
   resultados: Product[];
 }
 
+interface DropdownPos {
+  top: number;
+  left: number;
+  width: number;
+}
+
 @Component({
   selector: 'app-gestion-lotes',
   standalone: true,
@@ -33,12 +39,21 @@ export class GestionLotesComponent implements OnInit {
 
   rows = signal<RowGestionLote[]>([]);
   cargando = signal<boolean>(false);
-  
+
+  /** idTemp de las filas que quedaron incompletas en el último intento de guardado. */
+  filasInvalidas = signal<Set<number>>(new Set());
+
+  /** Índice de la fila cuyo dropdown de búsqueda está abierto (null = ninguno). */
+  activeRowIndex = signal<number | null>(null);
+
+  /** Posición en pantalla (fixed) donde debe pintarse el dropdown activo. */
+  dropdownPos = signal<DropdownPos | null>(null);
+
   private searchSubject = new Subject<{index: number, term: string}>();
 
   ngOnInit() {
     this.addRow();
-    
+
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -68,8 +83,49 @@ export class GestionLotesComponent implements OnInit {
     if (this.rows().length === 0) this.addRow();
   }
 
+  /** Marca una fila como válida de nuevo en cuanto el usuario la edita. */
+  private limpiarInvalidez(idTemp: number) {
+    if (!this.filasInvalidas().has(idTemp)) return;
+    this.filasInvalidas.update(set => {
+      const copia = new Set(set);
+      copia.delete(idTemp);
+      return copia;
+    });
+  }
+
+  onCampoChange(index: number) {
+    this.limpiarInvalidez(this.rows()[index].idTemp);
+  }
+
+  /** Calcula dónde debe aparecer el dropdown fijo, a partir del input real en pantalla. */
+  private actualizarPosicionDropdown(inputEl: HTMLElement) {
+    const rect = inputEl.getBoundingClientRect();
+    this.dropdownPos.set({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width
+    });
+  }
+
+  onInputFocus(index: number, event: any) {
+    this.activeRowIndex.set(index);
+    this.actualizarPosicionDropdown(event.target);
+  }
+
+  onInputBlur(index: number) {
+    // Delay para permitir que el click sobre un resultado se registre antes de cerrar.
+    setTimeout(() => {
+      if (this.activeRowIndex() === index) {
+        this.activeRowIndex.set(null);
+      }
+    }, 200);
+  }
+
   onSearchChange(index: number, event: any) {
     const term = event.target.value;
+    this.activeRowIndex.set(index);
+    this.actualizarPosicionDropdown(event.target);
+
     if (term.length < 3) {
       this.rows.update(r => {
         r[index].resultados = [];
@@ -112,24 +168,64 @@ export class GestionLotesComponent implements OnInit {
       r[index].nuevoPrecioVenta = product.precioVenta || null;
       return [...r];
     });
+    this.activeRowIndex.set(null);
+    this.limpiarInvalidez(this.rows()[index].idTemp);
+  }
+
+  /** Determina qué campos obligatorios faltan en una fila. Vacío si está completa. */
+  private camposFaltantes(r: RowGestionLote): string[] {
+    const faltantes: string[] = [];
+    if (!r.producto) faltantes.push('producto');
+    if (!r.cantidad) faltantes.push('cantidad');
+    if (!r.numeroLote) faltantes.push('número de lote');
+    if (!r.fechaVencimiento) faltantes.push('fecha de vencimiento');
+    return faltantes;
   }
 
   guardarTodo() {
-    const items = this.rows()
-      .filter(r => r.producto && r.cantidad && r.numeroLote && r.fechaVencimiento)
-      .map(r => ({
-        identificador: r.producto!.codigoBarras,
-        cantidad: r.cantidad,
-        numeroLote: r.numeroLote,
-        fechaVencimiento: r.fechaVencimiento,
-        nuevoCosto: r.nuevoCosto,
-        nuevoPrecioVenta: r.nuevoPrecioVenta
-      }));
+    const filas = this.rows();
+    const validas: RowGestionLote[] = [];
+    const invalidas: { numeroFila: number; motivo: string }[] = [];
+    const idsInvalidos = new Set<number>();
 
-    if (items.length === 0) {
-      alert('Por favor complete al menos una fila correctamente');
+    filas.forEach((r, i) => {
+      const faltantes = this.camposFaltantes(r);
+      if (faltantes.length === 0) {
+        validas.push(r);
+      } else {
+        invalidas.push({ numeroFila: i + 1, motivo: faltantes.join(', ') });
+        idsInvalidos.add(r.idTemp);
+      }
+    });
+
+    this.filasInvalidas.set(idsInvalidos);
+
+    if (validas.length === 0) {
+      const detalle = invalidas
+        .map(inv => `- Fila ${inv.numeroFila}: falta ${inv.motivo}`)
+        .join('\n');
+      alert(`No se guardó ninguna fila. Complete los siguientes campos:\n\n${detalle}`);
       return;
     }
+
+    if (invalidas.length > 0) {
+      const detalle = invalidas
+        .map(inv => `- Fila ${inv.numeroFila}: falta ${inv.motivo}`)
+        .join('\n');
+      const continuar = confirm(
+        `Las siguientes filas no se guardarán por datos incompletos:\n\n${detalle}\n\n¿Desea continuar guardando solo las filas completas?`
+      );
+      if (!continuar) return;
+    }
+
+    const items = validas.map(r => ({
+      identificador: r.producto!.codigoBarras,
+      cantidad: r.cantidad,
+      numeroLote: r.numeroLote,
+      fechaVencimiento: r.fechaVencimiento,
+      nuevoCosto: r.nuevoCosto,
+      nuevoPrecioVenta: r.nuevoPrecioVenta
+    }));
 
     this.cargando.set(true);
     this.inventoryService.registrarGestionLotes(items).subscribe({

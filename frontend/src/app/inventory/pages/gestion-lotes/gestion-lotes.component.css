@@ -89,6 +89,7 @@ td {
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius-s);
   font-size: 14px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .qty-input { width: 80px; }
@@ -173,7 +174,54 @@ td {
   background-color: var(--surface-container-low);
 }
 
+
+.fila-invalida {
+  background-color: rgba(220, 53, 69, 0.06);
+}
+
+.campo-invalido {
+  border-color: var(--error, #dc3545) !important;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+.fila-invalida-mensaje td {
+  padding: 4px var(--space-m) var(--space-s);
+  border-top: none;
+  border-bottom: 1px solid var(--surface-container-lowest);
+}
+
+.mensaje-error {
+  color: var(--error, #dc3545);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .prod-cell { min-width: 150px; }
   .lote-input { width: 100px; }
+}
+.search-results-fixed {
+  position: fixed;
+  background: white;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--outline-variant);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search-item {
+  padding: var(--space-m);
+  border-bottom: 1px solid var(--surface-container-lowest);
+  cursor: pointer;
+  background: white;
+}
+
+.search-item:last-child {
+  border-bottom: none;
+}
+
+.search-item:hover {
+  background-color: var(--surface-container-low);
 }
