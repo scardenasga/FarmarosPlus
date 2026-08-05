@@ -18,6 +18,7 @@ import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
 import co.edu.unbosque.backend.repository.ProveedorRepository;
+import co.edu.unbosque.backend.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,14 +40,14 @@ public class DevolucionService {
     private final ProductoRepository productoRepository;
     private final LoteRepository loteRepository;
     private final MovimientoInventarioRepository movimientoRepository;
-    private final co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public DevolucionService(DevolucionProveedorRepository devolucionRepository,
                              ProveedorRepository proveedorRepository,
                              ProductoRepository productoRepository,
                              LoteRepository loteRepository,
                              MovimientoInventarioRepository movimientoRepository,
-                             co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository) {
+                             UsuarioRepository usuarioRepository) {
         this.devolucionRepository = devolucionRepository;
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
@@ -61,14 +62,13 @@ public class DevolucionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe el proveedor con id " + request.idProveedor()));
 
-        co.edu.unbosque.backend.model.entity.Usuario usuario = usuarioRepository.findByUsername(request.usuarioResponsable())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe el usuario con username " + request.usuarioResponsable()));
+        co.edu.unbosque.backend.model.entity.Usuario usuario = resolverUsuarioResponsable(request.usuarioResponsable());
+        String usuarioResponsable = usuario.getUsername();
 
         DevolucionProveedor devolucion = new DevolucionProveedor();
         devolucion.setProveedor(proveedor);
         devolucion.setUsuario(usuario);
-        devolucion.setUsuarioResponsable(request.usuarioResponsable());
+        devolucion.setUsuarioResponsable(usuarioResponsable);
         devolucion.setFecha(LocalDateTime.now());
         devolucion.setMotivo(request.motivo());
 
@@ -120,7 +120,7 @@ public class DevolucionService {
             mov.setCantidadNueva(stockNuevo);
             mov.setDiferencia(stockNuevo - stockAnterior);
             mov.setMotivo("Devolución a proveedor: " + proveedor.getNombre());
-            mov.setUsuarioResponsable(request.usuarioResponsable());
+            mov.setUsuarioResponsable(usuarioResponsable);
             movimientos.add(mov);
         }
 
@@ -163,5 +163,18 @@ public class DevolucionService {
                 d.getMotivo(),
                 d.getFecha(),
                 detallesResp);
+    }
+
+    private co.edu.unbosque.backend.model.entity.Usuario resolverUsuarioResponsable(String usernameSolicitud) {
+        if (usernameSolicitud != null && !usernameSolicitud.isBlank()) {
+            var usuario = usuarioRepository.findByUsername(usernameSolicitud.trim());
+            if (usuario.isPresent()) {
+                return usuario.get();
+            }
+        }
+
+        return usuarioRepository.findByUsername("SISTEMA")
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario del sistema con username SISTEMA"));
     }
 }

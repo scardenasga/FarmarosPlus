@@ -1,14 +1,19 @@
 <div class="page">
-  <app-top-bar 
-    title="Devoluciones" 
-    [showAlert]="false" 
+  <app-top-bar
+    [title]="esProveedor() ? 'Devoluciones a proveedor' : 'Devoluciones a cliente'"
+    [showAlert]="false"
     (back)="volver()">
   </app-top-bar>
 
   <main class="content">
-    <header class="header-actions">
-      <a class="link-compras" routerLink="/purchasing/purchase-history">Ver compras</a>
-    </header>
+    <div class="mode-switch">
+      <button class="mode-pill" [class.active]="esProveedor()" (click)="onTipoChange('proveedor')">
+        Proveedor
+      </button>
+      <button class="mode-pill" [class.active]="esCliente()" (click)="onTipoChange('cliente')">
+        Cliente
+      </button>
+    </div>
 
     @if (error()) {
       <div class="msg-error">{{ error() }}</div>
@@ -22,16 +27,23 @@
       @for (dev of devoluciones(); track dev.id) {
         <article class="dev-card">
           <div class="dev-top">
-            <h3 class="dev-proveedor">{{ dev.nombreProveedor }}</h3>
+            <h3 class="dev-proveedor">{{ nombrePrincipal(dev) }}</h3>
             <span class="dev-fecha">{{ dev.fecha | date:'dd/MM/yyyy' }}</span>
           </div>
+
           <div class="dev-mid">
             <span class="dev-usuario">Responsable: {{ dev.usuarioResponsable }}</span>
             <span class="dev-items">{{ totalProductos(dev) }} unid. devueltas</span>
           </div>
+
+          @if (detalleSecundario(dev)) {
+            <p class="dev-meta">{{ detalleSecundario(dev) }}</p>
+          }
+
           @if (dev.motivo) {
             <p class="dev-motivo">{{ dev.motivo }}</p>
           }
+
           <div class="dev-detalles">
             @for (d of dev.detalles; track d.idProducto) {
               <span class="chip-producto">

@@ -2,9 +2,11 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { PurchasingService } from '../../services/purchasing.service';
-import { DevolucionResponse } from '../../models/purchasing.model';
+import { DevolucionClienteResponse, DevolucionResponse } from '../../models/purchasing.model';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
+
+type TipoDevolucion = 'proveedor' | 'cliente';
 
 @Component({
   selector: 'app-return-history',
@@ -17,19 +19,47 @@ export class ReturnHistoryComponent implements OnInit {
   private purchasingService = inject(PurchasingService);
   private router = inject(Router);
 
-  devoluciones = signal<DevolucionResponse[]>([]);
+  tipoDevolucion = signal<TipoDevolucion>('proveedor');
+  devoluciones = signal<(DevolucionResponse | DevolucionClienteResponse)[]>([]);
   cargando = signal<boolean>(true);
   error = signal<string>('');
 
+  esProveedor = computed(() => this.tipoDevolucion() === 'proveedor');
+  esCliente = computed(() => this.tipoDevolucion() === 'cliente');
+
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  onTipoChange(tipo: TipoDevolucion): void {
+    if (this.tipoDevolucion() === tipo) {
+      return;
+    }
+
+    this.tipoDevolucion.set(tipo);
     this.cargar();
   }
 
   cargar(): void {
     this.cargando.set(true);
     this.error.set('');
-    this.purchasingService.listarDevoluciones().subscribe({
-      next: data => {
+
+    if (this.esProveedor()) {
+      this.purchasingService.listarDevoluciones().subscribe({
+        next: (data: DevolucionResponse[]) => {
+          this.devoluciones.set(data);
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo cargar el historial.');
+          this.cargando.set(false);
+        }
+      });
+      return;
+    }
+
+    this.purchasingService.listarDevolucionesClientes().subscribe({
+      next: (data: DevolucionClienteResponse[]) => {
         this.devoluciones.set(data);
         this.cargando.set(false);
       },
@@ -41,14 +71,29 @@ export class ReturnHistoryComponent implements OnInit {
   }
 
   nueva(): void {
-    this.router.navigate(['/purchasing/register-return']);
+    this.router.navigate(['/purchasing/register-return'], {
+      queryParams: { tipo: this.tipoDevolucion() }
+    });
   }
 
   volver(): void {
     this.router.navigate(['/compras-gestion']);
   }
 
-  totalProductos(dev: DevolucionResponse): number {
+  totalProductos(dev: DevolucionResponse | DevolucionClienteResponse): number {
     return dev.detalles.reduce((sum, d) => sum + d.cantidad, 0);
+  }
+
+  nombrePrincipal(dev: DevolucionResponse | DevolucionClienteResponse): string {
+    return 'nombreProveedor' in dev
+      ? dev.nombreProveedor
+      : (dev.nombreCliente || 'Cliente sin identificar');
+  }
+
+  detalleSecundario(dev: DevolucionResponse | DevolucionClienteResponse): string | null {
+    if ('idVenta' in dev) {
+      return `Venta #${dev.idVenta} · ${dev.documentoCliente || 'Sin documento'}`;
+    }
+    return null;
   }
 }

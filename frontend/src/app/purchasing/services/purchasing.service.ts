@@ -3,11 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   CompraResponse, 
+  DevolucionClienteResponse,
   DevolucionResponse, 
   RegistrarCompraRequest, 
   RegistrarDevolucionRequest,
+  RegistrarDevolucionClienteRequest,
   ResumenSeguimiento,
-  PrevisualizacionOrden
+  PrevisualizacionOrden,
+  VentaResponse
 } from '../models/purchasing.model';
 
 @Injectable({
@@ -17,8 +20,10 @@ export class PurchasingService {
   private http = inject(HttpClient);
   private readonly apiCompras = '/api/compras';
   private readonly apiDevoluciones = '/api/devoluciones';
+  private readonly apiDevolucionesClientes = '/api/devoluciones-clientes';
   private readonly apiOrdenes = '/api/ordenes-compra';
   private readonly apiProductos = '/api/productos';
+  private readonly apiVentas = '/api/ventas';
 
   // --- Compras ---
 
@@ -49,6 +54,18 @@ export class PurchasingService {
     return this.http.get<DevolucionResponse>(`${this.apiDevoluciones}/${id}`);
   }
 
+  registrarDevolucionCliente(request: RegistrarDevolucionClienteRequest): Observable<DevolucionClienteResponse> {
+    return this.http.post<DevolucionClienteResponse>(this.apiDevolucionesClientes, request);
+  }
+
+  listarDevolucionesClientes(): Observable<DevolucionClienteResponse[]> {
+    return this.http.get<DevolucionClienteResponse[]>(this.apiDevolucionesClientes);
+  }
+
+  obtenerDevolucionCliente(id: number): Observable<DevolucionClienteResponse> {
+    return this.http.get<DevolucionClienteResponse>(`${this.apiDevolucionesClientes}/${id}`);
+  }
+
   // --- Órdenes de Compra ---
 
   getResumenSeguimiento(): Observable<ResumenSeguimiento> {
@@ -70,7 +87,10 @@ export class PurchasingService {
   }
 
   obtenerLotes(productoId: number): Observable<any[]> {
-    // Corregido: de /api/inventario/... a /api/productos/...
-    return this.http.get<any[]>(`${this.apiProductos}/${productoId}/lotes-disponibles`);
+    return this.http.get<any[]>(`/api/inventario/productos/${productoId}/lotes-disponibles`);
+  }
+
+  obtenerVenta(id: number): Observable<VentaResponse> {
+    return this.http.get<VentaResponse>(`${this.apiVentas}/${id}`);
   }
 }
