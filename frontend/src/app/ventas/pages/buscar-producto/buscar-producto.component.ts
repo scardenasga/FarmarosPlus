@@ -72,18 +72,21 @@ export class BuscarProductoComponent {
           return;
         }*/
 
-        // 2. USAMOS PROTECCIÓN: Si hay lote lo pone, si no, pone null.
-        // Esto evita el error de "Cannot read properties of undefined (reading 'id')"
-        const primerLoteId = (lotes && lotes.length > 0) ? lotes[0].id : null;
-        const primerNumeroLote = (lotes && lotes.length > 0) ? lotes[0].numeroLote : 'SIN LOTE';
+        const primerLote = (lotes && lotes.length > 0) ? lotes[0] : null;
+        const primerLoteId = primerLote ? (primerLote.idLote || primerLote.id) : null;
+        const primerNumeroLote = primerLote ? primerLote.numeroLote : 'SIN LOTE';
+        const primerLoteCantidad = primerLote ? primerLote.cantidad : 0;
+        const primerLoteVencimiento = primerLote ? primerLote.fechaVencimiento : null;
 
         this.productosEnVenta.update(prev => [
           ...prev,
           {
             ...producto,
             cantidad: 1,
-            loteId: primerLoteId,      // Ya no explota si es null
-            numeroLote: primerNumeroLote
+            loteId: primerLoteId,
+            numeroLote: primerNumeroLote,
+            cantidadDisponibleLote: primerLoteCantidad,
+            fechaVencimientoLote: primerLoteVencimiento
           }
         ]);
       },

@@ -1,4 +1,5 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
@@ -14,10 +15,12 @@ import { ActiveFiltersComponent, ActiveFilter } from '../../components/active-fi
 import { InventorySortComponent, SortOption, SortField, SortOrder } from '../../components/inventory-sort/inventory-sort.component';
 import { InventoryActionsComponent } from '../../components/inventory-actions/inventory-actions.component';
 
+
 @Component({
   selector: 'app-inventory',
   standalone: true,
   imports: [
+    CommonModule,
     TopBarComponent,
     FabButtonComponent,
     InventorySearchComponent,
@@ -40,6 +43,7 @@ export class InventoryComponent implements OnInit {
   private categories = signal<Categoria[]>([]);
 
   searchTerm = signal<string>('');
+  viewMode = signal<'grid' | 'lotes'>('grid');
   isFilterVisible = signal<boolean>(false);
   isSortVisible = signal<boolean>(false);
   isActionsVisible = signal<boolean>(false);
@@ -185,11 +189,17 @@ export class InventoryComponent implements OnInit {
     this.isActionsVisible.update(v => !v);
   }
 
+  handleToggleView(): void {
+    this.viewMode.update(v => v === 'grid' ? 'lotes' : 'grid');
+  }
+
   handleActionSelection(action: string): void {
     if (action === 'categorias') {
       this.router.navigate(['/inventario/categorias']);
     } else if (action === 'ingreso') {
       this.router.navigate(['/inventario/ingreso']);
+    } else if (action === 'gestion-lotes') {
+      this.router.navigate(['/inventario/gestion-lotes']);
     } else if (action === 'crear') {
       this.handleAddProduct();
     }

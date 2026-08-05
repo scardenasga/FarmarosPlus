@@ -1,0 +1,51 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Acciones de Inventario"
+>
+  <div class="actions-header">
+    <h2>Gestión de Inventario</h2>
+  </div>
+
+  <div class="actions-list">
+    <button class="action-item" (click)="navigate('categorias')">
+      <div class="icon-circle category">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01"/></svg>
+      </div>
+      <div class="text-container">
+        <span class="action-title">Gestionar Categorías</span>
+        <span class="action-desc">Crea, edita o elimina categorías de productos</span>
+      </div>
+    </button>
+
+    <button class="action-item" (click)="navigate('ingreso')">
+      <div class="icon-circle stock">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V21H3V8M1 3H23V8H1V3M10 12H14"/></svg>
+      </div>
+      <div class="text-container">
+        <span class="action-title">Registrar Ingreso de Stock</span>
+        <span class="action-desc">Abastece productos mediante código de barras</span>
+      </div>
+    </button>
+
+    <button class="action-item" (click)="navigate('gestion-lotes')">
+      <div class="icon-circle batch">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M9 12h6M9 16h6M4 7h16v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/></svg>
+      </div>
+      <div class="text-container">
+        <span class="action-title">Gestión de Lotes</span>
+        <span class="action-desc">Registra y rastrea lotes de productos</span>
+      </div>
+    </button>
+
+    <button class="action-item" (click)="navigate('crear')">
+      <div class="icon-circle product">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      <div class="text-container">
+        <span class="action-title">Nuevo Producto</span>
+        <span class="action-desc">Registra un nuevo producto en el catálogo</span>
+      </div>
+    </button>
+  </div>
+</app-bottom-sheet>

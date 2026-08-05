@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +45,13 @@ class ProductoControllerTest {
         producto.setPrecioVenta(12000.0);
         producto.setEstado("ACTIVO");
 
+        ProductoResponse respuesta = new ProductoResponse(
+                1L, null, "Acetaminofen", null, "7701234567890",
+                0, 20, 8500.0, 12000.0, 41.18, 0.0, false, "ACTIVO", Collections.emptyList()
+        );
+
         when(productoService.crearProducto(any())).thenReturn(producto);
+        when(productoService.toProductoResponse(producto)).thenReturn(respuesta);
 
         mockMvc.perform(post("/api/productos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -56,7 +63,8 @@ class ProductoControllerTest {
                                   "costo": 8500.0,
                                   "precioVenta": 12000.0,
                                   "requierePrescripcion": false,
-                                  "fechaVencimiento": "2027-12-31"
+                                  "fechaVencimiento": "2027-12-31",
+                                  "numeroLote": "ACE-2026-01"
                                 }
                                 """))
                 .andExpect(status().isCreated())
@@ -75,13 +83,20 @@ class ProductoControllerTest {
         producto.setPrecioVenta(12000.0);
         producto.setEstado("ACTIVO");
 
+        ProductoResponse respuesta = new ProductoResponse(
+                1L, null, "Acetaminofen", null, "7701234567890",
+                0, 50, 8500.0, 12000.0, 41.18, 0.0, false, "ACTIVO", Collections.emptyList()
+        );
+
         when(productoService.ingresarStock(eq("7701234567890"), any())).thenReturn(producto);
+        when(productoService.toProductoResponse(producto)).thenReturn(respuesta);
 
         mockMvc.perform(post("/api/productos/codigo-barras/7701234567890/ingresos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "cantidad": 30,
+                                  "numeroLote": "ACE-2026-02",
                                   "fechaVencimiento": "2027-12-31"
                                 }
                                 """))
@@ -95,7 +110,21 @@ class ProductoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "cantidad": 30
+                                  "cantidad": 30,
+                                  "numeroLote": "ACE-2026-02"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void ingresarStock_sinNumeroLote_debeRetornar400() throws Exception {
+        mockMvc.perform(post("/api/productos/codigo-barras/7701234567890/ingresos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "cantidad": 30,
+                                  "fechaVencimiento": "2027-12-31"
                                 }
                                 """))
                 .andExpect(status().isBadRequest());
@@ -111,8 +140,14 @@ class ProductoControllerTest {
         producto.setPrecioVenta(13000.0);
         producto.setEstado("ACTIVO");
 
+        ProductoResponse respuesta = new ProductoResponse(
+                1L, null, "Acetaminofen", null, "7701234567890",
+                0, 0, 9000.0, 13000.0, 44.44, 0.0, false, "ACTIVO", Collections.emptyList()
+        );
+
         when(productoService.actualizarPrecio(eq("7701234567890"), any(CambioPrecioProductoRequest.class)))
                 .thenReturn(producto);
+        when(productoService.toProductoResponse(producto)).thenReturn(respuesta);
 
         mockMvc.perform(patch("/api/productos/codigo-barras/7701234567890/precio")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -134,7 +169,13 @@ class ProductoControllerTest {
         producto.setCodigoBarras("7701234567890");
         producto.setEstado("ACTIVO");
 
+        ProductoResponse respuesta = new ProductoResponse(
+                1L, null, "Acetaminofen", null, "7701234567890",
+                0, 0, 0.0, 0.0, 0.0, 0.0, false, "ACTIVO", Collections.emptyList()
+        );
+
         when(productoService.listarProductosActivos()).thenReturn(List.of(producto));
+        when(productoService.toProductoResponse(producto)).thenReturn(respuesta);
 
         mockMvc.perform(get("/api/productos/activos"))
                 .andExpect(status().isOk())
@@ -156,7 +197,8 @@ class ProductoControllerTest {
                 41.18,
                 0.0,
                 false,
-                "ACTIVO"
+                "ACTIVO",
+                Collections.emptyList()
         );
 
         when(productoService.buscarActivosPorNombreOCodigo("acetaminofen")).thenReturn(List.of(respuesta));
@@ -182,6 +224,24 @@ class ProductoControllerTest {
     }
 
     @Test
+    void crearProducto_sinNumeroLote_debeRetornar400() throws Exception {
+        mockMvc.perform(post("/api/productos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombre": "Acetaminofen",
+                                  "codigoBarras": "7701234567890",
+                                  "stockInicial": 20,
+                                  "costo": 8500.0,
+                                  "precioVenta": 12000.0,
+                                  "requierePrescripcion": false,
+                                  "fechaVencimiento": "2027-12-31"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void actualizarProducto_debeRetornar200() throws Exception {
         Producto producto = new Producto();
         producto.setUniqueID(1L);
@@ -189,7 +249,13 @@ class ProductoControllerTest {
         producto.setCodigoBarras("7701234567890");
         producto.setEstado("ACTIVO");
 
+        ProductoResponse respuesta = new ProductoResponse(
+                1L, null, "Acetaminofen 650mg", "Caja por 20 tabletas", "7701234567890",
+                12, 120, 9000.0, 13500.0, 50.0, 0.0, false, "ACTIVO", Collections.emptyList()
+        );
+
         when(productoService.actualizarProducto(eq(1L), any(ActualizarProductoRequest.class))).thenReturn(producto);
+        when(productoService.toProductoResponse(producto)).thenReturn(respuesta);
 
         mockMvc.perform(patch("/api/productos/1")
                         .contentType(MediaType.APPLICATION_JSON)

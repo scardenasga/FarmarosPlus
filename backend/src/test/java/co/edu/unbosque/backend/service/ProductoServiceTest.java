@@ -75,8 +75,8 @@ class ProductoServiceTest {
                 8000.0,
                 0.0,
                 false,
-                null,
-                null
+                LocalDate.now().plusYears(1),
+                "LOT-INIT"
         );
 
         when(productoRepository.existsByCodigoBarrasIgnoreCase("7701234500001")).thenReturn(false);
@@ -96,7 +96,6 @@ class ProductoServiceTest {
         assertEquals("7701234500001", resultado.getCodigoBarras());
         assertEquals(20, resultado.getStockActual());
         assertEquals("COMPRA", movimiento.getTipoMovimiento());
-        assertNull(movimiento.getLote());
         assertEquals("SISTEMA", movimiento.getUsuarioResponsable());
     }
 
@@ -145,7 +144,7 @@ class ProductoServiceTest {
     }
 
     @Test
-    void crearProducto_sinNumeroLote_peroConFechaVencimiento_debeCrearLoteConNumeroNulo() {
+    void crearProducto_conNumeroLote_yFechaVencimiento_debeCrearLoteCorrectamente() {
         CrearProductoRequest request = new CrearProductoRequest(
                 null,
                 "Jarabe",
@@ -158,7 +157,7 @@ class ProductoServiceTest {
                 0.0,
                 false,
                 LocalDate.now().plusMonths(6),
-                null
+                "LOT-JARABE"
         );
 
         when(productoRepository.existsByCodigoBarrasIgnoreCase("7701111111111")).thenReturn(false);
@@ -177,7 +176,7 @@ class ProductoServiceTest {
 
         Lote loteGuardado = loteCaptor.getValue();
         assertEquals(15, resultado.getStockActual());
-        assertNull(loteGuardado.getNumeroLote());
+        assertEquals("LOT-JARABE", loteGuardado.getNumeroLote());
         assertEquals(request.fechaVencimiento(), loteGuardado.getFechaVencimiento());
         assertEquals(15, loteGuardado.getCantidad());
     }
@@ -195,8 +194,8 @@ class ProductoServiceTest {
                 8000.0,
                 0.0,
                 false,
-                null,
-                null
+                LocalDate.now().plusYears(1),
+                "LOT-TEST"
         );
 
         assertThrows(BusinessException.class, () -> productoService.crearProducto(request));
@@ -215,8 +214,8 @@ class ProductoServiceTest {
                 1100.0,
                 19.0,
                 false,
-                null,
-                null
+                LocalDate.now().plusYears(1),
+                "LOT-TEST"
         );
 
         assertThrows(BusinessException.class, () -> productoService.crearProducto(request));
@@ -443,7 +442,7 @@ class ProductoServiceTest {
 
     @Test
     void ingresarStock_sinCambioDePrecio_noDebeCrearHistorial() {
-        IngresoProductoRequest request = new IngresoProductoRequest(10, null, null, null, LocalDate.now().plusMonths(6));
+        IngresoProductoRequest request = new IngresoProductoRequest(10, "LOT-03", null, null, LocalDate.now().plusMonths(6));
 
         Producto producto = new Producto();
         producto.setUniqueID(1L);
@@ -454,6 +453,7 @@ class ProductoServiceTest {
         producto.setPrecioVenta(12000.0);
 
         when(productoRepository.findByCodigoBarrasForUpdate("7701234567890")).thenReturn(Optional.of(producto));
+        when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(productoRepository.save(any(Producto.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(currentUserService.getCurrentUsername()).thenReturn("SISTEMA");
 
@@ -464,7 +464,7 @@ class ProductoServiceTest {
 
     @Test
     void ingresarStock_sinFechaVencimiento_debeLanzarBusinessException() {
-        IngresoProductoRequest request = new IngresoProductoRequest(10, null, null, null, null);
+        IngresoProductoRequest request = new IngresoProductoRequest(10, "LOT-04", null, null, null);
 
         Producto producto = new Producto();
         producto.setUniqueID(1L);
