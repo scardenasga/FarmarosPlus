@@ -8,12 +8,12 @@ package co.edu.unbosque.backend.model.response;
  */
 
 public record DashboardResumenResponse(
-    Double totalVentas,
-    Long cantidadVentas,
-    Double ticketPromedio,
-    Long productosActivos,
+    Double ventasDelDia,
+    Long cantidadVentasDelDia,
+    Double ventasDelMes,
+    Long cantidadVentasDelMes,
     Long productosStockBajo,
-    Double valorInventario
+    Long productosPorVencer
 
 ) {
 }

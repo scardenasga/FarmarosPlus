@@ -14,14 +14,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 /**
- * Controlador REST para el dashboard administrativo.
- * Expone indicadores agregados de ventas, inventario y productos destacados.
+ * Controlador REST para el dashboard.
+ *
+ * Expone los indicadores principales del negocio:
+ * ventas del día, ventas del mes, stock bajo,
+ * productos próximos a vencer y estadísticas de ventas.
  *
  * @author Angie Tatiana Ortiz
  */
 @RestController
 @RequestMapping("/api/dashboard")
-@Tag(name = "Dashboard", description = "Indicadores agregados del negocio para el dashboard administrativo")
+@Tag(
+        name = "Dashboard",
+        description = "Indicadores y estadísticas del negocio"
+)
 public class DashboardController {
 
     private final DashboardService dashboardService;
@@ -31,23 +37,38 @@ public class DashboardController {
     }
 
     /**
-     * Retorna los indicadores del dashboard para un período dado.
-     * Si no se envían fechas, se usan los últimos 30 días por defecto.
+     * Retorna los indicadores del dashboard para un período determinado.
      *
-     * @param fechaInicio inicio del período en formato dd-MM-yyyy
-     * @param fechaFin    fin del período en formato dd-MM-yyyy 
-     * @return respuesta con KPIs, ventas por día, inventario y productos destacados
+     * Si no se envían fechas, se utilizan los últimos 30 días.
+     *
+     * @param fechaInicio fecha inicial del período
+     * @param fechaFin fecha final del período
+     * @return información completa del dashboard
      */
     @GetMapping
-    @Operation(summary = "Obtener indicadores del dashboard administrativo")
+    @Operation(
+            summary = "Obtener información del dashboard",
+            description = "Retorna ventas, stock bajo, próximos vencimientos y productos más vendidos"
+    )
     public ResponseEntity<DashboardResponse> obtenerDashboard(
+
             @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaInicio,
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate fechaInicio,
+
             @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fechaFin
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate fechaFin
+
     ) {
-        LocalDate fin = fechaFin != null ? fechaFin : LocalDate.now();
-        LocalDate inicio = fechaInicio != null ? fechaInicio : fin.minusDays(30);
+
+        LocalDate fin = fechaFin != null
+                ? fechaFin
+                : LocalDate.now();
+
+        LocalDate inicio = fechaInicio != null
+                ? fechaInicio
+                : fin.minusDays(30);
 
         return ResponseEntity.ok(
                 dashboardService.obtenerDashboard(

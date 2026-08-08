@@ -4,18 +4,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO de salida principal del dashboard administrativo./**
-  * Agrupa todos los indicadores: resumen KPIs, ventas por dia, 
-  * inventario por categoria y productos destacados.
-  * 
-  * @author Angie Tatiana Ortiz
-  */
- public record DashboardResponse (
-    DashboardResumenResponse resumen,
-    List<VentaPorDiaResponse> ventasPorDia,
-    List<InventarioCategoriaResponse> inventarioPorCategoria,
-    List<ProductoDestacadoResponse> productosDestacados,
-    LocalDateTime fechaConsulta    
- 
-) { 
- }
+ * DTO de salida principal del dashboard.
+ *
+ * Agrupa la información necesaria para mostrar:
+ * - Resumen de ventas del día y del mes
+ * - Ventas agrupadas por día
+ * - Transacciones
+ * - Inventario por categoría
+ * - Productos más vendidos
+ * - Productos con stock bajo
+ *
+ * @author Angie Tatiana Ortiz
+ */
+public record DashboardResponse(
+        DashboardResumenResponse resumen,
+        List<VentaPorDiaResponse> ventasPorDia,
+        List<VentaDashboardResponse> transacciones,
+        List<InventarioCategoriaResponse> inventarioPorCategoria,
+        List<ProductoDestacadoResponse> productosDestacados,
+        List<ProductoStockBajoResponse> productosStockBajo,
+        LocalDateTime fechaConsulta
+        
+) {
+}
