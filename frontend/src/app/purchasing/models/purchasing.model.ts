@@ -89,6 +89,17 @@ export interface RegistrarDevolucionClienteRequest {
   }[];
 }
 
+export interface ActualizarDevolucionRequest {
+  motivo?: string;
+  observaciones?: string;
+}
+
+export interface ActualizarDevolucionClienteRequest {
+  nombreCliente?: string;
+  documentoCliente?: string;
+  motivo?: string;
+}
+
 export interface VentaDetalleResponse {
   id: number;
   producto: {

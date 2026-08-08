@@ -13,8 +13,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,5 +80,37 @@ class DevolucionClienteControllerTest {
 
         mockMvc.perform(get("/api/devoluciones-clientes"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void actualizar_debeRetornar200() throws Exception {
+        DevolucionClienteResponse response = new DevolucionClienteResponse(
+                1L, 5L, "Maria Gomez", "900800700", "admin",
+                "Motivo nuevo", LocalDateTime.now(), List.of());
+
+        when(devolucionClienteService.actualizar(eq(1L), any())).thenReturn(response);
+
+        mockMvc.perform(patch("/api/devoluciones-clientes/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombreCliente": "Maria Gomez",
+                                  "documentoCliente": "900800700",
+                                  "motivo": "Motivo nuevo"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.motivo").value("Motivo nuevo"));
+    }
+
+    @Test
+    void eliminar_debeRetornar204() throws Exception {
+        doNothing().when(devolucionClienteService).eliminar(eq(1L), any());
+
+        mockMvc.perform(delete("/api/devoluciones-clientes/1")
+                        .param("usuarioResponsable", "admin"))
+                .andExpect(status().isNoContent());
+
+        verify(devolucionClienteService).eliminar(1L, "admin");
     }
 }

@@ -10,6 +10,7 @@ import co.edu.unbosque.backend.model.entity.MovimientoInventario;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.entity.Venta;
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.request.DetalleDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.response.DetalleDevolucionClienteResponse;
@@ -167,6 +168,82 @@ public class DevolucionClienteService {
         DevolucionCliente devolucion = devolucionRepository.findWithDetallesByIdDevolucionCliente(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
         return toResponse(devolucion);
+    }
+
+    @Transactional
+    public DevolucionClienteResponse actualizar(Long id, ActualizarDevolucionClienteRequest request) {
+        DevolucionCliente devolucion = devolucionRepository.findWithDetallesByIdDevolucionCliente(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
+
+        if (request.nombreCliente() != null) {
+            devolucion.setNombreCliente(normalizar(request.nombreCliente()));
+        }
+        if (request.documentoCliente() != null) {
+            devolucion.setDocumentoCliente(normalizar(request.documentoCliente()));
+        }
+        if (request.motivo() != null) {
+            devolucion.setMotivo(normalizar(request.motivo()));
+        }
+
+        return toResponse(devolucionRepository.save(devolucion));
+    }
+
+    @Transactional
+    public void eliminar(Long id, String usuarioResponsable) {
+        DevolucionCliente devolucion = devolucionRepository.findWithDetallesByIdDevolucionCliente(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
+
+        Usuario usuario = resolverUsuarioResponsable(usuarioResponsable);
+        String usuarioResp = usuario.getUsername();
+
+        List<MovimientoInventario> movimientos = new ArrayList<>();
+        for (DetalleDevolucionCliente detalle : devolucion.getDetalles()) {
+            if (detalle.getProducto() == null) {
+                continue;
+            }
+
+            Producto producto = productoRepository.findByIdForUpdate(detalle.getProducto().getUniqueID())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el producto con id " + detalle.getProducto().getUniqueID()));
+
+            int stockAnterior = valorSeguro(producto.getStockActual());
+            int stockNuevo = stockAnterior - detalle.getCantidad();
+            if (stockNuevo < 0) {
+                throw new BusinessException(
+                        "No se puede eliminar la devolución: stock insuficiente en el producto "
+                                + detalle.getNombreProducto() + " para revertir la entrada.");
+            }
+            producto.setStockActual(stockNuevo);
+
+            if (detalle.getLote() != null) {
+                Lote lote = loteRepository.findByIdForUpdate(detalle.getLote().getIdLote())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "No existe el lote con id " + detalle.getLote().getIdLote()));
+                int cantLoteNuevo = valorSeguro(lote.getCantidad()) - detalle.getCantidad();
+                if (cantLoteNuevo < 0) {
+                    throw new BusinessException(
+                            "No se puede eliminar la devolución: stock insuficiente en el lote "
+                                    + lote.getNumeroLote() + " para revertir la entrada.");
+                }
+                lote.setCantidad(cantLoteNuevo);
+            }
+
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(producto);
+            mov.setNombreProducto(detalle.getNombreProducto());
+            mov.setLote(detalle.getLote());
+            mov.setTipoMovimiento("DEVOLUCION");
+            mov.setCantidadAnterior(stockAnterior);
+            mov.setCantidadNueva(stockNuevo);
+            mov.setDiferencia(stockNuevo - stockAnterior);
+            mov.setMotivo("Reversión por eliminación de devolución de cliente " + devolucion.getIdDevolucionCliente());
+            mov.setReferenciaDocumento("DEV-CLI-" + devolucion.getIdDevolucionCliente() + "-ELIM");
+            mov.setUsuarioResponsable(usuarioResp);
+            movimientos.add(mov);
+        }
+
+        movimientoRepository.saveAll(movimientos);
+        devolucionRepository.delete(devolucion);
     }
 
     private void validarCantidadDisponible(Long idDetalleVenta,

@@ -1,5 +1,6 @@
 package co.edu.unbosque.backend.controller;
 
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.response.DevolucionClienteResponse;
 import co.edu.unbosque.backend.service.DevolucionClienteService;
@@ -18,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/devoluciones-clientes")
 @CrossOrigin(origins = "*")
-@Tag(name = "Devoluciones Clientes", description = "Registro y consulta de devoluciones a clientes")
+@Tag(name = "Devoluciones Clientes", description = "Registro, consulta, actualización y eliminación de devoluciones a clientes")
 public class DevolucionClienteController {
 
     private final DevolucionClienteService devolucionClienteService;
@@ -45,5 +46,24 @@ public class DevolucionClienteController {
     @Operation(summary = "Obtener devolución a cliente por id")
     public ResponseEntity<DevolucionClienteResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(devolucionClienteService.obtener(id));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Actualizar devolución a cliente",
+            description = "Permite actualizar datos informativos del cliente y el motivo. No altera inventario.")
+    public ResponseEntity<DevolucionClienteResponse> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarDevolucionClienteRequest request) {
+        return ResponseEntity.ok(devolucionClienteService.actualizar(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar devolución a cliente",
+            description = "Revierte el inventario repuesto (descuenta stock del producto y lote) y elimina el registro.")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @RequestParam(required = false) String usuarioResponsable) {
+        devolucionClienteService.eliminar(id, usuarioResponsable);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -9,6 +9,7 @@ import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.model.entity.MovimientoInventario;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.entity.Proveedor;
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionRequest;
 import co.edu.unbosque.backend.model.request.DetalleDevolucionRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionRequest;
 import co.edu.unbosque.backend.model.response.DetalleDevolucionResponse;
@@ -145,6 +146,66 @@ public class DevolucionService {
         DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
         return toResponse(dev);
+    }
+
+    @Transactional
+    public DevolucionResponse actualizar(Long id, ActualizarDevolucionRequest request) {
+        DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
+
+        if (request.motivo() != null) {
+            dev.setMotivo(request.motivo().trim());
+        }
+        dev.setObservaciones(request.observaciones());
+
+        return toResponse(devolucionRepository.save(dev));
+    }
+
+    @Transactional
+    public void eliminar(Long id, String usuarioResponsable) {
+        DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
+
+        co.edu.unbosque.backend.model.entity.Usuario usuario = resolverUsuarioResponsable(usuarioResponsable);
+        String usuarioResp = usuario.getUsername();
+
+        List<MovimientoInventario> movimientos = new ArrayList<>();
+        for (DetalleDevolucionProveedor detalle : dev.getDetalles()) {
+            if (detalle.getProducto() == null || detalle.getLote() == null) {
+                continue;
+            }
+
+            Producto producto = productoRepository.findByIdForUpdate(detalle.getProducto().getUniqueID())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el producto con id " + detalle.getProducto().getUniqueID()));
+
+            Lote lote = loteRepository.findByIdForUpdate(detalle.getLote().getIdLote())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No existe el lote con id " + detalle.getLote().getIdLote()));
+
+            int stockAnterior = producto.getStockActual();
+            int stockNuevo = stockAnterior + detalle.getCantidad();
+            int cantLoteNuevo = lote.getCantidad() + detalle.getCantidad();
+
+            producto.setStockActual(stockNuevo);
+            lote.setCantidad(cantLoteNuevo);
+
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(producto);
+            mov.setNombreProducto(detalle.getNombreProducto());
+            mov.setLote(lote);
+            mov.setTipoMovimiento("DEVOLUCION");
+            mov.setCantidadAnterior(stockAnterior);
+            mov.setCantidadNueva(stockNuevo);
+            mov.setDiferencia(stockNuevo - stockAnterior);
+            mov.setMotivo("Reversión por eliminación de devolución a proveedor " + dev.getIdDevolucion());
+            mov.setReferenciaDocumento("DEV-PROV-" + dev.getIdDevolucion() + "-ELIM");
+            mov.setUsuarioResponsable(usuarioResp);
+            movimientos.add(mov);
+        }
+
+        movimientoRepository.saveAll(movimientos);
+        devolucionRepository.delete(dev);
     }
 
     private DevolucionResponse toResponse(DevolucionProveedor d) {

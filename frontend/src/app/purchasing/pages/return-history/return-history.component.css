@@ -77,6 +77,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.dev-card:hover,
+.dev-card:focus-visible {
+  background-color: var(--surface-container);
+  outline: none;
+}
+
+.dev-card:active {
+  transform: scale(0.99);
 }
 
 .dev-top {
@@ -136,4 +148,44 @@
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--radius-full);
+}
+
+.dev-actions {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-s);
+  border-top: 1px solid var(--outline-variant);
+  padding-top: var(--space-s);
+}
+
+.dev-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dev-action-btn:hover {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.dev-action-btn.danger {
+  color: var(--error);
+}
+
+.dev-action-btn.danger:hover {
+  background-color: var(--error);
+  color: var(--on-error);
+  border-color: var(--error);
 }

@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   CompraResponse, 
+  ActualizarDevolucionClienteRequest,
+  ActualizarDevolucionRequest,
   DevolucionClienteResponse,
   DevolucionResponse, 
   RegistrarCompraRequest, 
@@ -54,6 +56,16 @@ export class PurchasingService {
     return this.http.get<DevolucionResponse>(`${this.apiDevoluciones}/${id}`);
   }
 
+  actualizarDevolucion(id: number, request: ActualizarDevolucionRequest): Observable<DevolucionResponse> {
+    return this.http.patch<DevolucionResponse>(`${this.apiDevoluciones}/${id}`, request);
+  }
+
+  eliminarDevolucion(id: number, usuarioResponsable: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiDevoluciones}/${id}`, {
+      params: { usuarioResponsable }
+    });
+  }
+
   registrarDevolucionCliente(request: RegistrarDevolucionClienteRequest): Observable<DevolucionClienteResponse> {
     return this.http.post<DevolucionClienteResponse>(this.apiDevolucionesClientes, request);
   }
@@ -64,6 +76,16 @@ export class PurchasingService {
 
   obtenerDevolucionCliente(id: number): Observable<DevolucionClienteResponse> {
     return this.http.get<DevolucionClienteResponse>(`${this.apiDevolucionesClientes}/${id}`);
+  }
+
+  actualizarDevolucionCliente(id: number, request: ActualizarDevolucionClienteRequest): Observable<DevolucionClienteResponse> {
+    return this.http.patch<DevolucionClienteResponse>(`${this.apiDevolucionesClientes}/${id}`, request);
+  }
+
+  eliminarDevolucionCliente(id: number, usuarioResponsable: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiDevolucionesClientes}/${id}`, {
+      params: { usuarioResponsable }
+    });
   }
 
   // --- Órdenes de Compra ---

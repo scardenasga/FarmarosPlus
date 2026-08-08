@@ -25,7 +25,11 @@
 
     <div class="contenido-scroll">
       @for (dev of devoluciones(); track dev.id) {
-        <article class="dev-card">
+        <article class="dev-card"
+          (click)="verDetalle(dev)"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="verDetalle(dev)">
           <div class="dev-top">
             <h3 class="dev-proveedor">{{ nombrePrincipal(dev) }}</h3>
             <span class="dev-fecha">{{ dev.fecha | date:'dd/MM/yyyy' }}</span>
@@ -51,6 +55,22 @@
               </span>
             }
           </div>
+
+          <div class="dev-actions" (click)="$event.stopPropagation()">
+            <button class="dev-action-btn" type="button" (click)="editar(dev)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+              Editar
+            </button>
+            <button class="dev-action-btn danger" type="button" (click)="solicitarEliminar(dev)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Eliminar
+            </button>
+          </div>
         </article>
       } @empty {
         @if (!cargando() && !error()) {
@@ -68,3 +88,14 @@
 
   <app-fab-button (clicked)="nueva()"></app-fab-button>
 </div>
+
+@if (devolucionAEliminar(); as dev) {
+  <app-confirmation-dialog
+    title="¿Eliminar devolución?"
+    [content]="'¿Desea eliminar la devolución #' + dev.id + ' de ' + nombrePrincipal(dev) + '? Se revertirá el movimiento de inventario correspondiente. Esta acción no se puede deshacer.'"
+    cancelText="Cancelar"
+    confirmText="Eliminar"
+    (onCancel)="cancelarEliminar()"
+    (onConfirm)="confirmarEliminar()">
+  </app-confirmation-dialog>
+}

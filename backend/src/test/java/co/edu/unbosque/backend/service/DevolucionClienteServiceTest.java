@@ -2,12 +2,14 @@ package co.edu.unbosque.backend.service;
 
 import co.edu.unbosque.backend.exception.BusinessException;
 import co.edu.unbosque.backend.exception.ResourceNotFoundException;
+import co.edu.unbosque.backend.model.entity.DetalleDevolucionCliente;
 import co.edu.unbosque.backend.model.entity.DetalleVenta;
 import co.edu.unbosque.backend.model.entity.DevolucionCliente;
 import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.entity.Venta;
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.request.DetalleDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionClienteRequest;
 import co.edu.unbosque.backend.model.response.DevolucionClienteResponse;
@@ -192,5 +194,112 @@ class DevolucionClienteServiceTest {
 
         assertEquals(1, resultado.size());
         assertEquals(5L, resultado.getFirst().idVenta());
+    }
+
+    // ── eliminar ─────────────────────────────────────────────────────────────
+
+    @Test
+    void eliminar_debeDescontarStockDeLoteYProductoYGuardarMovimiento() {
+        Usuario usuario = buildUsuario();
+        Producto producto = buildProducto(10L, 22);
+        Lote lote = buildLote(1L, producto, 7);
+
+        DetalleVenta detalleVenta = new DetalleVenta();
+        detalleVenta.setIdDetalle(12L);
+        detalleVenta.setProducto(producto);
+        detalleVenta.setLote(lote);
+        detalleVenta.setCantidad(3);
+
+        Venta venta = buildVenta(detalleVenta);
+
+        DetalleDevolucionCliente detalle = new DetalleDevolucionCliente();
+        detalle.setDetalleVenta(detalleVenta);
+        detalle.setProducto(producto);
+        detalle.setLote(lote);
+        detalle.setNombreProducto(producto.getNombre());
+        detalle.setNumeroLote(lote.getNumeroLote());
+        detalle.setCantidad(2);
+
+        DevolucionCliente devolucion = new DevolucionCliente();
+        devolucion.setIdDevolucionCliente(99L);
+        devolucion.setVenta(venta);
+        devolucion.setUsuario(usuario);
+        devolucion.setUsuarioResponsable("admin");
+        devolucion.setDetalles(List.of(detalle));
+
+        when(devolucionRepository.findWithDetallesByIdDevolucionCliente(99L)).thenReturn(Optional.of(devolucion));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
+        when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(producto));
+        when(loteRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(lote));
+        when(movimientoRepository.saveAll(any())).thenReturn(List.of());
+
+        devolucionClienteService.eliminar(99L, "admin");
+
+        assertEquals(20, producto.getStockActual());
+        assertEquals(5, lote.getCantidad());
+        verify(devolucionRepository).delete(devolucion);
+    }
+
+    @Test
+    void eliminar_cuandoStockInsuficiente_debeLanzarBusinessException() {
+        Usuario usuario = buildUsuario();
+        Producto producto = buildProducto(10L, 1);
+        Lote lote = buildLote(1L, producto, 1);
+
+        DetalleVenta detalleVenta = new DetalleVenta();
+        detalleVenta.setIdDetalle(12L);
+        detalleVenta.setProducto(producto);
+        detalleVenta.setLote(lote);
+        detalleVenta.setCantidad(3);
+
+        Venta venta = buildVenta(detalleVenta);
+
+        DetalleDevolucionCliente detalle = new DetalleDevolucionCliente();
+        detalle.setDetalleVenta(detalleVenta);
+        detalle.setProducto(producto);
+        detalle.setLote(lote);
+        detalle.setNombreProducto(producto.getNombre());
+        detalle.setCantidad(2);
+
+        DevolucionCliente devolucion = new DevolucionCliente();
+        devolucion.setIdDevolucionCliente(99L);
+        devolucion.setVenta(venta);
+        devolucion.setUsuario(usuario);
+        devolucion.setDetalles(List.of(detalle));
+
+        when(devolucionRepository.findWithDetallesByIdDevolucionCliente(99L)).thenReturn(Optional.of(devolucion));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
+        when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(producto));
+
+        assertThrows(BusinessException.class, () -> devolucionClienteService.eliminar(99L, "admin"));
+        verify(devolucionRepository, never()).delete(any());
+    }
+
+    // ── actualizar ───────────────────────────────────────────────────────────
+
+    @Test
+    void actualizar_debeModificarDatosInformativos() {
+        Usuario usuario = buildUsuario();
+        Venta venta = new Venta();
+        venta.setIdVenta(5L);
+        venta.setEstado("COMPLETADA");
+        venta.setDetalles(new HashSet<>());
+
+        DevolucionCliente devolucion = new DevolucionCliente();
+        devolucion.setIdDevolucionCliente(99L);
+        devolucion.setVenta(venta);
+        devolucion.setUsuario(usuario);
+        devolucion.setUsuarioResponsable("admin");
+        devolucion.setDetalles(List.of());
+
+        when(devolucionRepository.findWithDetallesByIdDevolucionCliente(99L)).thenReturn(Optional.of(devolucion));
+        when(devolucionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DevolucionClienteResponse response = devolucionClienteService.actualizar(99L,
+                new ActualizarDevolucionClienteRequest("Nuevo Cliente", "123456", "Otro motivo"));
+
+        assertEquals("Nuevo Cliente", response.nombreCliente());
+        assertEquals("123456", response.documentoCliente());
+        assertEquals("Otro motivo", response.motivo());
     }
 }

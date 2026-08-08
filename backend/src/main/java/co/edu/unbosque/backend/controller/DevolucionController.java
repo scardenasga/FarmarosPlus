@@ -1,5 +1,6 @@
 package co.edu.unbosque.backend.controller;
 
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionRequest;
 import co.edu.unbosque.backend.model.response.DevolucionResponse;
 import co.edu.unbosque.backend.service.DevolucionService;
@@ -20,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/devoluciones")
 @CrossOrigin(origins = "*")
-@Tag(name = "Devoluciones", description = "Registro y consulta de devoluciones a proveedores")
+@Tag(name = "Devoluciones", description = "Registro, consulta, actualización y eliminación de devoluciones a proveedores")
 public class DevolucionController {
 
     private final DevolucionService devolucionService;
@@ -47,5 +48,24 @@ public class DevolucionController {
     @Operation(summary = "Obtener devolución por id")
     public ResponseEntity<DevolucionResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(devolucionService.obtener(id));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Actualizar devolución a proveedor",
+            description = "Permite actualizar campos no transaccionales (motivo, observaciones). No altera inventario.")
+    public ResponseEntity<DevolucionResponse> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarDevolucionRequest request) {
+        return ResponseEntity.ok(devolucionService.actualizar(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar devolución a proveedor",
+            description = "Revierte el inventario descontado (devuelve stock al producto y lote) y elimina el registro.")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @RequestParam(required = false) String usuarioResponsable) {
+        devolucionService.eliminar(id, usuarioResponsable);
+        return ResponseEntity.noContent().build();
     }
 }
