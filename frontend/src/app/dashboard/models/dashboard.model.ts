@@ -1,10 +1,10 @@
 export interface DashboardResumen {
-  totalVentas: number;
-  cantidadVentas: number;
-  ticketPromedio: number;
-  productosActivos: number;
+  ventasDelDia: number;
+  cantidadVentasDelDia: number;
+  ventasDelMes: number;
+  cantidadVentasDelMes: number;
   productosStockBajo: number;
-  valorInventario: number;
+  productosPorVencer: number;
 }
 
 export interface VentaPorDia {
@@ -13,10 +13,24 @@ export interface VentaPorDia {
   cantidad: number;
 }
 
+export interface VentaDashboard {
+  idVenta: number;
+  fecha: string;
+  total: number;
+  estado: string;
+}
+
 export interface InventarioCategoria {
   categoria: string;
   stockTotal: number;
   cantidadProductos: number;
+}
+
+export interface ProductoStockBajo {
+  idProducto: number;
+  nombre: string;
+  stockActual: number;
+  stockMinimo: number;
 }
 
 export interface ProductoDestacado {
@@ -26,11 +40,21 @@ export interface ProductoDestacado {
   totalVendido: number;
 }
 
+export interface ProductoPorVencer {
+  idProducto: number;
+  nombre: string;
+  fechaVencimiento: string;
+  stockActual: number;
+}
+
 export interface DashboardResponse {
   resumen: DashboardResumen;
   ventasPorDia: VentaPorDia[];
+  transacciones: VentaDashboard[];
   inventarioPorCategoria: InventarioCategoria[];
   productosDestacados: ProductoDestacado[];
+  productosStockBajo: ProductoStockBajo[];
+  productosPorVencer: ProductoPorVencer[];
   fechaConsulta: string;
 }
 

@@ -3,18 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
-import { NgChartsModule } from 'ng2-charts';
-import { Chart, ChartConfiguration, ChartData, registerables } from 'chart.js';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { DashboardService } from '../../services/dashboard.service';
-import { DashboardResponse, DashboardPeriod } from '../../models/dashboard.model';
-
-Chart.register(...registerables);
+import { DashboardResponse } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, TopBarComponent, NgChartsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -28,36 +23,22 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal('');
   lastUpdated = signal('');
+  mostrarAlertas = signal(false);
+  mostrarTransacciones = signal(false);
+  mostrarStockBajo = signal(false);
 
-  selectedPreset = signal<'7d' | '30d' | '90d' | 'custom'>('90d');
+  selectedPreset = signal<'7d' | '30d' | '90d' | 'custom'>('30d');
+
   fechaInicio = '';
   fechaFin = '';
+
   private currentPeriod: any = null;
 
-  salesChartData: ChartData<'line'> = { labels: [], datasets: [] };
-  salesChartOptions: ChartConfiguration<'line'>['options'] = {
-    responsive: true,
-    interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-    scales: { y: { beginAtZero: true } }
-  };
-
-  inventoryChartData: ChartData<'doughnut'> = { labels: [], datasets: [] };
-  inventoryChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } }
-  };
-
-  productsChartData: ChartData<'bar'> = { labels: [], datasets: [] };
-  productsChartOptions: ChartConfiguration<'bar'>['options'] = {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { display: false }, tooltip: { enabled: true } }
-  };
-
   ngOnInit() {
-    this.selectPreset('90d');
-    this.refreshSub = interval(60000).subscribe(() => this.cargarDashboard());
+    this.selectPreset('30d');
+    this.refreshSub = interval(60000).subscribe(() => {
+      this.cargarDashboard();
+    });
   }
 
   ngOnDestroy() {
@@ -78,21 +59,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       fechaInicio: this.toIso(inicio),
       fechaFin: this.toIso(fin)
     };
+
     this.cargarDashboard();
   }
 
   aplicarFechasPersonalizadas() {
     if (!this.fechaInicio || !this.fechaFin) return;
+
     this.currentPeriod = {
       preset: 'custom',
       fechaInicio: this.fechaInicio,
       fechaFin: this.fechaFin
     };
+
     this.cargarDashboard();
   }
 
   cargarDashboard() {
     if (!this.currentPeriod) return;
+
     this.loading.set(true);
     this.error.set('');
 
@@ -101,7 +86,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.dashboard.set(data);
-          this.actualizarGraficas(data);
           this.lastUpdated.set(new Date().toLocaleTimeString('es-CO'));
           this.loading.set(false);
         },
@@ -110,37 +94,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         }
       });
-  }
-
-  private actualizarGraficas(data: DashboardResponse) {
-    this.salesChartData = {
-      labels: data.ventasPorDia.map(v => v.fecha),
-      datasets: [{
-        label: 'Ventas ($)',
-        data: data.ventasPorDia.map(v => v.total),
-        borderColor: '#00897b',
-        backgroundColor: 'rgba(0,137,123,0.15)',
-        fill: true,
-        tension: 0.4
-      }]
-    };
-
-    this.inventoryChartData = {
-      labels: data.inventarioPorCategoria.map(c => c.categoria),
-      datasets: [{
-        data: data.inventarioPorCategoria.map(c => c.stockTotal),
-        backgroundColor: ['#00897b', '#26a69a', '#80cbc4', '#ffb74d', '#ef5350', '#42a5f5']
-      }]
-    };
-
-    this.productsChartData = {
-      labels: data.productosDestacados.map(p => p.nombre),
-      datasets: [{
-        label: 'Unidades vendidas',
-        data: data.productosDestacados.map(p => p.cantidadVendida),
-        backgroundColor: '#00897b'
-      }]
-    };
   }
 
   maxVenta(ventas: any[]): number {
@@ -153,6 +106,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   handleAlerts() {
     this.router.navigate(['/alertas']);
+  }
+
+  mostrarDetalleTransacciones() {
+    this.mostrarTransacciones.set(true);
+  }
+
+  revisarStock() {
+    this.router.navigate(['/inventario']);
+  }
+
+  mostrarDetalleStockBajo() {
+    this.mostrarStockBajo.set(true);
   }
 
   irAHealth() {
