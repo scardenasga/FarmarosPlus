@@ -74,11 +74,11 @@
           }
         </section>
 
-        <section class="seccion-card">
+        <section class="seccion-card product-picker-card">
           <div class="seccion-header">
             <div>
               <label class="label-campo">Productos del proveedor *</label>
-              <div class="section-hint">Solo productos asociados al proveedor seleccionado</div>
+              <div class="section-hint">Busca y selecciona un producto del proveedor</div>
             </div>
             <span class="section-hint">{{ productosDelProveedor().length }} productos</span>
           </div>
@@ -95,7 +95,7 @@
               (ngModelChange)="busquedaProductoProveedor.set($event)"
               placeholder="Escribe para filtrar productos..." />
 
-            <div class="resultados-grid">
+            <div class="resultados-grid product-results">
               @for (prod of productosProveedorFiltrados(); track prod.id) {
                 <button
                   type="button"
@@ -121,7 +121,7 @@
             }
 
             @if (productoSeleccionado()) {
-              <div class="producto-seleccionado">
+              <div class="producto-seleccionado selected-product-inline">
                 <div class="producto-seleccionado-top">
                   <div>
                     <span class="section-hint">Producto seleccionado</span>
@@ -178,10 +178,8 @@
               </div>
             }
           }
-        </section>
 
-        <section class="seccion-card">
-          <div class="seccion-header">
+          <div class="productos-agregados-header">
             <div>
               <label class="label-campo">Productos agregados *</label>
               <div class="section-hint">Total de ítems listos para registrar</div>

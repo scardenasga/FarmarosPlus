@@ -1,42 +1,67 @@
 <div class="dashboard-page">
   <div class="sticky-header">
-    <app-top-bar 
-      title="Gestión de Compras" 
-      [showAlert]="true" 
-      (back)="handleBack()"
-      (alert)="handleAlerts()">
-    </app-top-bar>
+    <app-top-bar title="Gestión de Compras" [showAlert]="true" (back)="handleBack()" (alert)="handleAlerts()" />
   </div>
 
   <main class="content-area">
-    <div class="cards-layout">
-      @for (card of cards(); track card.title) {
-        <div class="card-wrapper" [style.--delay]="$index * 0.1 + 's'">
-          <article class="premium-card" (click)="navigateTo(card.link)">
-            <div class="card-accent" [style.background-color]="card.color"></div>
-            
-            <div class="card-header">
-              <span class="tag">{{ card.tag }}</span>
-              <div class="icon-box" [style.background-color]="card.iconBg">
-                <span class="icon">{{ card.icon }}</span>
-              </div>
-            </div>
+    <section class="welcome-row">
+      <div>
+        <p class="eyebrow">Panel de abastecimiento</p>
+        <h2>Resumen de compras</h2>
+        <p class="muted">Consulta el comportamiento de tus compras y proveedores.</p>
+      </div>
+      <button class="refresh-button" type="button" (click)="loadStatistics()" [disabled]="loading()" aria-label="Actualizar estadísticas">↻ Actualizar</button>
+    </section>
 
-            <div class="card-body">
-              <h2 class="title">{{ card.title }}</h2>
-              <p class="description">{{ card.description }}</p>
-            </div>
+    @if (error()) { <div class="error-banner">{{ error() }}</div> }
 
-            <div class="card-footer">
-              <span>Gestionar</span>
-              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+    @if (loading()) {
+      <div class="loading-card">Cargando estadísticas desde el backend…</div>
+    } @else {
+      <section class="kpi-grid" aria-label="Indicadores de compras">
+        <article class="kpi-card teal"><span class="kpi-icon">▣</span><div><p>Gasto promedio</p><strong>{{ formatCurrency(averagePurchase()) }}</strong><small>por compra registrada</small></div></article>
+        <article class="kpi-card blue"><span class="kpi-icon">🛒</span><div><p>Compras del mes</p><strong>{{ formatCurrency(totalMonth()) }}</strong><small>{{ purchasesCount() }} compras en total</small></div></article>
+        <article class="kpi-card green"><span class="kpi-icon">👥</span><div><p>Proveedores activos</p><strong>{{ activeSuppliers() }}</strong><small>disponibles para comprar</small></div></article>
+        <article class="kpi-card orange"><span class="kpi-icon">↔</span><div><p>Devoluciones recientes</p><strong>{{ recentReturns() }}</strong><small>registradas este mes</small></div></article>
+      </section>
+
+      <nav class="action-bar" aria-label="Acciones de compras">
+        @for (action of actions; track action.title) {
+          <button type="button" class="action-button" (click)="navigateTo(action.link)">
+            <span class="action-icon" [style.color]="action.accent">{{ action.icon }}</span>
+            <span><b>{{ action.title }}</b><small>{{ action.subtitle }}</small></span>
+            <span class="chevron">›</span>
+          </button>
+        }
+      </nav>
+
+      <section class="analytics-grid">
+        <article class="panel trend-panel">
+          <div class="panel-heading"><div><p class="eyebrow">Estadística #25</p><h3>Gasto total por mes</h3></div><span class="panel-badge">Últimos 6 meses</span></div>
+          <div class="bar-chart" aria-label="Gasto total por mes">
+            @for (month of monthlyTotals(); track month.label) {
+              <div class="bar-column"><span class="bar-value">{{ formatCurrency(month.total) }}</span><div class="bar" [style.height.%]="barHeight(month.total)"></div><small>{{ month.label }}</small></div>
+            }
+          </div>
+        </article>
+
+        <article class="panel supplier-panel">
+          <div class="panel-heading"><div><p class="eyebrow">Estadística #27</p><h3>Compras por proveedor</h3></div></div>
+          @if (supplierTotals().length) {
+            <div class="supplier-list">
+              @for (supplier of supplierTotals(); track supplier.name) {
+                <div class="supplier-row"><div class="supplier-label"><span>{{ supplier.name }}</span><b>{{ formatCurrency(supplier.total) }}</b></div><div class="progress-track"><span [style.width.%]="supplier.percentage"></span></div></div>
+              }
             </div>
-          </article>
-        </div>
-      }
-    </div>
+          } @else { <p class="empty-state">Aún no hay compras registradas.</p> }
+        </article>
+      </section>
+
+      <section class="operational-card">
+        <div class="operational-icon">▣</div>
+        <div><p class="eyebrow">Resumen operativo</p><h3>Controla el flujo de abastecimiento</h3><p class="muted">El gasto mostrado se obtiene del total de cada compra registrada y las devoluciones corresponden al mes actual.</p></div>
+        <button type="button" class="text-button" (click)="navigateTo('/purchasing/purchase-history')">Ver historial <span>→</span></button>
+      </section>
+    }
   </main>
 </div>

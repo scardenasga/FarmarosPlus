@@ -1,16 +1,30 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
+import { PurchasingService } from '../../services/purchasing.service';
+import { CompraResponse, DevolucionResponse } from '../../models/purchasing.model';
+import { SupplierService } from '../../../supplier/services/supplier.service';
+import { Supplier } from '../../../supplier/models/supplier.model';
 
-interface DashboardCard {
+interface DashboardAction {
   title: string;
-  description: string;
+  subtitle: string;
   icon: string;
   link: string;
-  tag: string;
-  color: string;
-  iconBg: string;
+  accent: string;
+}
+
+interface MonthlyTotal {
+  label: string;
+  total: number;
+}
+
+interface SupplierTotal {
+  name: string;
+  total: number;
+  percentage: number;
 }
 
 @Component({
@@ -20,48 +34,102 @@ interface DashboardCard {
   templateUrl: './purchasing-dashboard.component.html',
   styleUrl: './purchasing-dashboard.component.css'
 })
-export class PurchasingDashboardComponent {
-  private router = inject(Router);
+export class PurchasingDashboardComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly purchasingService = inject(PurchasingService);
+  private readonly supplierService = inject(SupplierService);
 
-  cards = signal<DashboardCard[]>([
-    {
-      title: 'Proveedores',
-      tag: 'Directorio',
-      description: 'Gestión de contactos, catálogos y condiciones de pago.',
-      icon: '🏢',
-      link: '/proveedores',
-      color: 'var(--primary)',
-      iconBg: 'color-mix(in srgb, var(--primary), transparent 85%)'
-    },
-    {
-      title: 'Gestión de Compras',
-      tag: 'Abastecimiento',
-      description: 'Historial de recepciones y registro de nueva mercancía.',
-      icon: '📦',
-      link: '/purchasing/purchase-history',
-      color: 'var(--secondary)',
-      iconBg: 'color-mix(in srgb, var(--secondary), transparent 85%)'
-    },
-    {
-      title: 'Gestión de Devoluciones',
-      tag: 'Calidad',
-      description: 'Historial y registro de retorno de productos.',
-      icon: '🔄',
-      link: '/purchasing/return-history',
-      color: 'var(--error)',
-      iconBg: 'color-mix(in srgb, var(--error), transparent 85%)'
+  readonly loading = signal(true);
+  readonly error = signal('');
+  readonly totalMonth = signal(0);
+  readonly averagePurchase = signal(0);
+  readonly activeSuppliers = signal(0);
+  readonly recentReturns = signal(0);
+  readonly purchasesCount = signal(0);
+  readonly monthlyTotals = signal<MonthlyTotal[]>([]);
+  readonly supplierTotals = signal<SupplierTotal[]>([]);
+
+  readonly actions: DashboardAction[] = [
+    { title: 'Proveedores', subtitle: 'Directorio y catálogos', icon: '🏢', link: '/proveedores', accent: '#83d5c5' },
+    { title: 'Historial', subtitle: 'Compras y recepciones', icon: '📦', link: '/purchasing/purchase-history', accent: '#accae5' },
+    { title: 'Devoluciones', subtitle: 'Gestionar retornos', icon: '↔', link: '/purchasing/return-history', accent: '#f0b37e' }
+  ];
+
+  ngOnInit(): void {
+    this.loadStatistics();
+  }
+
+  loadStatistics(): void {
+    this.loading.set(true);
+    this.error.set('');
+    forkJoin({
+      purchases: this.purchasingService.listarCompras(),
+      returns: this.purchasingService.listarDevoluciones(),
+      suppliers: this.supplierService.listActive()
+    }).subscribe({
+      next: ({ purchases, returns, suppliers }) => this.buildStatistics(purchases, returns, suppliers),
+      error: () => {
+        this.error.set('No se pudieron cargar las estadísticas. Verifica la conexión con el backend.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private buildStatistics(purchases: CompraResponse[], returns: DevolucionResponse[], suppliers: Supplier[]): void {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthPurchases = purchases.filter(p => {
+      const date = new Date(p.fechaRecepcion);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+
+    this.totalMonth.set(monthPurchases.reduce((sum, purchase) => sum + purchase.total, 0));
+    this.averagePurchase.set(monthPurchases.length ? this.totalMonth() / monthPurchases.length : 0);
+    this.activeSuppliers.set(suppliers.length);
+    this.recentReturns.set(returns.filter(item => this.isInCurrentMonth(item.fecha)).length);
+    this.purchasesCount.set(purchases.length);
+
+    const months: MonthlyTotal[] = [];
+    for (let offset = 5; offset >= 0; offset--) {
+      const date = new Date(currentYear, currentMonth - offset, 1);
+      const total = purchases
+        .filter(p => {
+          const purchaseDate = new Date(p.fechaRecepcion);
+          return purchaseDate.getMonth() === date.getMonth() && purchaseDate.getFullYear() === date.getFullYear();
+        })
+        .reduce((sum, purchase) => sum + purchase.total, 0);
+      months.push({ label: date.toLocaleDateString('es-CO', { month: 'short' }).replace('.', ''), total });
     }
-  ]);
+    this.monthlyTotals.set(months);
 
-  navigateTo(link: string): void {
-    this.router.navigate([link]);
+    const totalsBySupplier = new Map<string, number>();
+    purchases.forEach(purchase => totalsBySupplier.set(
+      purchase.nombreProveedor,
+      (totalsBySupplier.get(purchase.nombreProveedor) ?? 0) + purchase.total
+    ));
+    const grandTotal = purchases.reduce((sum, purchase) => sum + purchase.total, 0);
+    this.supplierTotals.set([...totalsBySupplier.entries()]
+      .map(([name, total]) => ({ name, total, percentage: grandTotal ? (total / grandTotal) * 100 : 0 }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 4));
+    this.loading.set(false);
   }
 
-  handleBack(): void {
-    this.router.navigate(['/']);
+  private isInCurrentMonth(value: string): boolean {
+    const date = new Date(value);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   }
 
-  handleAlerts(): void {
-    this.router.navigate(['/purchasing/order-notifications']);
+  navigateTo(link: string): void { this.router.navigate([link]); }
+  handleBack(): void { this.router.navigate(['/']); }
+  handleAlerts(): void { this.router.navigate(['/purchasing/order-notifications']); }
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
+  }
+  barHeight(value: number): number {
+    const max = Math.max(...this.monthlyTotals().map(item => item.total), 1);
+    return Math.max(value / max * 100, value ? 8 : 2);
   }
 }
