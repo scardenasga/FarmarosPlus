@@ -57,3 +57,20 @@ export interface AssociateProductRequest {
 export interface UpdateRelationStatusRequest {
   estado: 'ACTIVO' | 'INACTIVO';
 }
+
+export interface SupplierNote {
+  idNota: number;
+  tipoNota: string;
+  titulo: string;
+  descripcion: string;
+  fechaCreacion: string;
+  usuarioCreacion: string | null;
+  idOrdenRelacionada: number | null;
+}
+
+export interface CreateSupplierNoteRequest {
+  tipoNota: string;
+  titulo: string;
+  descripcion: string;
+  idOrdenRelacionada?: number;
+}

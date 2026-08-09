@@ -1,15 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { 
-  Supplier, 
-  CreateSupplierRequest, 
-  UpdateSupplierStatusRequest, 
-  SupplierDetalleResponse, 
-  UpdateSupplierRequest, 
-  AssociateProductRequest, 
+import {
+  Supplier,
+  CreateSupplierRequest,
+  UpdateSupplierStatusRequest,
+  SupplierDetalleResponse,
+  UpdateSupplierRequest,
+  AssociateProductRequest,
   UpdateRelationStatusRequest,
-  SupplierProductRel
+  SupplierProductRel,
+  SupplierNote,
+  CreateSupplierNoteRequest
 } from '../models/supplier.model';
 
 @Injectable({
@@ -57,5 +59,13 @@ export class SupplierService {
 
   deleteRelation(supplierId: number, productId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${supplierId}/productos/${productId}`);
+  }
+
+  listNotes(supplierId: number): Observable<SupplierNote[]> {
+    return this.http.get<SupplierNote[]>(`${this.apiUrl}/${supplierId}/notas`);
+  }
+
+  createNote(supplierId: number, request: CreateSupplierNoteRequest): Observable<SupplierNote> {
+    return this.http.post<SupplierNote>(`${this.apiUrl}/${supplierId}/notas`, request);
   }
 }
