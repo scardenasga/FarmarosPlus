@@ -16,4 +16,5 @@ export class TopBarComponent {
   action = output<void>();
 
   alertaService = inject(AlertaService);
+
 }
