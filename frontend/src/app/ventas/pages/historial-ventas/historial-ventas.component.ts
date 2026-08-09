@@ -98,6 +98,10 @@ export class HistorialVentasComponent implements OnInit {
   handleAddSale(): void {
     this.router.navigate(['/ventas/crear']);
   }
+
+  irAReportes(): void {
+    this.router.navigate(['/reportes/ventas']);
+  }
   toggleFilter() {
     this.isFilterVisible.update(v => !v);
   }

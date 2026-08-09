@@ -1,0 +1,63 @@
+<div class="reporte-page">
+  <div class="sticky-header">
+    <app-top-bar title="Reporte de ventas" [showAlert]="false" (back)="volver()"></app-top-bar>
+  </div>
+
+  <main class="content-area">
+    <app-period-filter (filtroChange)="handleFiltroChange($event)"></app-period-filter>
+
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Generando reporte...</p>
+      </div>
+    } @else if (error()) {
+      <p class="error-text">{{ error() }}</p>
+    } @else {
+      <div class="summary-card">
+        <div class="summary-item">
+          <span class="summary-label">Ventas</span>
+          <span class="summary-value">{{ ventas().length }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total del período</span>
+          <span class="summary-value">{{ totalPeriodo() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <button class="btn btn-secondary" [disabled]="exportando() || ventas().length === 0" (click)="exportarPdf()">
+          Exportar PDF
+        </button>
+        <button class="btn btn-secondary" [disabled]="exportando() || ventas().length === 0" (click)="exportarExcel()">
+          Exportar Excel
+        </button>
+      </div>
+
+      @if (ventas().length > 0) {
+        <table class="ventas-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Vendedor</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (venta of ventas(); track venta.idVenta) {
+              <tr>
+                <td>{{ venta.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ venta.usuario?.nombreCompleto || '—' }}</td>
+                <td class="text-right">{{ venta.total | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty-state">
+          <p>No hay ventas registradas en el período seleccionado.</p>
+        </div>
+      }
+    }
+  </main>
+</div>

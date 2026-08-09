@@ -5,21 +5,25 @@ import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.comp
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { SupplierService } from '../../services/supplier.service';
-import { SupplierDetalleResponse, SupplierProductRel } from '../../models/supplier.model';
+import { SupplierDetalleResponse, SupplierProductRel, SupplierNote } from '../../models/supplier.model';
 import { SupplierInfoCardComponent } from '../../components/supplier-info-card/supplier-info-card.component';
 import { SupplierProductListComponent } from '../../components/supplier-product-list/supplier-product-list.component';
 import { AssociateProductDialogComponent } from '../../components/associate-product-dialog/associate-product-dialog.component';
+import { SupplierNotesListComponent } from '../../components/supplier-notes-list/supplier-notes-list.component';
+import { AddNoteDialogComponent } from '../../components/add-note-dialog/add-note-dialog.component';
 
 @Component({
   selector: 'app-supplier-detail',
   standalone: true,
   imports: [
-    CommonModule, 
-    TopBarComponent, 
+    CommonModule,
+    TopBarComponent,
     ConfirmationDialogComponent,
     SupplierInfoCardComponent,
     SupplierProductListComponent,
-    AssociateProductDialogComponent
+    AssociateProductDialogComponent,
+    SupplierNotesListComponent,
+    AddNoteDialogComponent
   ],
   templateUrl: './supplier-detail.component.html',
   styleUrl: './supplier-detail.component.css'
@@ -31,10 +35,12 @@ export class SupplierDetailComponent implements OnInit, OnDestroy {
   private supplierService = inject(SupplierService);
 
   supplier = signal<SupplierDetalleResponse | null>(null);
+  notes = signal<SupplierNote[]>([]);
   showStatusConfirmation = signal<boolean>(false);
   showDeleteRelationConfirmation = signal<boolean>(false);
   showAssociateDialog = signal<boolean>(false);
-  
+  showAddNoteDialog = signal<boolean>(false);
+
   selectedProduct = signal<SupplierProductRel | null>(null);
 
   ngOnInit(): void {
@@ -58,6 +64,14 @@ export class SupplierDetailComponent implements OnInit, OnDestroy {
         console.error('Error loading supplier', err);
         this.onBack();
       }
+    });
+    this.loadNotes(id);
+  }
+
+  private loadNotes(id: number): void {
+    this.supplierService.listNotes(id).subscribe({
+      next: (found) => this.notes.set(found),
+      error: (err) => console.error('Error loading supplier notes', err)
     });
   }
 
@@ -146,5 +160,15 @@ export class SupplierDetailComponent implements OnInit, OnDestroy {
     const id = this.supplier()?.idProveedor;
     if (id) this.loadSupplier(id);
     this.showAssociateDialog.set(false);
+  }
+
+  openAddNoteDialog(): void {
+    this.showAddNoteDialog.set(true);
+  }
+
+  handleNoteAdded(): void {
+    const id = this.supplier()?.idProveedor;
+    if (id) this.loadNotes(id);
+    this.showAddNoteDialog.set(false);
   }
 }

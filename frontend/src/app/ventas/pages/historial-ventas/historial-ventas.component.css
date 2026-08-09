@@ -55,3 +55,20 @@
   flex: 1;
   text-align: center;
 }
+
+.header-simple-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.btn-reportes {
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+  color: var(--on-surface);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
