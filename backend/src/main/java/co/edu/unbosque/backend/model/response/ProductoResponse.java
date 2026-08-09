@@ -1,5 +1,7 @@
 package co.edu.unbosque.backend.model.response;
 
+import java.util.List;
+
 /**
  * DTO de salida para productos.
  *
@@ -16,6 +18,7 @@ package co.edu.unbosque.backend.model.response;
  * @param porcentajeIva porcentaje de IVA
  * @param requierePrescripcion indica si el producto requiere prescripción médica
  * @param estado estado funcional
+ * @param lotes lista de lotes asociados
  * @author Sebastian Cardenas Garcia
  */
 public record ProductoResponse(
@@ -31,6 +34,7 @@ public record ProductoResponse(
         Double margenGanancia,
         Double porcentajeIva,
         Boolean requierePrescripcion,
-        String estado
+        String estado,
+        List<LoteProductoResponse> lotes
 ) {
 }

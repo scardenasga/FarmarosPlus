@@ -2,62 +2,81 @@
   <div class="sticky-header">
     <app-top-bar
       title="Ingreso de Stock"
-      (back)="onCancel()"
-    ></app-top-bar>
+      (back)="onCancel()">
+    </app-top-bar>
   </div>
 
   <main class="content-area">
     <form [formGroup]="stockForm">
-      <!-- Sección de Identificación -->
+
+      <!-- Identificación del producto -->
       <div class="section-card">
         <h3 class="section-title">Identificación del Producto</h3>
         <app-form-input
           label="Código de Barras"
-          placeholder="Escanee o escriba el código"
+          placeholder="Escriba el código del producto"
           [control]="getControl('codigoBarras')"
-          [hasIcon]="true"
-        ></app-form-input>
+          [hasIcon]="true">
+        </app-form-input>
 
         @if (isSearching()) {
           <div class="search-status">Buscando producto...</div>
         } @else if (foundProduct()) {
           <div class="product-info-badge">
             <span class="product-name">{{ foundProduct()?.nombre }}</span>
-            <span class="product-stock">Stock actual: {{ foundProduct()?.stockActual }}</span>
+            <span class="product-stock">Stock actual: {{ foundProduct()?.stockActual }} uds</span>
           </div>
         } @else if (getControl('codigoBarras').value?.length >= 3) {
           <div class="search-status error">Producto no encontrado</div>
         }
       </div>
 
-      <!-- Sección de Ingreso -->
+      <!-- Lotes -->
       <div class="section-card">
-        <h3 class="section-title">Detalles del Ingreso</h3>
-        <div class="row">
-          <app-form-input
-            style="flex: 1"
-            label="Cantidad"
-            type="number"
-            placeholder="0"
-            [control]="getControl('cantidad')"
-          ></app-form-input>
-          
-          <app-form-input
-            style="flex: 1"
-            label="Vencimiento"
-            type="date"
-            [control]="getControl('fechaVencimiento')"
-          ></app-form-input>
-        </div>
+        <h3 class="section-title">Lotes a Ingresar</h3>
 
-        <app-form-input
-          label="Número de Lote (Opcional)"
-          placeholder="Ej: LOT-123"
-          [control]="getControl('numeroLote')"
-        ></app-form-input>
+        @for (lote of lotes.controls; track $index) {
+          <div class="lote-card">
+            <div class="lote-header">
+              <span class="lote-num">Lote {{ $index + 1 }}</span>
+              @if (lotes.length > 1) {
+                <button type="button" class="btn-eliminar-lote" (click)="eliminarLote($index)">
+                  ✕ Eliminar
+                </button>
+              }
+            </div>
+
+            <div class="row">
+              <app-form-input
+                style="flex: 1"
+                label="Cantidad"
+                type="number"
+                placeholder="0"
+                [control]="getLoteControl($index, 'cantidad')">
+              </app-form-input>
+
+              <app-form-input
+                style="flex: 1"
+                label="Vencimiento"
+                type="date"
+                [control]="getLoteControl($index, 'fechaVencimiento')">
+              </app-form-input>
+            </div>
+
+            <app-form-input
+              label="Número de Lote (Opcional)"
+              placeholder="Ej: LOT-123"
+              [control]="getLoteControl($index, 'numeroLote')">
+            </app-form-input>
+          </div>
+        }
+
+        <button type="button" class="btn-agregar-lote" (click)="agregarLote()">
+          + Agregar otro lote
+        </button>
       </div>
 
-      <!-- Sección de Precios (Opcional) -->
+      <!-- Precios opcionales -->
       <div class="section-card">
         <h3 class="section-title">Actualización de Precios (Opcional)</h3>
         <div class="row">
@@ -66,35 +85,45 @@
             label="Nuevo Costo"
             type="number"
             placeholder="$ 0.00"
-            [control]="getControl('nuevoCosto')"
-          ></app-form-input>
-          
+            [control]="getControl('nuevoCosto')">
+          </app-form-input>
+
           <app-form-input
             style="flex: 1"
             label="Nuevo Precio Venta"
             type="number"
             placeholder="$ 0.00"
-            [control]="getControl('nuevoPrecioVenta')"
-          ></app-form-input>
+            [control]="getControl('nuevoPrecioVenta')">
+          </app-form-input>
         </div>
       </div>
+
     </form>
+
+    @if (errorMsg()) {
+      <div class="error-msg">{{ errorMsg() }}</div>
+    }
+
+    @if (registrando()) {
+      <div class="registrando-msg">Registrando lotes... por favor espera.</div>
+    }
+
   </main>
 
   <footer class="sticky-footer">
     <button class="btn btn-cancel" (click)="onCancel()">Cancelar</button>
-    <button class="btn btn-save" [disabled]="stockForm.invalid" (click)='onSave()'>
-      Registrar Ingreso
+    <button class="btn btn-save" [disabled]="stockForm.invalid || registrando()" (click)="onSave()">
+      {{ registrando() ? 'Registrando...' : 'Registrar Ingreso' }}
     </button>
   </footer>
 
   @if (showConfirmation()) {
     <app-confirmation-dialog
       title="Confirmar Ingreso"
-      content="¿Está seguro de que desea registrar este ingreso de stock?"
+      [content]="'¿Registrar ' + lotesPendientes() + ' lote(s) para ' + foundProduct()?.nombre + '?'"
       confirmText="Registrar"
       (onConfirm)="confirmIngreso()"
-      (onCancel)="cancelConfirmation()"
-    ></app-confirmation-dialog>
+      (onCancel)="cancelConfirmation()">
+    </app-confirmation-dialog>
   }
 </div>

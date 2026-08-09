@@ -24,6 +24,10 @@ export class RegistrarVentaComponent implements OnInit {
   constructor(private ventaService: VentaService, private router: Router) {}
 
   ngOnInit() {
+    this.cargarProductos();
+  }
+
+  cargarProductos() {
     const data = sessionStorage.getItem('productosVenta');
     if (data) {
       this.productos = JSON.parse(data);
@@ -35,8 +39,22 @@ export class RegistrarVentaComponent implements OnInit {
   cambiarCantidad(producto: any, delta: number) {
     producto.cantidad += delta;
     if (producto.cantidad <= 0) {
-      this.productos = this.productos.filter(p => p.id !== producto.id);
+      this.eliminarProducto(producto);
+    } else {
+      this.guardarEnSesion();
     }
+  }
+
+  eliminarProducto(producto: any) {
+    this.productos = this.productos.filter(p => p.id !== producto.id);
+    this.guardarEnSesion();
+    if (this.productos.length === 0) {
+      this.router.navigate(['/ventas/crear']);
+    }
+  }
+
+  guardarEnSesion() {
+    sessionStorage.setItem('productosVenta', JSON.stringify(this.productos));
   }
 
   get subtotal(): number {

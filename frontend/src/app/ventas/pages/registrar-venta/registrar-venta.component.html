@@ -17,10 +17,30 @@
       </div>
       <div class="prod-info-resumen">
         <span class="p-name">{{ p.nombre }}</span>
-        <span class="p-price">${{ p.precioVenta | number }}</span>
+        <div class="p-metadata">
+          <span class="p-price">${{ p.precioVenta | number }} <small>/ und.</small></span>
+          <span class="p-lote">
+            Lote: {{ p.numeroLote || 'Auto-FEFO' }} 
+            <ng-container *ngIf="p.loteId">
+              | {{ p.cantidadDisponibleLote }} und. | Vence: {{ p.fechaVencimientoLote | date:'yyyy-MM-dd' }}
+            </ng-container>
+          </span>
+        </div>
       </div>
-      <div class="prod-derecha">
-        <span class="p-qty">{{ p.cantidad }} und.</span>
+      
+      <div class="prod-controles">
+        <button class="btn-qty" (click)="cambiarCantidad(p, -1)">-</button>
+        <span class="p-qty-num">{{ p.cantidad }}</span>
+        <button class="btn-qty" (click)="cambiarCantidad(p, 1)">+</button>
+      </div>
+
+      <div class="prod-derecha-resumen">
+        <span class="p-subtotal-linea">${{ (p.precioVenta * p.cantidad) | number }}</span>
+        <button class="btn-delete" (click)="eliminarProducto(p)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" fill="currentColor"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>

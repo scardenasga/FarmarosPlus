@@ -1,0 +1,38 @@
+<div class="lotes-accordion" [class.open]="isOpen()">
+  <button class="accordion-header" (click)="toggleAccordion()">
+    <div class="header-content">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      <span>Reclamos y observaciones ({{ notes().length }})</span>
+    </div>
+    <svg class="chevron" [class.rotated]="isOpen()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+
+  <div class="accordion-content">
+    <div class="list-actions">
+      <button class="btn-add" (click)="addNote.emit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Registrar nota
+      </button>
+    </div>
+
+    @if (notes().length > 0) {
+      <div class="notes-container">
+        @for (note of notes(); track note.idNota) {
+          <div class="note-item">
+            <div class="note-header">
+              <span class="note-tipo">{{ tipoLabel(note.tipoNota) }}</span>
+              <span class="note-fecha">{{ note.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <span class="note-titulo">{{ note.titulo }}</span>
+            <p class="note-descripcion">{{ note.descripcion }}</p>
+            <span class="note-usuario">Registrado por: {{ note.usuarioCreacion || 'Sistema' }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <p>No hay reclamos ni observaciones registradas para este proveedor.</p>
+      </div>
+    }
+  </div>
+</div>

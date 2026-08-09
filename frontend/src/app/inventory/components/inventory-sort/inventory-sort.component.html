@@ -1,0 +1,26 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Ordenar por"
+>
+  <div class="sort-header">
+    <h2>Ordenar por</h2>
+  </div>
+
+  <div class="sort-options">
+    @for (option of options; track option.field + option.order) {
+      <button 
+        class="sort-item" 
+        [class.active]="currentField() === option.field && currentOrder() === option.order"
+        (click)="selectOption(option)"
+      >
+        <span class="label">{{ option.label }}</span>
+        @if (currentField() === option.field && currentOrder() === option.order) {
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="var(--primary)"/>
+          </svg>
+        }
+      </button>
+    }
+  </div>
+</app-bottom-sheet>

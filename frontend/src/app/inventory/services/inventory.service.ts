@@ -36,6 +36,10 @@ export class InventoryService {
     return this.http.post(`${this.productsUrl}/codigo-barras/${codigoBarras}/ingresos`, request);
   }
 
+  registrarGestionLotes(items: any[]): Observable<any> {
+    return this.http.post(`${this.productsUrl}/gestion-lotes`, { items });
+  }
+
   searchProducts(nombre?: string, codigo?: string): Observable<Product[]> {
     let params = '';
     if (nombre) params += `nombre=${nombre}`;

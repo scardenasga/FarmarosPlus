@@ -12,6 +12,7 @@ import co.edu.unbosque.backend.model.request.CrearVentaRequest;
 import co.edu.unbosque.backend.model.request.HistoricoFiltroRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.DetalleVentaResponse;
+import co.edu.unbosque.backend.model.response.LoteProductoResponse;
 import co.edu.unbosque.backend.model.response.LoteResumenResponse;
 import co.edu.unbosque.backend.model.response.PagoVentaResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -177,7 +179,8 @@ public ResponseEntity<List<VentaResponse>> consultarHistorico(
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                Collections.emptyList()
         );
     }
 

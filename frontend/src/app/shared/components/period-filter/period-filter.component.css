@@ -1,0 +1,50 @@
+.period-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.period-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.period-btn:hover {
+  background-color: var(--surface-container-high);
+}
+
+.period-btn.active {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.custom-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.range-separator {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.error-text {
+  color: var(--error, #b3261e);
+  font-size: 12px;
+  margin: 0;
+}

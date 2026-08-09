@@ -1,12 +1,11 @@
 package co.edu.unbosque.backend.controller;
 
-import co.edu.unbosque.backend.model.entity.Categoria;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
+import co.edu.unbosque.backend.model.request.GestionLotesRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
-import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.service.ProductoService;
@@ -95,7 +94,7 @@ public class ProductoController {
     )
     public ResponseEntity<ProductoResponse> guardarProducto(@Valid @RequestBody CrearProductoRequest request) {
         Producto productoGuardado = productoService.crearProducto(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toProductoResponse(productoGuardado));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productoService.toProductoResponse(productoGuardado));
     }
 
     /**
@@ -134,7 +133,7 @@ public class ProductoController {
             @PathVariable Long id,
             @Valid @RequestBody ActualizarProductoRequest request
     ) {
-        return ResponseEntity.ok(toProductoResponse(productoService.actualizarProducto(id, request)));
+        return ResponseEntity.ok(productoService.toProductoResponse(productoService.actualizarProducto(id, request)));
     }
 
     /**
@@ -177,7 +176,7 @@ public class ProductoController {
             @PathVariable String codigoBarras,
             @Valid @RequestBody IngresoProductoRequest request
     ) {
-        return ResponseEntity.ok(toProductoResponse(productoService.ingresarStock(codigoBarras, request)));
+        return ResponseEntity.ok(productoService.toProductoResponse(productoService.ingresarStock(codigoBarras, request)));
     }
 
     /**
@@ -186,7 +185,7 @@ public class ProductoController {
     @GetMapping("/{id}")
     @Operation(summary = "Consultar producto por id")
     public ResponseEntity<ProductoResponse> obtenerProductoPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(toProductoResponse(productoService.obtenerProductoPorId(id)));
+        return ResponseEntity.ok(productoService.toProductoResponse(productoService.obtenerProductoPorId(id)));
     }
 
     /**
@@ -206,7 +205,7 @@ public class ProductoController {
     public ResponseEntity<List<ProductoResponse>> listarActivos() {
         return ResponseEntity.ok(productoService.listarProductosActivos()
                 .stream()
-                .map(this::toProductoResponse)
+                .map(productoService::toProductoResponse)
                 .toList());
     }
 
@@ -218,7 +217,7 @@ public class ProductoController {
     public ResponseEntity<List<ProductoResponse>> listarProductosConStockBajo() {
         return ResponseEntity.ok(productoService.listarProductosConStockBajo()
                 .stream()
-                .map(this::toProductoResponse)
+                .map(productoService::toProductoResponse)
                 .toList());
     }
 
@@ -277,35 +276,13 @@ public class ProductoController {
             @PathVariable String codigoBarras,
             @Valid @org.springframework.web.bind.annotation.RequestBody CambioPrecioProductoRequest request
     ) {
-        return ResponseEntity.ok(toProductoResponse(productoService.actualizarPrecio(codigoBarras, request)));
+        return ResponseEntity.ok(productoService.toProductoResponse(productoService.actualizarPrecio(codigoBarras, request)));
     }
 
-    private ProductoResponse toProductoResponse(Producto producto) {
-        return new ProductoResponse(
-                producto.getUniqueID(),
-                toCategoriaResponse(producto.getCategoria()),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getCodigoBarras(),
-                producto.getStockMinimo(),
-                producto.getStockActual(),
-                producto.getCosto(),
-                producto.getPrecioVenta(),
-                producto.getMargenGanancia(),
-                producto.getPorcentajeIva(),
-                producto.getRequierePrescripcion(),
-                producto.getEstado()
-        );
-    }
-
-    private CategoriaResponse toCategoriaResponse(Categoria categoria) {
-        if (categoria == null) {
-            return null;
-        }
-        return new CategoriaResponse(
-                categoria.getIdCategoria(),
-                categoria.getNombre(),
-                categoria.getDescripcion()
-        );
+    @PostMapping("/gestion-lotes")
+    @Operation(summary = "Registrar gestión de lotes", description = "Permite registrar ingresos de varios productos y lotes en una sola transacción para trazabilidad.")
+    public ResponseEntity<Void> registrarGestionLotes(@Valid @RequestBody GestionLotesRequest request) {
+        productoService.registrarGestionLotes(request);
+        return ResponseEntity.ok().build();
     }
 }

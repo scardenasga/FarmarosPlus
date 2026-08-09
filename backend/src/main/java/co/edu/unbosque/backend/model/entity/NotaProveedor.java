@@ -31,7 +31,7 @@ public class NotaProveedor extends Auditable {
     private Proveedor proveedor;
 
     /**
-     * Valores válidos: RETRASO | PRODUCTO_DEFECTUOSO | CAMBIO_PRECIO | CAMBIO_CONTACTO | OTRO
+     * Valores válidos: RECLAMO | OBSERVACION | RETRASO | PRODUCTO_DEFECTUOSO | CAMBIO_PRECIO | CAMBIO_CONTACTO | OTRO
      */
     @Column(name = "tipo_nota", nullable = false)
     private String tipoNota;

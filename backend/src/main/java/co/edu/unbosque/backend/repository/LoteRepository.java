@@ -98,11 +98,12 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findLotesDisponiblesOrdenadosPorVencimiento();
 
     /**
-     * Lista los lotes disponibles de un producto ordenados por vencimiento.
+     * Lista los lotes disponibles de un producto ordenados por vencimiento
      *
      * @param idProducto identificador del producto
-     * @return lotes del producto con stock disponible
+     * @return lotes del producto con stock disponible bloqueados para escritura
      */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT l
             FROM Lote l
