@@ -13,9 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -87,36 +84,5 @@ class DevolucionControllerTest {
 
         mockMvc.perform(get("/api/devoluciones"))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void actualizar_debeRetornar200() throws Exception {
-        DevolucionResponse response = new DevolucionResponse(
-                1L, 1L, "Proveedor ABC", "admin", "Motivo nuevo",
-                LocalDateTime.now(), List.of());
-
-        when(devolucionService.actualizar(eq(1L), any())).thenReturn(response);
-
-        mockMvc.perform(patch("/api/devoluciones/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "motivo": "Motivo nuevo",
-                                  "observaciones": "Nota"
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.motivo").value("Motivo nuevo"));
-    }
-
-    @Test
-    void eliminar_debeRetornar204() throws Exception {
-        doNothing().when(devolucionService).eliminar(eq(1L), any());
-
-        mockMvc.perform(delete("/api/devoluciones/1")
-                        .param("usuarioResponsable", "admin"))
-                .andExpect(status().isNoContent());
-
-        verify(devolucionService).eliminar(1L, "admin");
     }
 }
