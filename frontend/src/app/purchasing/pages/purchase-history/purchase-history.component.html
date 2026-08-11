@@ -6,12 +6,8 @@
   </app-top-bar>
 
   <main class="content">
-    <section class="toolbar-card">
-      <div>
-        <p class="eyebrow">Consulta de abastecimiento</p>
-        <h2>Compras registradas</h2>
-      </div>
-      <select class="select-filtro" aria-label="Filtrar por proveedor" [value]="filtroIdProveedor() || 'null'" (change)="aplicarFiltro($event)">
+    <section class="filtro-bar">
+      <select class="select-filtro" [value]="filtroIdProveedor() || 'null'" (change)="aplicarFiltro($event)">
         <option value="null">Todos los proveedores</option>
         @for (p of proveedores(); track p.idProveedor) {
           <option [value]="p.idProveedor">{{ p.nombre }}</option>
@@ -29,8 +25,7 @@
 
     <div class="contenido-scroll">
       @for (c of compras(); track c.id) {
-      <article class="compra-card">
-          <div class="compra-acento"></div>
+        <article class="compra-card">
           <div class="compra-top">
             <h3 class="compra-proveedor">{{ c.nombreProveedor }}</h3>
             <span class="compra-fecha">{{ c.fechaRecepcion | date:'dd/MM/yyyy' }}</span>
@@ -51,7 +46,7 @@
             <p class="compra-notas">{{ c.notas }}</p>
           }
 
-          <button class="btn-expandir" type="button" (click)="toggleDetalles(c.id)" [attr.aria-expanded]="idExpandida() === c.id">
+          <button class="btn-expandir" (click)="toggleDetalles(c.id)">
             <span>{{ totalUnidades(c) }} unid. · {{ c.detalles.length }} productos</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
                  [style.transform]="idExpandida() === c.id ? 'rotate(180deg)' : 'rotate(0deg)'"

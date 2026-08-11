@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { PurchasingService } from '../../services/purchasing.service';
-import { Supplier, SupplierDetalleResponse, SupplierProductRel } from '../../../supplier/models/supplier.model';
+import { Supplier } from '../../../supplier/models/supplier.model';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 
 interface ItemCompra {
@@ -27,11 +27,6 @@ export class RegisterPurchaseComponent implements OnInit {
   private router = inject(Router);
 
   proveedores = signal<Supplier[]>([]);
-  busquedaProveedor = signal<string>('');
-  mostrarListaProveedores = signal<boolean>(true);
-  detalleProveedor = signal<SupplierDetalleResponse | null>(null);
-  busquedaProductoProveedor = signal<string>('');
-  cargandoDetalleProveedor = signal<boolean>(false);
   idProveedorSeleccionado = signal<number | null>(null);
   numeroFactura = signal<string>('');
   notas = signal<string>('');
@@ -52,25 +47,6 @@ export class RegisterPurchaseComponent implements OnInit {
   error = signal<string>('');
   cargandoProveedores = signal<boolean>(true);
 
-  proveedoresFiltrados = computed(() => {
-    const termino = this.busquedaProveedor().trim().toLowerCase();
-    if (!termino) return this.proveedores();
-    return this.proveedores().filter(p =>
-      [p.nombre, p.nit ?? '', p.contacto ?? '', p.telefono ?? '']
-        .some(valor => valor.toLowerCase().includes(termino))
-    );
-  });
-
-  productosProveedorFiltrados = computed(() => {
-    const termino = this.busquedaProductoProveedor().trim().toLowerCase();
-    const productos = this.detalleProveedor()?.productos ?? [];
-    if (!termino) return [];
-    return productos.filter(prod =>
-      [prod.nombre, prod.codigoBarras, prod.codigoProductoProveedor ?? '', prod.descripcion ?? '']
-        .some(valor => valor.toLowerCase().includes(termino))
-    );
-  });
-
   totalCompra = computed(() => {
     return this.items().reduce((s, i) => s + i.cantidad * i.precioUnitario, 0);
   });
@@ -79,17 +55,10 @@ export class RegisterPurchaseComponent implements OnInit {
     return this.idProveedorSeleccionado() !== null && this.items().length > 0 && !this.enviando();
   });
 
-  seleccionarProveedor(proveedor: Supplier): void {
-    this.idProveedorSeleccionado.set(proveedor.idProveedor);
-    this.busquedaProveedor.set('');
-    this.mostrarListaProveedores.set(false);
-    this.items.set([]);
-    this.cargarDetalleProveedor(proveedor.idProveedor);
-  }
-
-  proveedorSeleccionado(): Supplier | null {
-    const id = this.idProveedorSeleccionado();
-    return id === null ? null : this.proveedores().find(p => p.idProveedor === id) ?? null;
+  onProveedorChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const value = target.value;
+    this.idProveedorSeleccionado.set(value === 'null' ? null : Number(value));
   }
 
   ngOnInit(): void {
@@ -133,31 +102,6 @@ export class RegisterPurchaseComponent implements OnInit {
     });
   }
 
-  cargarDetalleProveedor(proveedorId: number): void {
-    this.cargandoDetalleProveedor.set(true);
-    this.detalleProveedor.set(null);
-    this.busquedaProductoProveedor.set('');
-    this.productoSeleccionado.set(null);
-    this.supplierService.getDetail(proveedorId).subscribe({
-      next: detalle => {
-        this.detalleProveedor.set(detalle);
-        this.cargandoDetalleProveedor.set(false);
-      },
-      error: () => this.cargandoDetalleProveedor.set(false)
-    });
-  }
-
-  buscarAlEscribir(termino: string): void {
-    this.busquedaProductoProveedor.set(termino);
-  }
-
-  seleccionarProductoProveedor(producto: SupplierProductRel): void {
-    this.productoSeleccionado.set(producto);
-    this.cantidadModal.set(1);
-    this.precioModal.set(producto.precioReferencia ?? 0);
-    this.errorModal.set('');
-  }
-
   seleccionarProducto(prod: any): void {
     this.productoSeleccionado.set(prod);
     this.cantidadModal.set(1);
@@ -186,10 +130,6 @@ export class RegisterPurchaseComponent implements OnInit {
         }];
       }
     });
-    this.productoSeleccionado.set(null);
-    this.resultados.set([]);
-    this.termino.set('');
-    this.errorModal.set('');
     this.cerrarModal();
   }
 
