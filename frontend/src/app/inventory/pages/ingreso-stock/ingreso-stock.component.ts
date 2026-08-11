@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl, FormArray } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
@@ -12,13 +13,14 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'r
 @Component({
   selector: 'app-ingreso-stock',
   standalone: true,
-  imports: [ReactiveFormsModule, TopBarComponent, FormInputComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, TopBarComponent, FormInputComponent, ConfirmationDialogComponent],
   templateUrl: './ingreso-stock.component.html',
   styleUrl: './ingreso-stock.component.css'
 })
 export class IngresoStockComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private navService = inject(NavigationService);
   private inventoryService = inject(InventoryService);
 
@@ -26,11 +28,19 @@ export class IngresoStockComponent implements OnInit, OnDestroy {
   foundProduct = signal<Product | null>(null);
   showConfirmation = signal<boolean>(false);
   isSearching = signal<boolean>(false);
+  registrando = signal<boolean>(false);
+  errorMsg = signal<string>('');
+  lotesPendientes = signal<number>(0);
 
   ngOnInit(): void {
     this.navService.hideNav();
     this.initForm();
     this.setupBarcodeSearch();
+    const barcode = this.route.snapshot.queryParamMap.get('barcode');
+    if (barcode) {
+      this.stockForm.get('codigoBarras')?.setValue(barcode);
+}
+    
   }
 
   ngOnDestroy(): void {
@@ -41,15 +51,39 @@ export class IngresoStockComponent implements OnInit, OnDestroy {
     return this.stockForm.get(name) as FormControl;
   }
 
+  get lotes(): FormArray {
+    return this.stockForm.get('lotes') as FormArray;
+  }
+
+  getLoteControl(index: number, name: string): FormControl {
+    return (this.lotes.at(index) as FormGroup).get(name) as FormControl;
+  }
+
   private initForm(): void {
     this.stockForm = this.fb.group({
       codigoBarras: ['', [Validators.required]],
+      nuevoCosto: [null, [Validators.min(0)]],
+      nuevoPrecioVenta: [null, [Validators.min(0)]],
+      lotes: this.fb.array([this.crearLoteGroup()])
+    });
+  }
+
+  private crearLoteGroup(): FormGroup {
+    return this.fb.group({
       cantidad: [null, [Validators.required, Validators.min(1)]],
       fechaVencimiento: ['', [Validators.required]],
-      numeroLote: [''],
-      nuevoCosto: [null, [Validators.min(0)]],
-      nuevoPrecioVenta: [null, [Validators.min(0)]]
+      numeroLote: ['']
     });
+  }
+
+  agregarLote(): void {
+    this.lotes.push(this.crearLoteGroup());
+  }
+
+  eliminarLote(index: number): void {
+    if (this.lotes.length > 1) {
+      this.lotes.removeAt(index);
+    }
   }
 
   private setupBarcodeSearch(): void {
@@ -80,35 +114,50 @@ export class IngresoStockComponent implements OnInit, OnDestroy {
   }
 
   onSave(): void {
-    if (this.stockForm.invalid) {
+    if (this.stockForm.invalid || !this.foundProduct()) {
       this.stockForm.markAllAsTouched();
       return;
     }
+    this.lotesPendientes.set(this.lotes.length);
     this.showConfirmation.set(true);
   }
 
   confirmIngreso(): void {
+    this.showConfirmation.set(false);
+    this.registrando.set(true);
+    this.errorMsg.set('');
+
     const formValue = this.stockForm.value;
     const codigoBarras = formValue.codigoBarras;
+    const lotesArray = formValue.lotes;
 
-    const request: IngresoStockRequest = {
-      cantidad: formValue.cantidad,
-      fechaVencimiento: formValue.fechaVencimiento,
-      numeroLote: formValue.numeroLote || undefined,
-      nuevoCosto: formValue.nuevoCosto !== null ? formValue.nuevoCosto : undefined,
-      nuevoPrecioVenta: formValue.nuevoPrecioVenta !== null ? formValue.nuevoPrecioVenta : undefined
+    // Registrar lotes secuencialmente
+    const registrarLote = (index: number) => {
+      if (index >= lotesArray.length) {
+        this.registrando.set(false);
+        this.router.navigate(['/inventario']);
+        return;
+      }
+
+      const lote = lotesArray[index];
+      const request: IngresoStockRequest = {
+        cantidad: lote.cantidad,
+        fechaVencimiento: lote.fechaVencimiento,
+        numeroLote: lote.numeroLote || undefined,
+        nuevoCosto: index === 0 && formValue.nuevoCosto ? formValue.nuevoCosto : undefined,
+        nuevoPrecioVenta: index === 0 && formValue.nuevoPrecioVenta ? formValue.nuevoPrecioVenta : undefined
+      };
+
+      this.inventoryService.registrarIngreso(codigoBarras, request).subscribe({
+        next: () => registrarLote(index + 1),
+        error: (err) => {
+          this.registrando.set(false);
+          this.errorMsg.set(`Error registrando lote ${index + 1}: ${err?.error?.message || 'Error desconocido'}`);
+        }
+      });
     };
 
-    this.inventoryService.registrarIngreso(codigoBarras, request).subscribe({
-      next: () => {
-        this.showConfirmation.set(false);
-        this.router.navigate(['/inventario']);
-      },
-      error: (err) => {
-        console.error('Error registrando ingreso', err);
-        this.showConfirmation.set(false);
-      }
-    });
+    registrarLote(0);
   }
 
   cancelConfirmation(): void {

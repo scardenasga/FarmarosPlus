@@ -5,17 +5,39 @@
 
   <div class="info-container">
     <h3 class="product-name">{{ product().nombre }}</h3>
-    @if (product().categoria) {
-      <span class="category-tag">{{ product().categoria?.nombre }}</span>
-    }
+    <div class="meta-row">
+      @if (product().categoria) {
+        <span class="category-tag">{{ product().categoria?.nombre }}</span>
+      }
+      @if (product().lotes && product().lotes!.length > 0) {
+        <span class="lotes-count">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 8V21H3V8M1 3H23V8H1V3M10 12H14"/></svg>
+          {{ product().lotes!.length }} lotes
+        </span>
+      }
+    </div>
     <div class="metrics">
       <span class="price">{{ product().precioVenta | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
       @if (product().trend) {
         <span class="trend" [class.positive]="product().trend! > 0">
-              {{ product().trend! > 0 ? '+' : '' }}{{ product().trend }} %
-            </span>
+          {{ product().trend! > 0 ? '+' : '' }}{{ product().trend }} %
+        </span>
       }
     </div>
+
+    @if (product().lotes && product().lotes!.length > 0) {
+      <div class="lotes-preview">
+        @for (lote of product().lotes!.slice(0, 2); track lote.id) {
+          <div class="lote-mini-tag">
+            <span class="l-num">{{ lote.numeroLote }}</span>
+            <span class="l-qty">{{ lote.cantidad }} u.</span>
+          </div>
+        }
+        @if (product().lotes!.length > 2) {
+          <span class="more-lotes">+{{ product().lotes!.length - 2 }} más</span>
+        }
+      </div>
+    }
   </div>
 
   <div class="stock-container">

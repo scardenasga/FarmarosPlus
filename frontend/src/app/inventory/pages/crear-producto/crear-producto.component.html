@@ -109,21 +109,11 @@
             </label>
           </div>
 
-          <div class="switch-group">
-            <label>¿Usar número de lote?</label>
-            <label class="switch">
-              <input type="checkbox" formControlName="hasLote">
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          @if (productForm.get('hasLote')?.value) {
-            <app-form-input
-              label="Número de Lote"
-              placeholder="Ingrese el número de lote"
-              [control]="getControl('numeroLote')">
-            </app-form-input>
-          }
+          <app-form-input
+            label="Número de Lote"
+            placeholder="Ingrese el número de lote"
+            [control]="getControl('numeroLote')">
+          </app-form-input>
         </div>
       </section>
     </form>

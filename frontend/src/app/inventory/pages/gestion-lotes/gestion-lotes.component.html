@@ -1,0 +1,123 @@
+<div class="batch-entry-page">
+  <div class="sticky-header">
+    <app-top-bar 
+      title="Gestión de Lotes" 
+      [showAlert]="false" 
+      (back)="onBack()">
+    </app-top-bar>
+  </div>
+
+  <main class="content">
+    <div class="batch-card">
+      <div class="card-header">
+        <h3>Lista de Lotes a Registrar</h3>
+        <span>{{ rows().length }} filas</span>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th class="prod-cell">Producto</th>
+              <th>Cantidad</th>
+              <th>Lote</th>
+              <th>Vencimiento</th>
+              <th>Nuevo Costo</th>
+              <th>Nuevo Precio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.idTemp; let i = $index) {
+              <tr [class.fila-invalida]="filasInvalidas().has(row.idTemp)">
+                <td class="prod-cell">
+                  <input 
+                    type="text" 
+                    class="input-small" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.producto"
+                    placeholder="Buscar producto..." 
+                    [(ngModel)]="row.busqueda"
+                    (input)="onSearchChange(i, $event)"
+                    (focus)="onInputFocus(i, $event)"
+                    (blur)="onInputBlur(i)"
+                  />
+                </td>
+                <td>
+                  <input 
+                    type="number" 
+                    class="input-small qty-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.cantidad"
+                    [(ngModel)]="row.cantidad" 
+                    (ngModelChange)="onCampoChange(i)"
+                    placeholder="Cant." />
+                </td>
+                <td>
+                  <input 
+                    type="text" 
+                    class="input-small lote-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.numeroLote"
+                    [(ngModel)]="row.numeroLote" 
+                    (ngModelChange)="onCampoChange(i)"
+                    placeholder="Num. Lote" />
+                </td>
+                <td>
+                  <input 
+                    type="date" 
+                    class="input-small date-input" 
+                    [class.campo-invalido]="filasInvalidas().has(row.idTemp) && !row.fechaVencimiento"
+                    [(ngModel)]="row.fechaVencimiento" 
+                    (ngModelChange)="onCampoChange(i)" />
+                </td>
+                <td>
+                  <input type="number" class="input-small price-input" [(ngModel)]="row.nuevoCosto" placeholder="Costo" />
+                </td>
+                <td>
+                  <input type="number" class="input-small price-input" [(ngModel)]="row.nuevoPrecioVenta" placeholder="Precio" />
+                </td>
+                <td>
+                  <button class="btn-remove" (click)="removeRow(i)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </td>
+              </tr>
+              @if (filasInvalidas().has(row.idTemp)) {
+                <tr class="fila-invalida-mensaje">
+                  <td colspan="7">
+                    <span class="mensaje-error">⚠ Esta fila no se guardó: complete los campos faltantes.</span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn-add-row" (click)="addRow()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir otra fila
+      </button>
+
+      <div class="footer-actions">
+        <button class="btn btn-secondary" (click)="onBack()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="cargando()" (click)="guardarTodo()">
+          {{ cargando() ? 'Guardando...' : 'Confirmar Gestión de Lotes' }}
+        </button>
+      </div>
+    </div>
+  </main>
+
+  @if (activeRowIndex() !== null && rows()[activeRowIndex()!].resultados.length > 0 && dropdownPos()) {
+    <div 
+      class="search-results-fixed"
+      [style.top.px]="dropdownPos()!.top"
+      [style.left.px]="dropdownPos()!.left"
+      [style.width.px]="dropdownPos()!.width">
+      @for (p of rows()[activeRowIndex()!].resultados; track p.id) {
+        <div class="search-item" (mousedown)="selectProduct(activeRowIndex()!, p)">
+          <span class="p-name">{{ p.nombre }}</span>
+          <span class="p-code">{{ p.codigoBarras }}</span>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,38 @@
+<app-bottom-sheet
+  [isOpen]="isVisible()"
+  (close)="handleClose()"
+  title="Registrar reclamo u observación"
+>
+  <div class="dialog-content">
+    <p class="step-desc">Documente un inconveniente o novedad con este proveedor para futuras negociaciones.</p>
+
+    <form [formGroup]="noteForm" class="note-form">
+      <app-form-input
+        label="Tipo"
+        type="select"
+        placeholder="Seleccione un tipo"
+        [control]="getControl('tipoNota')"
+        [options]="tipoOptions"
+      ></app-form-input>
+
+      <app-form-input
+        label="Título"
+        placeholder="Ej. Retraso en la entrega de pedido #123"
+        [control]="getControl('titulo')"
+      ></app-form-input>
+
+      <app-form-input
+        label="Descripción"
+        type="textarea"
+        placeholder="Detalle lo ocurrido"
+        [control]="getControl('descripcion')"
+      ></app-form-input>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-save" (click)="confirmNote()" [disabled]="noteForm.invalid">
+          Registrar
+        </button>
+      </div>
+    </form>
+  </div>
+</app-bottom-sheet>

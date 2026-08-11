@@ -1,0 +1,45 @@
+<div class="period-filter">
+  <div class="quick-buttons">
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'DIA'"
+      (click)="seleccionarPeriodo('DIA')"
+    >Día</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'SEMANA'"
+      (click)="seleccionarPeriodo('SEMANA')"
+    >Semana</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'MES'"
+      (click)="seleccionarPeriodo('MES')"
+    >Mes</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'PERSONALIZADO'"
+      (click)="seleccionarPeriodo('PERSONALIZADO')"
+    >Personalizado</button>
+  </div>
+
+  @if (periodo === 'PERSONALIZADO') {
+    <div class="custom-range">
+      <app-input-fecha
+        [fecha]="fechaInicioPersonalizada"
+        (fechaChange)="onFechaInicioChange($event)"
+      ></app-input-fecha>
+      <span class="range-separator">a</span>
+      <app-input-fecha
+        [fecha]="fechaFinPersonalizada"
+        (fechaChange)="onFechaFinChange($event)"
+      ></app-input-fecha>
+    </div>
+    @if (error) {
+      <p class="error-text">{{ error }}</p>
+    }
+  }
+</div>

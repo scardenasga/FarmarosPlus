@@ -1,0 +1,11 @@
+<div class="search-row">
+  <app-search-bar
+    [placeholder]="'Buscar Productos'"
+    (search)="search.emit($event)"
+  ></app-search-bar>
+
+  <app-filter-button
+    [activeCount]="activeFilters()"
+    (clicked)="toggleFilter.emit()"
+  ></app-filter-button>
+</div>

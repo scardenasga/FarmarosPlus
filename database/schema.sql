@@ -285,6 +285,24 @@ CREATE TABLE IF NOT EXISTS proveedor (
 );
 
 -- =====================================================
+-- TABLA: nota_proveedor (reclamos y observaciones)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS nota_proveedor (
+    id_nota               INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_proveedor          INTEGER NOT NULL,
+    tipo_nota             TEXT    NOT NULL,
+    titulo                TEXT    NOT NULL,
+    descripcion           TEXT,
+    id_orden_relacionada  INTEGER,
+    fecha_creacion        TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+    fecha_modificacion    TEXT,
+    usuario_creacion      TEXT,
+    usuario_modificacion  TEXT,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedor (id_proveedor) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_nota_proveedor ON nota_proveedor (id_proveedor);
+
+-- =====================================================
 -- TABLA: devolucion_proveedor
 -- =====================================================
 CREATE TABLE IF NOT EXISTS devolucion_proveedor (

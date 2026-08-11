@@ -6,32 +6,8 @@ import { FilterButtonComponent } from '../../../shared/components/filter-button/
   selector: 'app-inventory-search',
   standalone: true,
   imports: [SearchBarComponent, FilterButtonComponent],
-  template: `
-    <div class="search-row">
-      <app-search-bar
-        [placeholder]="'Buscar Productos'"
-        (search)="search.emit($event)"
-      ></app-search-bar>
-
-      <app-filter-button
-        [activeCount]="activeFilters()"
-        (clicked)="toggleFilter.emit()"
-      ></app-filter-button>
-    </div>
-  `,
-  styles: [`
-    .search-row {
-      display: flex;
-      gap: var(--space-m);
-      align-items: center;
-      width: 100%;
-      padding: var(--space-l);
-      background-color: var(--background);
-    }
-    app-search-bar {
-      flex: 1;
-    }
-  `]
+  templateUrl: './inventory-search.component.html',
+  styleUrl: './inventory-search.component.css'
 })
 export class InventorySearchComponent {
   search = output<string>();

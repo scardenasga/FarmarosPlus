@@ -1,324 +1,140 @@
 <div class="page">
-  <app-top-bar
-    [title]="esProveedor() ? 'Nueva devolución a proveedor' : 'Nueva devolución a cliente'"
-    [showAlert]="false"
+  <app-top-bar 
+    title="Nueva devolución" 
+    [showAlert]="false" 
     (back)="volver()">
   </app-top-bar>
 
   <main class="content">
-    <div class="mode-switch">
-      <button class="mode-pill" [class.active]="esProveedor()" (click)="onTipoChange('proveedor')">
-        Proveedor
-      </button>
-      <button class="mode-pill" [class.active]="esCliente()" (click)="onTipoChange('cliente')">
-        Cliente
-      </button>
-    </div>
-
     <div class="form-scroll">
-      @if (esProveedor()) {
-        <section class="seccion-card">
-          <div class="seccion-header">
-            <div>
-              <label class="label-campo">Proveedor *</label>
-              <div class="section-hint">Busca y selecciona uno</div>
-            </div>
-            <button class="btn-secondary" type="button" (click)="mostrarListaProveedores.set(!mostrarListaProveedores())">
-              {{ mostrarListaProveedores() ? 'Minimizar' : 'Cambiar' }}
-            </button>
-          </div>
-
-          @if (idProveedorSeleccionado()) {
-            <div class="selected-banner">
-              <span class="selected-label">Proveedor seleccionado</span>
-              <strong>{{ proveedorSeleccionado()?.nombre }}</strong>
-            </div>
+      <!-- Proveedor -->
+      <section class="seccion-card">
+        <label class="label-campo">Proveedor *</label>
+        <select class="select-campo" [value]="idProveedorSeleccionado() || 'null'" (change)="onProveedorChange($event)">
+          <option value="null" disabled>Seleccionar proveedor...</option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <option [value]="p.idProveedor">{{ p.nombre }}</option>
           }
+        </select>
+        @if (!cargandoProveedores() && proveedores().length === 0) {
+          <span class="hint-vacio">No hay proveedores activos.</span>
+        }
+      </section>
 
-          @if (mostrarListaProveedores()) {
-            <input
-              type="text"
-              class="input-campo"
-              [ngModel]="busquedaProveedor()"
-              (ngModelChange)="busquedaProveedor.set($event)"
-              placeholder="Buscar por nombre, NIT, teléfono o contacto" />
+      <!-- Motivo -->
+      <section class="seccion-card">
+        <label class="label-campo">Motivo (opcional)</label>
+        <input type="text" class="input-campo" [ngModel]="motivo()" (ngModelChange)="motivo.set($event)"
+               placeholder="Ej: Producto vencido, error de pedido..." maxlength="200"/>
+      </section>
 
-            @if (cargandoProveedores()) {
-              <div class="msg-info compacta">Cargando proveedores...</div>
-            } @else {
-              <div class="supplier-list">
-                @for (p of proveedoresFiltrados(); track p.idProveedor) {
-                  <button
-                    type="button"
-                    class="supplier-card"
-                    [class.active]="idProveedorSeleccionado() === p.idProveedor"
-                    (click)="seleccionarProveedor(p)">
-                    <div class="supplier-main">
-                      <span class="supplier-name">{{ p.nombre }}</span>
-                      <span class="supplier-meta">
-                        @if (p.nit) { NIT {{ p.nit }} } @else { Sin NIT }
-                      </span>
-                    </div>
-                    <div class="supplier-side">
-                      <span>{{ p.estado }}</span>
-                      @if (p.contacto) {
-                        <span>{{ p.contacto }}</span>
-                      }
-                    </div>
-                  </button>
-                } @empty {
-                  <div class="lista-vacia">No hay proveedores activos para mostrar.</div>
-                }
+      <!-- Productos -->
+      <section class="seccion-card">
+        <div class="seccion-header">
+          <label class="label-campo">Productos a devolver *</label>
+          <button class="btn-agregar" (click)="abrirModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar
+          </button>
+        </div>
+
+        <div class="lista-productos">
+          @for (item of items(); track item.idLote; let i = $index) {
+            <article class="item-card">
+              <div class="item-info">
+                <h4 class="item-nombre">{{ item.nombreProducto }}</h4>
+                <span class="item-lote">Lote: {{ item.numeroLote }}</span>
               </div>
-            }
-          }
-        </section>
-
-        <section class="seccion-card product-picker-card">
-          <div class="seccion-header">
-            <div>
-              <label class="label-campo">Productos del proveedor *</label>
-              <div class="section-hint">Busca y selecciona un producto del proveedor</div>
-            </div>
-            <span class="section-hint">{{ productosDelProveedor().length }} productos</span>
-          </div>
-
-          @if (!idProveedorSeleccionado()) {
-            <div class="lista-vacia">Selecciona primero un proveedor.</div>
-          } @else if (cargandoDetalleProveedor()) {
-            <div class="msg-info compacta">Cargando productos del proveedor...</div>
-          } @else {
-            <input
-              type="text"
-              class="input-campo"
-              [ngModel]="busquedaProductoProveedor()"
-              (ngModelChange)="busquedaProductoProveedor.set($event)"
-              placeholder="Escribe para filtrar productos..." />
-
-            <div class="resultados-grid product-results">
-              @for (prod of productosProveedorFiltrados(); track prod.id) {
-                <button
-                  type="button"
-                  class="resultado-card"
-                  [class.active]="productoSeleccionado()?.id === prod.id"
-                  (click)="seleccionarProducto(prod)">
-                  <span class="resultado-nombre">{{ prod.nombre }}</span>
-                  <span class="resultado-stock">
-                    @if (prod.codigoProductoProveedor) { {{ prod.codigoProductoProveedor }} · }{{ prod.estadoRelacion }}
-                  </span>
+              <div class="item-derecha">
+                <span class="item-cantidad">× {{ item.cantidad }}</span>
+                <button class="btn-quitar" (click)="quitarItem(i)" aria-label="Quitar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                 </button>
-              } @empty {
-                @if (busquedaProductoProveedor().trim()) {
-                  <div class="lista-vacia">No hay productos para "{{ busquedaProductoProveedor() }}"</div>
-                } @else {
-                  <div class="lista-vacia">Escribe para ver los productos del proveedor.</div>
-                }
-              }
-            </div>
-
-            @if (errorProducto()) {
-              <div class="msg-error compacto">{{ errorProducto() }}</div>
-            }
-
-            @if (productoSeleccionado()) {
-              <div class="producto-seleccionado selected-product-inline">
-                <div class="producto-seleccionado-top">
-                  <div>
-                    <span class="section-hint">Producto seleccionado</span>
-                    <h4>{{ productoSeleccionado()?.nombre }}</h4>
-                  </div>
-                </div>
-
-                <div class="campo-modal">
-                  <label>Lote disponible *</label>
-                  @if (cargandoLotes()) {
-                    <div class="msg-info compacta">Cargando lotes...</div>
-                  } @else {
-                    <div class="lotes-scroll">
-                      @for (l of lotes(); track l.id) {
-                        <button
-                          type="button"
-                          class="lote-item"
-                          [class.lote-activo]="idLoteSeleccionado() === l.id"
-                          (click)="idLoteSeleccionado.set(l.id)">
-                          <div class="lote-left">
-                            <span class="lote-num">{{ l.numeroLote || 'SIN LOTE' }}</span>
-                            <span class="lote-info">Stock: {{ l.cantidad }}</span>
-                          </div>
-                          <span class="lote-info">
-                            @if (l.fechaVencimiento) {
-                              Vence {{ l.fechaVencimiento | date:'dd/MM/yyyy' }}
-                            } @else {
-                              Sin vencimiento
-                            }
-                          </span>
-                        </button>
-                      } @empty {
-                        <div class="lista-vacia">El producto no tiene lotes disponibles.</div>
-                      }
-                    </div>
-                  }
-                </div>
-
-                <div class="inline-fields">
-                  <div class="campo-modal">
-                    <label>Cantidad *</label>
-                    <input
-                      type="number"
-                      [ngModel]="cantidadNueva()"
-                      (ngModelChange)="cantidadNueva.set($event)"
-                      min="1"
-                      class="input-campo" />
-                  </div>
-
-                  <button class="btn-guardar full-width" type="button" (click)="agregarItemProveedor()">
-                    Agregar a la devolución
-                  </button>
-                </div>
               </div>
-            }
+            </article>
+          } @empty {
+            <div class="lista-vacia">Aún no agregaste productos.</div>
           }
-
-          <div class="productos-agregados-header">
-            <div>
-              <label class="label-campo">Productos agregados *</label>
-              <div class="section-hint">Total de ítems listos para registrar</div>
-            </div>
-            <span class="section-hint">{{ items().length }} producto(s)</span>
-          </div>
-
-          <div class="lista-productos">
-            @for (item of items(); track item.idLote ?? item.idProducto; let i = $index) {
-              <article class="item-card">
-                <div class="item-info">
-                  <h4 class="item-nombre">{{ item.nombreProducto }}</h4>
-                  <span class="item-sub">Lote: {{ item.numeroLote || 'SIN LOTE' }}</span>
-                </div>
-                <div class="item-derecha">
-                  <input
-                    type="number"
-                    class="input-cantidad"
-                    [ngModel]="item.cantidad"
-                    (ngModelChange)="actualizarCantidadProveedor(i, $event)"
-                    min="1"
-                    [max]="item.cantidadDisponible" />
-                  <button class="btn-quitar" type="button" (click)="quitarItem(i)" aria-label="Quitar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                </div>
-              </article>
-            } @empty {
-              <div class="lista-vacia">Aún no agregaste productos.</div>
-            }
-          </div>
-        </section>
-      } @else {
-        <section class="seccion-card">
-          <label class="label-campo">Venta *</label>
-          <div class="search-row">
-            <input
-              type="number"
-              class="input-campo"
-              [ngModel]="idVenta()"
-              (ngModelChange)="idVenta.set($event)"
-              placeholder="ID de la venta"
-              min="1" />
-            <button class="btn-agregar" type="button" (click)="cargarVenta()" [disabled]="cargandoVenta()">
-              {{ cargandoVenta() ? 'Cargando...' : 'Cargar venta' }}
-            </button>
-          </div>
-          @if (errorVenta()) {
-            <div class="msg-error compacto">{{ errorVenta() }}</div>
-          }
-          @if (ventaCargada()) {
-            <div class="venta-summary">
-              <div>
-                <span class="summary-label">Venta</span>
-                <strong>#{{ ventaCargada()?.id }}</strong>
-              </div>
-              <div>
-                <span class="summary-label">Total</span>
-                <strong>{{ ventaCargada()?.total | currency:'COP':'symbol-narrow' }}</strong>
-              </div>
-              <div>
-                <span class="summary-label">Estado</span>
-                <strong>{{ ventaCargada()?.estado }}</strong>
-              </div>
-            </div>
-          }
-        </section>
-
-        <section class="seccion-card">
-          <label class="label-campo">Datos del cliente</label>
-          <input
-            type="text"
-            class="input-campo"
-            [ngModel]="nombreCliente()"
-            (ngModelChange)="nombreCliente.set($event)"
-            placeholder="Nombre del cliente (opcional)"
-            maxlength="120" />
-          <input
-            type="text"
-            class="input-campo"
-            [ngModel]="documentoCliente()"
-            (ngModelChange)="documentoCliente.set($event)"
-            placeholder="Documento o referencia (opcional)"
-            maxlength="80" />
-        </section>
-
-        <section class="seccion-card">
-          <label class="label-campo">Motivo (opcional)</label>
-          <input
-            type="text"
-            class="input-campo"
-            [ngModel]="motivo()"
-            (ngModelChange)="motivo.set($event)"
-            placeholder="Ej: Producto vencido, error de despacho, inconformidad..."
-            maxlength="200" />
-        </section>
-
-        <section class="seccion-card">
-          <div class="seccion-header">
-            <div>
-              <label class="label-campo">Productos a devolver *</label>
-              <div class="section-hint">{{ cantidadItemsCliente() }} artículo(s)</div>
-            </div>
-          </div>
-
-          <div class="lista-productos">
-            @for (item of items(); track item.idDetalleVenta ?? item.idProducto; let i = $index) {
-              <article class="item-card">
-                <div class="item-info">
-                  <h4 class="item-nombre">{{ item.nombreProducto }}</h4>
-                  <span class="item-sub">Lote: {{ item.numeroLote || 'SIN LOTE' }} · Vendido: {{ item.cantidadDisponible }}</span>
-                </div>
-                <div class="item-derecha">
-                  <input
-                    type="number"
-                    class="input-cantidad"
-                    [ngModel]="item.cantidad"
-                    (ngModelChange)="actualizarCantidadProveedor(i, $event)"
-                    min="0"
-                    [max]="item.cantidadDisponible" />
-                </div>
-              </article>
-            } @empty {
-              <div class="lista-vacia">Carga una venta para ver sus productos.</div>
-            }
-          </div>
-        </section>
-      }
+        </div>
+      </section>
 
       @if (error()) {
         <div class="msg-error">{{ error() }}</div>
       }
 
-      <button class="btn-enviar" type="button" (click)="enviar()" [disabled]="!puedeEnviar()">
+      <button class="btn-enviar" (click)="enviar()" [disabled]="!puedeEnviar()">
         {{ enviando() ? 'Registrando...' : 'Registrar devolución' }}
       </button>
     </div>
   </main>
+
+  <!-- Modal buscar producto -->
+  @if (modalVisible()) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        @if (paso() === 'buscar') {
+          <h2 class="modal-titulo">Buscar producto</h2>
+          <div class="busqueda-row">
+            <input type="text" [ngModel]="termino()" (ngModelChange)="termino.set($event)" 
+                   placeholder="Nombre del producto..." class="input-busqueda" (keyup.enter)="buscar()"/>
+            <button class="btn-buscar" (click)="buscar()">Buscar</button>
+          </div>
+          
+          @if (buscando()) {
+            <div class="modal-info">Buscando...</div>
+          } @else if (!buscando() && resultados().length === 0 && termino()) {
+            <div class="modal-info">Sin resultados para "{{ termino() }}"</div>
+          }
+
+          <div class="lista-resultados">
+            @for (prod of resultados(); track prod.id) {
+              <div class="resultado-item" (click)="seleccionarProducto(prod)">
+                <span class="res-nombre">{{ prod.nombre }}</span>
+                <span class="res-stock">Stock: {{ prod.stockActual }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <h2 class="modal-titulo">{{ productoSeleccionado()?.nombre }}</h2>
+
+          <div class="campo-modal">
+            <label>Lote *</label>
+            <div class="lotes-scroll">
+              @for (l of lotes(); track l.id) {
+                <div class="lote-item"
+                     [class.lote-activo]="idLoteSeleccionado() === l.id"
+                     (click)="idLoteSeleccionado.set(l.id)">
+                  <span class="lote-num">{{ l.numeroLote || 'SIN LOTE' }}</span>
+                  <span class="lote-info">Stock: {{ l.cantidad }} · Vence: {{ l.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                </div>
+              } @empty {
+                <div class="modal-info">Sin lotes disponibles.</div>
+              }
+            </div>
+          </div>
+
+          <div class="campo-modal">
+            <label>Cantidad a devolver *</label>
+            <input type="number" [ngModel]="cantidadModal()" (ngModelChange)="cantidadModal.set($event)" min="1" class="input-campo"/>
+          </div>
+
+          @if (errorModal()) {
+            <div class="form-error">{{ errorModal() }}</div>
+          }
+
+          <div class="modal-acciones">
+            <button class="btn-cancelar" (click)="paso.set('buscar')">Atrás</button>
+            <button class="btn-guardar" (click)="agregarItem()">Agregar</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>

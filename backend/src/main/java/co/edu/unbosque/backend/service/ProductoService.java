@@ -10,6 +10,7 @@ import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
 import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
 import co.edu.unbosque.backend.model.request.CrearProductoRequest;
+import co.edu.unbosque.backend.model.request.GestionLotesRequest;
 import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.LoteProductoResponse;
@@ -493,6 +494,34 @@ public class ProductoService {
         }
     }
 
+    @Transactional
+    public void registrarGestionLotes(GestionLotesRequest request) {
+        if (request == null || request.items() == null || request.items().isEmpty()) {
+            throw new BusinessException("La lista de ingresos no puede estar vacía");
+        }
+
+        for (GestionLotesRequest.ItemGestionLote item : request.items()) {
+            IngresoProductoRequest subRequest = new IngresoProductoRequest(
+                    item.cantidad(),
+                    item.numeroLote(),
+                    item.nuevoCosto(),
+                    item.nuevoPrecioVenta(),
+                    item.fechaVencimiento()
+            );
+            
+            // Reutilizamos la lógica existente buscando por código de barras o ID
+            // Si el identificador es numérico intentamos buscar por ID, sino por código de barras
+            if (item.identificador().matches("\\d+")) {
+                Producto producto = productoRepository.findById(Long.parseLong(item.identificador()))
+                        .orElseGet(() -> productoRepository.findByCodigoBarrasIgnoreCase(item.identificador())
+                                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con identificador " + item.identificador())));
+                ingresarStock(producto.getCodigoBarras(), subRequest);
+            } else {
+                ingresarStock(item.identificador(), subRequest);
+            }
+        }
+    }
+
     private Double calcularMargen(Double costo, Double precioVenta) {
         if (costo == null || precioVenta == null || costo <= 0) return 0.0;
         return ((precioVenta - costo) / costo) * 100.0;
@@ -519,7 +548,7 @@ public class ProductoService {
         return texto.trim().replaceAll("\\s+", " ");
     }
 
-    private CategoriaResponse toCategoriaResponse(Categoria categoria) {
+    public CategoriaResponse toCategoriaResponse(Categoria categoria) {
         if (categoria == null) {
             return null;
         }
@@ -598,7 +627,12 @@ public class ProductoService {
         return Instant.ofEpochSecond(epochSeconds).atZone(ZoneOffset.UTC).toLocalDate();
     }
 
-    private ProductoResponse toProductoResponse(Producto producto) {
+    public ProductoResponse toProductoResponse(Producto producto) {
+        List<LoteProductoResponse> lotes = loteRepository.findByProducto_UniqueIDOrderByFechaVencimientoAsc(producto.getUniqueID())
+                .stream()
+                .map(l -> new LoteProductoResponse(l.getIdLote(), l.getNumeroLote(), l.getFechaVencimiento(), l.getCantidad()))
+                .toList();
+
         return new ProductoResponse(
                 producto.getUniqueID(),
                 toCategoriaResponse(producto.getCategoria()),
@@ -612,7 +646,8 @@ public class ProductoService {
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                lotes
         );
     }
 

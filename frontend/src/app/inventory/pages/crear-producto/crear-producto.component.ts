@@ -54,8 +54,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       porcentajeIva: [0, [Validators.required, Validators.min(0)]],
       requierePrescripcion: [false],
       fechaVencimiento: ['', [Validators.required]],
-      numeroLote: [''],
-      hasLote: [false]
+      numeroLote: ['', [Validators.required]]
     }, { validators: this.priceValidator });
   }
 
@@ -102,7 +101,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       porcentajeIva: formValue.porcentajeIva,
       requierePrescripcion: formValue.requierePrescripcion,
       fechaVencimiento: formValue.fechaVencimiento,
-      numeroLote: formValue.hasLote ? formValue.numeroLote : undefined
+      numeroLote: formValue.numeroLote
     };
 
     this.inventoryService.createProduct(request).subscribe({

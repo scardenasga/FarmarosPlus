@@ -23,7 +23,7 @@ export class BottomNavBarComponent {
   navItems: NavItem[] = [
     {
       label: 'Home',
-      link: '/health',
+      link: '/dashboard',
       icon: 'M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z'
     },
     {

@@ -75,6 +75,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/inventario/editar', this.product()?.id]);
   }
 
+  goToAddBatch(): void {
+    const barcode = this.product()?.codigoBarras;
+    if (barcode) {
+      this.router.navigate(['/inventario/ingreso'], { queryParams: { barcode } });
+    }
+  }
+
   onDeleteRequest(): void {
     this.showDeleteConfirmation.set(true);
   }

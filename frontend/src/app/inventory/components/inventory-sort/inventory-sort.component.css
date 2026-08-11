@@ -1,0 +1,38 @@
+.sort-header {
+  margin-bottom: var(--space-l);
+}
+.sort-header h2 {
+  font-size: 20px;
+  color: var(--on-surface);
+  margin: 0;
+}
+.sort-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.sort-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-l);
+  border-radius: var(--radius-m);
+  background: none;
+  transition: background-color 0.2s;
+  width: 100%;
+  text-align: left;
+}
+.sort-item:hover {
+  background-color: var(--surface-container-high);
+}
+.sort-item.active {
+  background-color: var(--primary-container);
+}
+.sort-item.active .label {
+  color: var(--on-primary-container);
+  font-weight: 700;
+}
+.label {
+  font-size: 16px;
+  color: var(--on-surface);
+}

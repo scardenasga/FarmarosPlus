@@ -1,12 +1,11 @@
-import {Component, computed, signal} from '@angular/core';
-import {Product} from '../inventory/models/product.model';
-import {ProductListComponent} from '../inventory/components/product-list/product-list.component';
-import {ProductCardComponent} from '../inventory/components/product-card/product-card.component';
-import {TopBarComponent} from '../shared/components/top-bar/top-bar.component';
-import {SearchBarComponent} from '../shared/components/search-bar/search-bar.component';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { TopBarComponent } from '../shared/components/top-bar/top-bar.component';
+import { SearchBarComponent } from '../shared/components/search-bar/search-bar.component';
 
 @Component({
   selector: 'app-health',
+  standalone: true,
   imports: [
     TopBarComponent,
     SearchBarComponent
@@ -16,12 +15,13 @@ import {SearchBarComponent} from '../shared/components/search-bar/search-bar.com
 })
 export class HealthComponent {
 
+  private router = inject(Router);
+
   handleBack(): void {
-    console.log('Regresando...');
+    this.router.navigate(['/dashboard']);
   }
 
   handleAlerts(): void {
-    console.log('Abriendo alertas...');
+    this.router.navigate(['/alertas']);
   }
-
 }

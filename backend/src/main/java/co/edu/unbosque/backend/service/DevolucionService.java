@@ -9,7 +9,6 @@ import co.edu.unbosque.backend.model.entity.Lote;
 import co.edu.unbosque.backend.model.entity.MovimientoInventario;
 import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.entity.Proveedor;
-import co.edu.unbosque.backend.model.request.ActualizarDevolucionRequest;
 import co.edu.unbosque.backend.model.request.DetalleDevolucionRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionRequest;
 import co.edu.unbosque.backend.model.response.DetalleDevolucionResponse;
@@ -19,7 +18,6 @@ import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
 import co.edu.unbosque.backend.repository.ProveedorRepository;
-import co.edu.unbosque.backend.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,14 +39,14 @@ public class DevolucionService {
     private final ProductoRepository productoRepository;
     private final LoteRepository loteRepository;
     private final MovimientoInventarioRepository movimientoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository;
 
     public DevolucionService(DevolucionProveedorRepository devolucionRepository,
                              ProveedorRepository proveedorRepository,
                              ProductoRepository productoRepository,
                              LoteRepository loteRepository,
                              MovimientoInventarioRepository movimientoRepository,
-                             UsuarioRepository usuarioRepository) {
+                             co.edu.unbosque.backend.repository.UsuarioRepository usuarioRepository) {
         this.devolucionRepository = devolucionRepository;
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
@@ -63,13 +61,14 @@ public class DevolucionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe el proveedor con id " + request.idProveedor()));
 
-        co.edu.unbosque.backend.model.entity.Usuario usuario = resolverUsuarioResponsable(request.usuarioResponsable());
-        String usuarioResponsable = usuario.getUsername();
+        co.edu.unbosque.backend.model.entity.Usuario usuario = usuarioRepository.findByUsername(request.usuarioResponsable())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el usuario con username " + request.usuarioResponsable()));
 
         DevolucionProveedor devolucion = new DevolucionProveedor();
         devolucion.setProveedor(proveedor);
         devolucion.setUsuario(usuario);
-        devolucion.setUsuarioResponsable(usuarioResponsable);
+        devolucion.setUsuarioResponsable(request.usuarioResponsable());
         devolucion.setFecha(LocalDateTime.now());
         devolucion.setMotivo(request.motivo());
 
@@ -121,7 +120,7 @@ public class DevolucionService {
             mov.setCantidadNueva(stockNuevo);
             mov.setDiferencia(stockNuevo - stockAnterior);
             mov.setMotivo("Devolución a proveedor: " + proveedor.getNombre());
-            mov.setUsuarioResponsable(usuarioResponsable);
+            mov.setUsuarioResponsable(request.usuarioResponsable());
             movimientos.add(mov);
         }
 
@@ -148,66 +147,6 @@ public class DevolucionService {
         return toResponse(dev);
     }
 
-    @Transactional
-    public DevolucionResponse actualizar(Long id, ActualizarDevolucionRequest request) {
-        DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
-
-        if (request.motivo() != null) {
-            dev.setMotivo(request.motivo().trim());
-        }
-        dev.setObservaciones(request.observaciones());
-
-        return toResponse(devolucionRepository.save(dev));
-    }
-
-    @Transactional
-    public void eliminar(Long id, String usuarioResponsable) {
-        DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
-
-        co.edu.unbosque.backend.model.entity.Usuario usuario = resolverUsuarioResponsable(usuarioResponsable);
-        String usuarioResp = usuario.getUsername();
-
-        List<MovimientoInventario> movimientos = new ArrayList<>();
-        for (DetalleDevolucionProveedor detalle : dev.getDetalles()) {
-            if (detalle.getProducto() == null || detalle.getLote() == null) {
-                continue;
-            }
-
-            Producto producto = productoRepository.findByIdForUpdate(detalle.getProducto().getUniqueID())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "No existe el producto con id " + detalle.getProducto().getUniqueID()));
-
-            Lote lote = loteRepository.findByIdForUpdate(detalle.getLote().getIdLote())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "No existe el lote con id " + detalle.getLote().getIdLote()));
-
-            int stockAnterior = producto.getStockActual();
-            int stockNuevo = stockAnterior + detalle.getCantidad();
-            int cantLoteNuevo = lote.getCantidad() + detalle.getCantidad();
-
-            producto.setStockActual(stockNuevo);
-            lote.setCantidad(cantLoteNuevo);
-
-            MovimientoInventario mov = new MovimientoInventario();
-            mov.setProducto(producto);
-            mov.setNombreProducto(detalle.getNombreProducto());
-            mov.setLote(lote);
-            mov.setTipoMovimiento("DEVOLUCION");
-            mov.setCantidadAnterior(stockAnterior);
-            mov.setCantidadNueva(stockNuevo);
-            mov.setDiferencia(stockNuevo - stockAnterior);
-            mov.setMotivo("Reversión por eliminación de devolución a proveedor " + dev.getIdDevolucion());
-            mov.setReferenciaDocumento("DEV-PROV-" + dev.getIdDevolucion() + "-ELIM");
-            mov.setUsuarioResponsable(usuarioResp);
-            movimientos.add(mov);
-        }
-
-        movimientoRepository.saveAll(movimientos);
-        devolucionRepository.delete(dev);
-    }
-
     private DevolucionResponse toResponse(DevolucionProveedor d) {
         List<DetalleDevolucionResponse> detallesResp = d.getDetalles().stream()
                 .map(det -> new DetalleDevolucionResponse(
@@ -224,18 +163,5 @@ public class DevolucionService {
                 d.getMotivo(),
                 d.getFecha(),
                 detallesResp);
-    }
-
-    private co.edu.unbosque.backend.model.entity.Usuario resolverUsuarioResponsable(String usernameSolicitud) {
-        if (usernameSolicitud != null && !usernameSolicitud.isBlank()) {
-            var usuario = usuarioRepository.findByUsername(usernameSolicitud.trim());
-            if (usuario.isPresent()) {
-                return usuario.get();
-            }
-        }
-
-        return usuarioRepository.findByUsername("SISTEMA")
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe el usuario del sistema con username SISTEMA"));
     }
 }
