@@ -1,6 +1,6 @@
 <div class="page">
   <app-top-bar 
-    title="Nueva compra" 
+    [title]="editando() ? 'Editar compra' : 'Nueva compra'" 
     [showAlert]="false" 
     (back)="volver()">
   </app-top-bar>
@@ -145,7 +145,7 @@
       }
 
       <button class="btn-enviar" (click)="enviar()" [disabled]="!puedeEnviar()">
-        {{ enviando() ? 'Registrando...' : 'Registrar compra' }}
+        {{ enviando() ? 'Guardando...' : (editando() ? 'Guardar cambios' : 'Registrar compra') }}
       </button>
     </div>
   </main>

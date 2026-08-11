@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   CompraResponse, 
+  ActualizarCompraRequest,
   ActualizarDevolucionClienteRequest,
   ActualizarDevolucionRequest,
   DevolucionClienteResponse,
@@ -13,6 +14,7 @@ import {
   ResumenSeguimiento,
   PrevisualizacionOrden,
   VentaResponse
+  ,OrdenCompraResumen, OrdenCompraResponse, RegistrarOrdenRequest, RegistrarRecepcionRequest, RecepcionCompraResumen
 } from '../models/purchasing.model';
 
 @Injectable({
@@ -40,6 +42,14 @@ export class PurchasingService {
 
   obtenerCompra(id: number): Observable<CompraResponse> {
     return this.http.get<CompraResponse>(`${this.apiCompras}/${id}`);
+  }
+
+  actualizarCompra(id: number, request: ActualizarCompraRequest): Observable<CompraResponse> {
+    return this.http.patch<CompraResponse>(`${this.apiCompras}/${id}`, request);
+  }
+
+  eliminarCompra(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiCompras}/${id}`);
   }
 
   // --- Devoluciones ---
@@ -100,6 +110,18 @@ export class PurchasingService {
 
   confirmarPedidoFinal(datos: any): Observable<any> {
     return this.http.post(`${this.apiOrdenes}/confirmar`, datos);
+  }
+
+  listarOrdenes(): Observable<OrdenCompraResumen[]> { return this.http.get<OrdenCompraResumen[]>(this.apiOrdenes); }
+  obtenerOrden(id: number): Observable<OrdenCompraResponse> { return this.http.get<OrdenCompraResponse>(`${this.apiOrdenes}/${id}`); }
+  registrarOrden(request: RegistrarOrdenRequest): Observable<OrdenCompraResponse> { return this.http.post<OrdenCompraResponse>(`${this.apiOrdenes}/confirmar`, request); }
+  actualizarOrden(id: number, request: RegistrarOrdenRequest): Observable<OrdenCompraResponse> { return this.http.patch<OrdenCompraResponse>(`${this.apiOrdenes}/${id}`, request); }
+  cancelarOrden(id: number): Observable<void> { return this.http.delete<void>(`${this.apiOrdenes}/${id}`); }
+  registrarRecepcion(request: RegistrarRecepcionRequest): Observable<any> { return this.http.post('/api/recepciones-compra', request); }
+  listarRecepciones(): Observable<RecepcionCompraResumen[]> { return this.http.get<RecepcionCompraResumen[]>('/api/recepciones-compra'); }
+  listarRecepcionesPorOrden(ordenId: number): Observable<RecepcionCompraResumen[]> { return this.http.get<RecepcionCompraResumen[]>(`/api/recepciones-compra/orden/${ordenId}`); }
+  actualizarEstadoPago(recepcionId: number, estadoPago: string, montoPagado: number): Observable<RecepcionCompraResumen> {
+    return this.http.patch<RecepcionCompraResumen>(`/api/recepciones-compra/${recepcionId}/estado-pago`, { estadoPago, montoPagado });
   }
 
   // --- Productos y Lotes ---

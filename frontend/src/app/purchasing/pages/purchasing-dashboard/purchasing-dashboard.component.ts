@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { PurchasingService } from '../../services/purchasing.service';
-import { CompraResponse, DevolucionResponse } from '../../models/purchasing.model';
+import { OrdenCompraResumen, RecepcionCompraResumen, DevolucionResponse } from '../../models/purchasing.model';
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { Supplier } from '../../../supplier/models/supplier.model';
 
@@ -63,11 +63,12 @@ export class PurchasingDashboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     forkJoin({
-      purchases: this.purchasingService.listarCompras(),
+      purchases: this.purchasingService.listarOrdenes(),
+      receptions: this.purchasingService.listarRecepciones(),
       returns: this.purchasingService.listarDevoluciones(),
       suppliers: this.supplierService.listActive()
     }).subscribe({
-      next: ({ purchases, returns, suppliers }) => this.buildStatistics(purchases, returns, suppliers),
+      next: ({ purchases, receptions, returns, suppliers }) => this.buildStatistics(purchases, receptions, returns, suppliers),
       error: () => {
         this.error.set('No se pudieron cargar las estadísticas. Verifica la conexión con el backend.');
         this.loading.set(false);
@@ -75,40 +76,41 @@ export class PurchasingDashboardComponent implements OnInit {
     });
   }
 
-  private buildStatistics(purchases: CompraResponse[], returns: DevolucionResponse[], suppliers: Supplier[]): void {
+  private buildStatistics(purchases: OrdenCompraResumen[], receptions: RecepcionCompraResumen[], returns: DevolucionResponse[], suppliers: Supplier[]): void {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    const monthPurchases = purchases.filter(p => {
+    const paidReceptions = receptions.filter(r => r.estadoPago === 'PAGADO');
+    const monthPurchases = paidReceptions.filter(p => {
       const date = new Date(p.fechaRecepcion);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
-    this.totalMonth.set(monthPurchases.reduce((sum, purchase) => sum + purchase.total, 0));
+    this.totalMonth.set(monthPurchases.reduce((sum, purchase) => sum + purchase.montoPagado, 0));
     this.averagePurchase.set(monthPurchases.length ? this.totalMonth() / monthPurchases.length : 0);
     this.activeSuppliers.set(suppliers.length);
     this.recentReturns.set(returns.filter(item => this.isInCurrentMonth(item.fecha)).length);
-    this.purchasesCount.set(purchases.length);
+    this.purchasesCount.set(paidReceptions.length);
 
     const months: MonthlyTotal[] = [];
     for (let offset = 5; offset >= 0; offset--) {
       const date = new Date(currentYear, currentMonth - offset, 1);
-      const total = purchases
+      const total = paidReceptions
         .filter(p => {
           const purchaseDate = new Date(p.fechaRecepcion);
           return purchaseDate.getMonth() === date.getMonth() && purchaseDate.getFullYear() === date.getFullYear();
         })
-        .reduce((sum, purchase) => sum + purchase.total, 0);
+        .reduce((sum, purchase) => sum + purchase.montoPagado, 0);
       months.push({ label: date.toLocaleDateString('es-CO', { month: 'short' }).replace('.', ''), total });
     }
     this.monthlyTotals.set(months);
 
     const totalsBySupplier = new Map<string, number>();
-    purchases.forEach(purchase => totalsBySupplier.set(
-      purchase.nombreProveedor,
-      (totalsBySupplier.get(purchase.nombreProveedor) ?? 0) + purchase.total
+    paidReceptions.forEach(purchase => totalsBySupplier.set(
+      purchase.orden.proveedorNombre,
+      (totalsBySupplier.get(purchase.orden.proveedorNombre) ?? 0) + purchase.montoPagado
     ));
-    const grandTotal = purchases.reduce((sum, purchase) => sum + purchase.total, 0);
+    const grandTotal = paidReceptions.reduce((sum, purchase) => sum + purchase.montoPagado, 0);
     this.supplierTotals.set([...totalsBySupplier.entries()]
       .map(([name, total]) => ({ name, total, percentage: grandTotal ? (total / grandTotal) * 100 : 0 }))
       .sort((a, b) => b.total - a.total)

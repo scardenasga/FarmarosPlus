@@ -1,6 +1,7 @@
 package co.edu.unbosque.backend.controller;
 
 import co.edu.unbosque.backend.model.request.RegistrarCompraRequest;
+import co.edu.unbosque.backend.model.request.ActualizarCompraRequest;
 import co.edu.unbosque.backend.model.response.CompraResponse;
 import co.edu.unbosque.backend.service.CompraService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,5 +48,19 @@ public class CompraController {
     @Operation(summary = "Obtener compra por id")
     public ResponseEntity<CompraResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(compraService.obtener(id));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Actualizar una compra recibida")
+    public ResponseEntity<CompraResponse> actualizar(
+            @PathVariable Long id, @Valid @RequestBody ActualizarCompraRequest request) {
+        return ResponseEntity.ok(compraService.actualizar(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar una compra recibida")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        compraService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

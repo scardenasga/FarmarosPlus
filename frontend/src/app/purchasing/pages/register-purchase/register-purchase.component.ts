@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { PurchasingService } from '../../services/purchasing.service';
 import { Supplier, SupplierDetalleResponse, SupplierProductRel } from '../../../supplier/models/supplier.model';
@@ -25,6 +25,7 @@ export class RegisterPurchaseComponent implements OnInit {
   private purchasingService = inject(PurchasingService);
   private supplierService = inject(SupplierService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   proveedores = signal<Supplier[]>([]);
   busquedaProveedor = signal<string>('');
@@ -51,6 +52,8 @@ export class RegisterPurchaseComponent implements OnInit {
   enviando = signal<boolean>(false);
   error = signal<string>('');
   cargandoProveedores = signal<boolean>(true);
+  editando = signal<boolean>(false);
+  idCompra = signal<number | null>(null);
 
   proveedoresFiltrados = computed(() => {
     const termino = this.busquedaProveedor().trim().toLowerCase();
@@ -93,6 +96,12 @@ export class RegisterPurchaseComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (id) {
+      this.editando.set(true);
+      this.idCompra.set(id);
+      this.cargarCompra(id);
+    }
     this.supplierService.listActive().subscribe({
       next: data => {
         this.proveedores.set(data);
@@ -130,6 +139,25 @@ export class RegisterPurchaseComponent implements OnInit {
         this.buscando.set(false);
       },
       error: () => this.buscando.set(false)
+    });
+  }
+
+  cargarCompra(id: number): void {
+    this.purchasingService.obtenerOrden(id).subscribe({
+      next: compra => {
+        this.idProveedorSeleccionado.set(compra.proveedor.idProveedor);
+        this.numeroFactura.set('');
+        this.notas.set(compra.observaciones ?? '');
+        this.items.set(compra.detalles.map(d => ({
+          idProducto: d.productoId!,
+          nombreProducto: d.nombreProducto,
+          cantidad: d.cantidadPedida,
+          precioUnitario: d.precioUnitarioPactado
+        })));
+        this.cargarDetalleProveedor(compra.proveedor.idProveedor);
+        this.mostrarListaProveedores.set(false);
+      },
+      error: () => this.error.set('No se pudo cargar la compra para editarla.')
     });
   }
 
@@ -206,20 +234,18 @@ export class RegisterPurchaseComponent implements OnInit {
     this.enviando.set(true);
     this.error.set('');
 
-    this.purchasingService.registrarCompra({
-      idProveedor: this.idProveedorSeleccionado()!,
-      usuarioResponsable: 'admin', // En una app real vendría de un Auth Service
-      numeroFactura: this.numeroFactura() || undefined,
-      notas: this.notas() || undefined,
-      detalles: this.items().map(i => ({
-        idProducto: i.idProducto,
-        cantidad: i.cantidad,
-        precioUnitario: i.precioUnitario
-      }))
-    }).subscribe({
+    const datos = {
+      proveedorId: this.idProveedorSeleccionado()!,
+      items: this.items().map(i => ({ productoId: i.idProducto, cantidad: i.cantidad, precioUnitario: i.precioUnitario })),
+      observaciones: [this.numeroFactura() ? `Factura prevista: ${this.numeroFactura()}` : '', this.notas()].filter(Boolean).join(' · ') || undefined
+    };
+    const peticion = this.editando()
+      ? this.purchasingService.actualizarOrden(this.idCompra()!, datos)
+      : this.purchasingService.registrarOrden(datos);
+    peticion.subscribe({
       next: () => this.router.navigate(['/purchasing/purchase-history']),
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'Error al registrar la compra.');
+        this.error.set(err?.error?.message ?? 'No se pudo guardar la compra.');
         this.enviando.set(false);
       }
     });
