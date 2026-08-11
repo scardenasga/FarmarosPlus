@@ -4,6 +4,7 @@ import co.edu.unbosque.backend.exception.BusinessException;
 import co.edu.unbosque.backend.exception.InsufficientStockException;
 import co.edu.unbosque.backend.exception.ResourceNotFoundException;
 import co.edu.unbosque.backend.model.entity.*;
+import co.edu.unbosque.backend.model.request.ActualizarDevolucionRequest;
 import co.edu.unbosque.backend.model.request.DetalleDevolucionRequest;
 import co.edu.unbosque.backend.model.request.RegistrarDevolucionRequest;
 import co.edu.unbosque.backend.model.response.DevolucionResponse;
@@ -171,5 +172,74 @@ class DevolucionServiceTest {
 
         assertEquals(1, resultado.size());
         assertEquals("Proveedor ABC", resultado.getFirst().nombreProveedor());
+    }
+
+    // ── eliminar ─────────────────────────────────────────────────────────────
+
+    @Test
+    void eliminar_debeReponerStockDeLoteYProductoYGuardarMovimiento() {
+        Proveedor proveedor = buildProveedor();
+        Usuario usuario = buildUsuario();
+        Producto producto = buildProducto(10L, 45);
+        Lote lote = buildLote(1L, producto, 15);
+
+        DetalleDevolucionProveedor detalle = new DetalleDevolucionProveedor();
+        detalle.setProducto(producto);
+        detalle.setLote(lote);
+        detalle.setNombreProducto(producto.getNombre());
+        detalle.setNumeroLote(lote.getNumeroLote());
+        detalle.setCantidad(5);
+
+        DevolucionProveedor devolucion = buildDevolucionGuardada(proveedor);
+        devolucion.setIdDevolucion(10L);
+        devolucion.setDetalles(List.of(detalle));
+
+        when(devolucionRepository.findWithDetallesById(10L)).thenReturn(Optional.of(devolucion));
+        when(usuarioRepository.findByUsername("admin")).thenReturn(Optional.of(usuario));
+        when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(producto));
+        when(loteRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(lote));
+        when(movimientoRepository.saveAll(any())).thenReturn(List.of());
+
+        devolucionService.eliminar(10L, "admin");
+
+        assertEquals(50, producto.getStockActual());
+        assertEquals(20, lote.getCantidad());
+        verify(devolucionRepository).delete(devolucion);
+    }
+
+    @Test
+    void eliminar_cuandoNoExiste_debeLanzarResourceNotFoundException() {
+        when(devolucionRepository.findWithDetallesById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> devolucionService.eliminar(99L, "admin"));
+        verify(devolucionRepository, never()).delete(any());
+    }
+
+    // ── actualizar ───────────────────────────────────────────────────────────
+
+    @Test
+    void actualizar_debeModificarMotivoYObervaciones() {
+        Proveedor proveedor = buildProveedor();
+        DevolucionProveedor devolucion = buildDevolucionGuardada(proveedor);
+        devolucion.setMotivo("Motivo antiguo");
+
+        when(devolucionRepository.findWithDetallesById(10L)).thenReturn(Optional.of(devolucion));
+        when(devolucionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DevolucionResponse response = devolucionService.actualizar(10L,
+                new ActualizarDevolucionRequest("Motivo nuevo", "Observación nueva"));
+
+        assertEquals("Motivo nuevo", response.motivo());
+        assertEquals("Motivo nuevo", devolucion.getMotivo());
+        assertEquals("Observación nueva", devolucion.getObservaciones());
+    }
+
+    @Test
+    void actualizar_cuandoNoExiste_debeLanzarResourceNotFoundException() {
+        when(devolucionRepository.findWithDetallesById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> devolucionService.actualizar(99L, new ActualizarDevolucionRequest("x", null)));
+        verify(devolucionRepository, never()).save(any());
     }
 }

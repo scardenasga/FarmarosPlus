@@ -7,6 +7,7 @@ import co.edu.unbosque.backend.model.entity.Producto;
 import co.edu.unbosque.backend.model.entity.Proveedor;
 import co.edu.unbosque.backend.model.request.DetalleCompraRequest;
 import co.edu.unbosque.backend.model.request.RegistrarCompraRequest;
+import co.edu.unbosque.backend.model.request.ActualizarCompraRequest;
 import co.edu.unbosque.backend.model.response.CompraResponse;
 import co.edu.unbosque.backend.model.response.DetalleCompraResponse;
 import co.edu.unbosque.backend.repository.CompraProveedorRepository;
@@ -92,6 +93,43 @@ public class CompraService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe la compra con id " + id));
         return toResponse(compra);
+    }
+
+    @Transactional
+    public CompraResponse actualizar(Long id, ActualizarCompraRequest request) {
+        CompraProveedor compra = compraRepository.findWithDetallesById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la compra con id " + id));
+        Proveedor proveedor = proveedorRepository.findById(request.idProveedor())
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el proveedor con id " + request.idProveedor()));
+
+        compra.setProveedor(proveedor);
+        compra.setNumeroFactura(request.numeroFactura());
+        compra.setNotas(request.notas());
+        compra.getDetalles().clear();
+        double total = 0.0;
+        for (DetalleCompraRequest detalleReq : request.detalles()) {
+            Producto producto = productoRepository.findById(detalleReq.idProducto())
+                    .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + detalleReq.idProducto()));
+            double subtotal = detalleReq.precioUnitario() * detalleReq.cantidad();
+            DetalleCompraProveedor detalle = new DetalleCompraProveedor();
+            detalle.setCompra(compra);
+            detalle.setProducto(producto);
+            detalle.setNombreProducto(producto.getNombre());
+            detalle.setCantidad(detalleReq.cantidad());
+            detalle.setPrecioUnitario(detalleReq.precioUnitario());
+            detalle.setSubtotal(subtotal);
+            compra.getDetalles().add(detalle);
+            total += subtotal;
+        }
+        compra.setTotal(total);
+        return toResponse(compraRepository.save(compra));
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        CompraProveedor compra = compraRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la compra con id " + id));
+        compraRepository.delete(compra);
     }
 
     private CompraResponse toResponse(CompraProveedor c) {

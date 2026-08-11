@@ -9,6 +9,7 @@ import co.edu.unbosque.backend.model.entity.Proveedor;
 import co.edu.unbosque.backend.model.entity.Usuario;
 import co.edu.unbosque.backend.model.request.AgregarDetalleOrdenRequest;
 import co.edu.unbosque.backend.model.request.CrearOrdenCompraRequest;
+import co.edu.unbosque.backend.model.request.OrdenCompraConfirmacionRequest;
 import co.edu.unbosque.backend.model.response.OrdenCompraPreviewResponse;
 import co.edu.unbosque.backend.model.response.ResumenAlertasComprasResponse;
 import co.edu.unbosque.backend.repository.DetalleOrdenCompraRepository;
@@ -81,6 +82,67 @@ public class OrdenCompraService {
         orden.setObservaciones(request.observaciones());
 
         return ordenCompraRepository.save(orden);
+    }
+
+    @Transactional
+    public OrdenCompra confirmarOrden(OrdenCompraConfirmacionRequest request) {
+        if (request == null || request.proveedorId() == null || request.items() == null || request.items().isEmpty()) {
+            throw new BusinessException("La orden debe tener proveedor y al menos un producto");
+        }
+        double total = request.items().stream().mapToDouble(i -> {
+            if (i.productoId() == null || i.cantidad() == null || i.cantidad() <= 0 || i.precioUnitario() == null || i.precioUnitario() < 0) {
+                throw new BusinessException("Cada producto debe tener cantidad y precio válidos");
+            }
+            return i.cantidad() * i.precioUnitario();
+        }).sum();
+        OrdenCompra orden = crearOrdenCompra(new CrearOrdenCompraRequest(request.proveedorId(), null, total, request.observaciones()));
+        agregarDetallesConfirmados(orden, request);
+        return ordenCompraRepository.save(orden);
+    }
+
+    @Transactional
+    public OrdenCompra actualizarOrden(Long id, OrdenCompraConfirmacionRequest request) {
+        OrdenCompra orden = obtenerOrdenPorId(id);
+        if (!"PENDIENTE".equals(orden.getEstado())) {
+            throw new BusinessException("Solo se pueden editar órdenes PENDIENTES");
+        }
+        if (request.proveedorId() == null || request.items() == null || request.items().isEmpty()) {
+            throw new BusinessException("La orden debe tener proveedor y al menos un producto");
+        }
+        Proveedor proveedor = proveedorRepository.findById(request.proveedorId())
+                .orElseThrow(() -> new ResourceNotFoundException("No existe proveedor con id " + request.proveedorId()));
+        orden.setProveedor(proveedor);
+        orden.setObservaciones(request.observaciones());
+        orden.getDetalles().clear();
+        agregarDetallesConfirmados(orden, request);
+        return ordenCompraRepository.save(orden);
+    }
+
+    @Transactional
+    public void cancelarOrden(Long id) {
+        OrdenCompra orden = obtenerOrdenPorId(id);
+        if (!"PENDIENTE".equals(orden.getEstado())) {
+            throw new BusinessException("Solo se pueden cancelar órdenes PENDIENTES");
+        }
+        orden.setEstado("CANCELADA");
+        ordenCompraRepository.save(orden);
+    }
+
+    private void agregarDetallesConfirmados(OrdenCompra orden, OrdenCompraConfirmacionRequest request) {
+        double total = 0;
+        for (OrdenCompraConfirmacionRequest.ItemConfirmado item : request.items()) {
+            Producto producto = productoRepository.findById(item.productoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No existe producto con id " + item.productoId()));
+            DetalleOrdenCompra detalle = new DetalleOrdenCompra();
+            detalle.setOrden(orden);
+            detalle.setProducto(producto);
+            detalle.setNombreProducto(producto.getNombre());
+            detalle.setCantidadPedida(item.cantidad());
+            detalle.setPrecioUnitarioPactado(item.precioUnitario());
+            orden.getDetalles().add(detalle);
+            total += item.cantidad() * item.precioUnitario();
+        }
+        orden.setTotalEsperado(total);
     }
 
     

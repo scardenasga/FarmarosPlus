@@ -1,6 +1,6 @@
 <div class="page">
   <app-top-bar 
-    title="Nueva compra" 
+    [title]="editando() ? 'Editar compra' : 'Nueva compra'" 
     [showAlert]="false" 
     (back)="volver()">
   </app-top-bar>
@@ -9,13 +9,52 @@
     <div class="form-scroll">
       <!-- Proveedor -->
       <section class="seccion-card">
-        <label class="label-campo">Proveedor *</label>
-        <select class="select-campo" [value]="idProveedorSeleccionado() || 'null'" (change)="onProveedorChange($event)">
-          <option value="null" disabled>Seleccionar proveedor...</option>
-          @for (p of proveedores(); track p.idProveedor) {
-            <option [value]="p.idProveedor">{{ p.nombre }}</option>
+        <div class="seccion-header">
+          <div>
+            <label class="label-campo">Proveedor *</label>
+            <div class="section-hint">Busca y selecciona un proveedor activo</div>
+          </div>
+          @if (idProveedorSeleccionado()) {
+            <button class="btn-secondary" type="button" (click)="mostrarListaProveedores.set(!mostrarListaProveedores())">
+              {{ mostrarListaProveedores() ? 'Minimizar' : 'Cambiar' }}
+            </button>
           }
-        </select>
+        </div>
+
+        @if (idProveedorSeleccionado()) {
+          <div class="selected-banner">
+            <span class="selected-label">Proveedor seleccionado</span>
+            <strong>{{ proveedorSeleccionado()?.nombre }}</strong>
+          </div>
+        }
+
+        @if (mostrarListaProveedores()) {
+          <input type="text" class="input-campo" [ngModel]="busquedaProveedor()"
+                 (ngModelChange)="busquedaProveedor.set($event)"
+                 placeholder="Buscar por nombre, NIT, teléfono o contacto" />
+          @if (cargandoProveedores()) {
+            <div class="msg-info compacta">Cargando proveedores...</div>
+          } @else {
+            <div class="supplier-list">
+              @for (p of proveedoresFiltrados(); track p.idProveedor) {
+                <button type="button" class="supplier-card"
+                        [class.active]="idProveedorSeleccionado() === p.idProveedor"
+                        (click)="seleccionarProveedor(p)">
+                  <div class="supplier-main">
+                    <span class="supplier-name">{{ p.nombre }}</span>
+                    <span class="supplier-meta">@if (p.nit) { NIT {{ p.nit }} } @else { Sin NIT }</span>
+                  </div>
+                  <div class="supplier-side">
+                    <span>{{ p.estado }}</span>
+                    @if (p.contacto) { <span>{{ p.contacto }}</span> }
+                  </div>
+                </button>
+              } @empty {
+                <div class="lista-vacia">No hay proveedores activos para mostrar.</div>
+              }
+            </div>
+          }
+        }
       </section>
 
       <!-- Información de Factura -->
@@ -32,15 +71,44 @@
       <!-- Productos -->
       <section class="seccion-card">
         <div class="seccion-header">
-          <label class="label-campo">Productos *</label>
-          <button class="btn-agregar" (click)="abrirModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Agregar
-          </button>
+          <div>
+            <label class="label-campo">Agregar productos *</label>
+            <div class="section-hint">Solo productos asociados al proveedor seleccionado</div>
+          </div>
+          <span class="section-hint">{{ items().length }} producto(s)</span>
         </div>
+
+        @if (!idProveedorSeleccionado()) {
+          <div class="lista-vacia">Selecciona primero un proveedor.</div>
+        } @else if (cargandoDetalleProveedor()) {
+          <div class="msg-info compacta">Cargando productos del proveedor...</div>
+        } @else if (!productoSeleccionado()) {
+          <input type="text" [ngModel]="busquedaProductoProveedor()" (ngModelChange)="buscarAlEscribir($event)"
+                 placeholder="Escribe para filtrar productos..." class="input-campo" />
+          <div class="lista-resultados inline-results">
+            @for (prod of productosProveedorFiltrados(); track prod.id) {
+              <button type="button" class="resultado-item" (click)="seleccionarProductoProveedor(prod)">
+                <span class="res-nombre">{{ prod.nombre }}</span>
+                <span class="res-stock">{{ prod.precioReferencia ? ('Referencia: ' + (prod.precioReferencia | currency:'COP':'symbol-narrow':'1.0-0')) : 'Precio por definir' }}</span>
+              </button>
+            } @empty {
+              <div class="lista-vacia">Escribe para ver los productos asociados.</div>
+            }
+          </div>
+        } @else {
+          <div class="producto-seleccionado">
+            <div class="selected-banner"><span class="selected-label">Producto seleccionado</span><strong>{{ productoSeleccionado().nombre }}</strong></div>
+            <div class="inline-fields">
+              <div class="campo-modal"><label>Cantidad *</label><input type="number" [ngModel]="cantidadModal()" (ngModelChange)="cantidadModal.set($event)" min="1" class="input-campo" /></div>
+              <div class="campo-modal"><label>Precio unitario *</label><input type="number" [ngModel]="precioModal()" (ngModelChange)="precioModal.set($event)" min="0" step="0.01" class="input-campo" /></div>
+            </div>
+            @if (errorModal()) { <div class="form-error">{{ errorModal() }}</div> }
+            <div class="modal-acciones">
+              <button class="btn-cancelar" type="button" (click)="productoSeleccionado.set(null); errorModal.set('')">Cambiar producto</button>
+              <button class="btn-guardar" type="button" (click)="agregarItem()">Agregar a la compra</button>
+            </div>
+          </div>
+        }
 
         <div class="lista-productos">
           @for (item of items(); track item.idProducto; let i = $index) {
@@ -77,60 +145,9 @@
       }
 
       <button class="btn-enviar" (click)="enviar()" [disabled]="!puedeEnviar()">
-        {{ enviando() ? 'Registrando...' : 'Registrar compra' }}
+        {{ enviando() ? 'Guardando...' : (editando() ? 'Guardar cambios' : 'Registrar compra') }}
       </button>
     </div>
   </main>
 
-  <!-- Modal buscar producto -->
-  @if (modalVisible()) {
-    <div class="modal-overlay" (click)="cerrarModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        @if (!productoSeleccionado()) {
-          <h2 class="modal-titulo">Buscar producto</h2>
-          <div class="busqueda-row">
-            <input type="text" [ngModel]="termino()" (ngModelChange)="termino.set($event)" 
-                   placeholder="Nombre del producto..." class="input-busqueda" (keyup.enter)="buscar()"/>
-            <button class="btn-buscar" (click)="buscar()">Buscar</button>
-          </div>
-          
-          @if (buscando()) {
-            <div class="modal-info">Buscando...</div>
-          } @else if (!buscando() && resultados().length === 0 && termino()) {
-            <div class="modal-info">Sin resultados para "{{ termino() }}"</div>
-          }
-
-          <div class="lista-resultados">
-            @for (prod of resultados(); track prod.id) {
-              <div class="resultado-item" (click)="seleccionarProducto(prod)">
-                <span class="res-nombre">{{ prod.nombre }}</span>
-                <span class="res-stock">Stock: {{ prod.stockActual }}</span>
-              </div>
-            }
-          </div>
-        } @else {
-          <h2 class="modal-titulo">{{ productoSeleccionado().nombre }}</h2>
-
-          <div class="campo-modal">
-            <label>Cantidad *</label>
-            <input type="number" [ngModel]="cantidadModal()" (ngModelChange)="cantidadModal.set($event)" min="1" class="input-campo"/>
-          </div>
-
-          <div class="campo-modal">
-            <label>Precio unitario ($) *</label>
-            <input type="number" [ngModel]="precioModal()" (ngModelChange)="precioModal.set($event)" min="0" step="0.01" class="input-campo"/>
-          </div>
-
-          @if (errorModal()) {
-            <div class="form-error">{{ errorModal() }}</div>
-          }
-
-          <div class="modal-acciones">
-            <button class="btn-cancelar" (click)="productoSeleccionado.set(null); resultados.set([])">Atrás</button>
-            <button class="btn-guardar" (click)="agregarItem()">Agregar</button>
-          </div>
-        }
-      </div>
-    </div>
-  }
 </div>

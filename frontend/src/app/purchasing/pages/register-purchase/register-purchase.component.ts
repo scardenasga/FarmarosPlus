@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { PurchasingService } from '../../services/purchasing.service';
-import { Supplier } from '../../../supplier/models/supplier.model';
+import { Supplier, SupplierDetalleResponse, SupplierProductRel } from '../../../supplier/models/supplier.model';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 
 interface ItemCompra {
@@ -25,8 +25,14 @@ export class RegisterPurchaseComponent implements OnInit {
   private purchasingService = inject(PurchasingService);
   private supplierService = inject(SupplierService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   proveedores = signal<Supplier[]>([]);
+  busquedaProveedor = signal<string>('');
+  mostrarListaProveedores = signal<boolean>(true);
+  detalleProveedor = signal<SupplierDetalleResponse | null>(null);
+  busquedaProductoProveedor = signal<string>('');
+  cargandoDetalleProveedor = signal<boolean>(false);
   idProveedorSeleccionado = signal<number | null>(null);
   numeroFactura = signal<string>('');
   notas = signal<string>('');
@@ -46,6 +52,27 @@ export class RegisterPurchaseComponent implements OnInit {
   enviando = signal<boolean>(false);
   error = signal<string>('');
   cargandoProveedores = signal<boolean>(true);
+  editando = signal<boolean>(false);
+  idCompra = signal<number | null>(null);
+
+  proveedoresFiltrados = computed(() => {
+    const termino = this.busquedaProveedor().trim().toLowerCase();
+    if (!termino) return this.proveedores();
+    return this.proveedores().filter(p =>
+      [p.nombre, p.nit ?? '', p.contacto ?? '', p.telefono ?? '']
+        .some(valor => valor.toLowerCase().includes(termino))
+    );
+  });
+
+  productosProveedorFiltrados = computed(() => {
+    const termino = this.busquedaProductoProveedor().trim().toLowerCase();
+    const productos = this.detalleProveedor()?.productos ?? [];
+    if (!termino) return [];
+    return productos.filter(prod =>
+      [prod.nombre, prod.codigoBarras, prod.codigoProductoProveedor ?? '', prod.descripcion ?? '']
+        .some(valor => valor.toLowerCase().includes(termino))
+    );
+  });
 
   totalCompra = computed(() => {
     return this.items().reduce((s, i) => s + i.cantidad * i.precioUnitario, 0);
@@ -55,13 +82,26 @@ export class RegisterPurchaseComponent implements OnInit {
     return this.idProveedorSeleccionado() !== null && this.items().length > 0 && !this.enviando();
   });
 
-  onProveedorChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value;
-    this.idProveedorSeleccionado.set(value === 'null' ? null : Number(value));
+  seleccionarProveedor(proveedor: Supplier): void {
+    this.idProveedorSeleccionado.set(proveedor.idProveedor);
+    this.busquedaProveedor.set('');
+    this.mostrarListaProveedores.set(false);
+    this.items.set([]);
+    this.cargarDetalleProveedor(proveedor.idProveedor);
+  }
+
+  proveedorSeleccionado(): Supplier | null {
+    const id = this.idProveedorSeleccionado();
+    return id === null ? null : this.proveedores().find(p => p.idProveedor === id) ?? null;
   }
 
   ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (id) {
+      this.editando.set(true);
+      this.idCompra.set(id);
+      this.cargarCompra(id);
+    }
     this.supplierService.listActive().subscribe({
       next: data => {
         this.proveedores.set(data);
@@ -102,6 +142,50 @@ export class RegisterPurchaseComponent implements OnInit {
     });
   }
 
+  cargarCompra(id: number): void {
+    this.purchasingService.obtenerOrden(id).subscribe({
+      next: compra => {
+        this.idProveedorSeleccionado.set(compra.proveedor.idProveedor);
+        this.numeroFactura.set('');
+        this.notas.set(compra.observaciones ?? '');
+        this.items.set(compra.detalles.map(d => ({
+          idProducto: d.productoId!,
+          nombreProducto: d.nombreProducto,
+          cantidad: d.cantidadPedida,
+          precioUnitario: d.precioUnitarioPactado
+        })));
+        this.cargarDetalleProveedor(compra.proveedor.idProveedor);
+        this.mostrarListaProveedores.set(false);
+      },
+      error: () => this.error.set('No se pudo cargar la compra para editarla.')
+    });
+  }
+
+  cargarDetalleProveedor(proveedorId: number): void {
+    this.cargandoDetalleProveedor.set(true);
+    this.detalleProveedor.set(null);
+    this.busquedaProductoProveedor.set('');
+    this.productoSeleccionado.set(null);
+    this.supplierService.getDetail(proveedorId).subscribe({
+      next: detalle => {
+        this.detalleProveedor.set(detalle);
+        this.cargandoDetalleProveedor.set(false);
+      },
+      error: () => this.cargandoDetalleProveedor.set(false)
+    });
+  }
+
+  buscarAlEscribir(termino: string): void {
+    this.busquedaProductoProveedor.set(termino);
+  }
+
+  seleccionarProductoProveedor(producto: SupplierProductRel): void {
+    this.productoSeleccionado.set(producto);
+    this.cantidadModal.set(1);
+    this.precioModal.set(producto.precioReferencia ?? 0);
+    this.errorModal.set('');
+  }
+
   seleccionarProducto(prod: any): void {
     this.productoSeleccionado.set(prod);
     this.cantidadModal.set(1);
@@ -130,6 +214,10 @@ export class RegisterPurchaseComponent implements OnInit {
         }];
       }
     });
+    this.productoSeleccionado.set(null);
+    this.resultados.set([]);
+    this.termino.set('');
+    this.errorModal.set('');
     this.cerrarModal();
   }
 
@@ -146,20 +234,18 @@ export class RegisterPurchaseComponent implements OnInit {
     this.enviando.set(true);
     this.error.set('');
 
-    this.purchasingService.registrarCompra({
-      idProveedor: this.idProveedorSeleccionado()!,
-      usuarioResponsable: 'admin', // En una app real vendría de un Auth Service
-      numeroFactura: this.numeroFactura() || undefined,
-      notas: this.notas() || undefined,
-      detalles: this.items().map(i => ({
-        idProducto: i.idProducto,
-        cantidad: i.cantidad,
-        precioUnitario: i.precioUnitario
-      }))
-    }).subscribe({
+    const datos = {
+      proveedorId: this.idProveedorSeleccionado()!,
+      items: this.items().map(i => ({ productoId: i.idProducto, cantidad: i.cantidad, precioUnitario: i.precioUnitario })),
+      observaciones: [this.numeroFactura() ? `Factura prevista: ${this.numeroFactura()}` : '', this.notas()].filter(Boolean).join(' · ') || undefined
+    };
+    const peticion = this.editando()
+      ? this.purchasingService.actualizarOrden(this.idCompra()!, datos)
+      : this.purchasingService.registrarOrden(datos);
+    peticion.subscribe({
       next: () => this.router.navigate(['/purchasing/purchase-history']),
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'Error al registrar la compra.');
+        this.error.set(err?.error?.message ?? 'No se pudo guardar la compra.');
         this.enviando.set(false);
       }
     });

@@ -4,6 +4,7 @@ import co.edu.unbosque.backend.model.entity.DetalleOrdenCompra;
 import co.edu.unbosque.backend.model.entity.OrdenCompra;
 import co.edu.unbosque.backend.model.request.AgregarDetalleOrdenRequest;
 import co.edu.unbosque.backend.model.request.CrearOrdenCompraRequest;
+import co.edu.unbosque.backend.model.request.OrdenCompraConfirmacionRequest;
 import co.edu.unbosque.backend.model.response.DetalleOrdenCompraResponse;
 import co.edu.unbosque.backend.model.response.OrdenCompraPreviewResponse;
 import co.edu.unbosque.backend.model.response.OrdenCompraResponse;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,6 +76,28 @@ public class OrdenCompraController {
     ) {
         OrdenCompra ordenGuardada = ordenCompraService.crearOrdenCompra(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toOrdenCompraResponse(ordenGuardada));
+    }
+
+    @PostMapping("/confirmar")
+    @Operation(summary = "Crear orden de compra con sus detalles")
+    public ResponseEntity<OrdenCompraResponse> confirmarOrden(
+            @Valid @RequestBody OrdenCompraConfirmacionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(toOrdenCompraResponse(ordenCompraService.confirmarOrden(request)));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Editar una orden de compra pendiente")
+    public ResponseEntity<OrdenCompraResponse> actualizarOrden(
+            @PathVariable Long id, @Valid @RequestBody OrdenCompraConfirmacionRequest request) {
+        return ResponseEntity.ok(toOrdenCompraResponse(ordenCompraService.actualizarOrden(id, request)));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @Operation(summary = "Cancelar una orden de compra")
+    public ResponseEntity<Void> cancelarOrden(@PathVariable Long id) {
+        ordenCompraService.cancelarOrden(id);
+        return ResponseEntity.noContent().build();
     }
 
     /**

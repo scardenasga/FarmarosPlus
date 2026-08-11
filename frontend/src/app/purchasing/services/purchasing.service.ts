@@ -3,11 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   CompraResponse, 
+  ActualizarCompraRequest,
+  ActualizarDevolucionClienteRequest,
+  ActualizarDevolucionRequest,
+  DevolucionClienteResponse,
   DevolucionResponse, 
   RegistrarCompraRequest, 
   RegistrarDevolucionRequest,
+  RegistrarDevolucionClienteRequest,
   ResumenSeguimiento,
-  PrevisualizacionOrden
+  PrevisualizacionOrden,
+  VentaResponse
+  ,OrdenCompraResumen, OrdenCompraResponse, RegistrarOrdenRequest, RegistrarRecepcionRequest, RecepcionCompraResumen
 } from '../models/purchasing.model';
 
 @Injectable({
@@ -17,8 +24,10 @@ export class PurchasingService {
   private http = inject(HttpClient);
   private readonly apiCompras = '/api/compras';
   private readonly apiDevoluciones = '/api/devoluciones';
+  private readonly apiDevolucionesClientes = '/api/devoluciones-clientes';
   private readonly apiOrdenes = '/api/ordenes-compra';
   private readonly apiProductos = '/api/productos';
+  private readonly apiVentas = '/api/ventas';
 
   // --- Compras ---
 
@@ -35,6 +44,14 @@ export class PurchasingService {
     return this.http.get<CompraResponse>(`${this.apiCompras}/${id}`);
   }
 
+  actualizarCompra(id: number, request: ActualizarCompraRequest): Observable<CompraResponse> {
+    return this.http.patch<CompraResponse>(`${this.apiCompras}/${id}`, request);
+  }
+
+  eliminarCompra(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiCompras}/${id}`);
+  }
+
   // --- Devoluciones ---
 
   registrarDevolucion(request: RegistrarDevolucionRequest): Observable<DevolucionResponse> {
@@ -47,6 +64,38 @@ export class PurchasingService {
 
   obtenerDevolucion(id: number): Observable<DevolucionResponse> {
     return this.http.get<DevolucionResponse>(`${this.apiDevoluciones}/${id}`);
+  }
+
+  actualizarDevolucion(id: number, request: ActualizarDevolucionRequest): Observable<DevolucionResponse> {
+    return this.http.patch<DevolucionResponse>(`${this.apiDevoluciones}/${id}`, request);
+  }
+
+  eliminarDevolucion(id: number, usuarioResponsable: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiDevoluciones}/${id}`, {
+      params: { usuarioResponsable }
+    });
+  }
+
+  registrarDevolucionCliente(request: RegistrarDevolucionClienteRequest): Observable<DevolucionClienteResponse> {
+    return this.http.post<DevolucionClienteResponse>(this.apiDevolucionesClientes, request);
+  }
+
+  listarDevolucionesClientes(): Observable<DevolucionClienteResponse[]> {
+    return this.http.get<DevolucionClienteResponse[]>(this.apiDevolucionesClientes);
+  }
+
+  obtenerDevolucionCliente(id: number): Observable<DevolucionClienteResponse> {
+    return this.http.get<DevolucionClienteResponse>(`${this.apiDevolucionesClientes}/${id}`);
+  }
+
+  actualizarDevolucionCliente(id: number, request: ActualizarDevolucionClienteRequest): Observable<DevolucionClienteResponse> {
+    return this.http.patch<DevolucionClienteResponse>(`${this.apiDevolucionesClientes}/${id}`, request);
+  }
+
+  eliminarDevolucionCliente(id: number, usuarioResponsable: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiDevolucionesClientes}/${id}`, {
+      params: { usuarioResponsable }
+    });
   }
 
   // --- Órdenes de Compra ---
@@ -63,6 +112,18 @@ export class PurchasingService {
     return this.http.post(`${this.apiOrdenes}/confirmar`, datos);
   }
 
+  listarOrdenes(): Observable<OrdenCompraResumen[]> { return this.http.get<OrdenCompraResumen[]>(this.apiOrdenes); }
+  obtenerOrden(id: number): Observable<OrdenCompraResponse> { return this.http.get<OrdenCompraResponse>(`${this.apiOrdenes}/${id}`); }
+  registrarOrden(request: RegistrarOrdenRequest): Observable<OrdenCompraResponse> { return this.http.post<OrdenCompraResponse>(`${this.apiOrdenes}/confirmar`, request); }
+  actualizarOrden(id: number, request: RegistrarOrdenRequest): Observable<OrdenCompraResponse> { return this.http.patch<OrdenCompraResponse>(`${this.apiOrdenes}/${id}`, request); }
+  cancelarOrden(id: number): Observable<void> { return this.http.delete<void>(`${this.apiOrdenes}/${id}`); }
+  registrarRecepcion(request: RegistrarRecepcionRequest): Observable<any> { return this.http.post('/api/recepciones-compra', request); }
+  listarRecepciones(): Observable<RecepcionCompraResumen[]> { return this.http.get<RecepcionCompraResumen[]>('/api/recepciones-compra'); }
+  listarRecepcionesPorOrden(ordenId: number): Observable<RecepcionCompraResumen[]> { return this.http.get<RecepcionCompraResumen[]>(`/api/recepciones-compra/orden/${ordenId}`); }
+  actualizarEstadoPago(recepcionId: number, estadoPago: string, montoPagado: number): Observable<RecepcionCompraResumen> {
+    return this.http.patch<RecepcionCompraResumen>(`/api/recepciones-compra/${recepcionId}/estado-pago`, { estadoPago, montoPagado });
+  }
+
   // --- Productos y Lotes ---
 
   buscarProductos(termino: string): Observable<any[]> {
@@ -70,7 +131,10 @@ export class PurchasingService {
   }
 
   obtenerLotes(productoId: number): Observable<any[]> {
-    // Corregido: de /api/inventario/... a /api/productos/...
-    return this.http.get<any[]>(`${this.apiProductos}/${productoId}/lotes-disponibles`);
+    return this.http.get<any[]>(`/api/inventario/productos/${productoId}/lotes-disponibles`);
+  }
+
+  obtenerVenta(id: number): Observable<VentaResponse> {
+    return this.http.get<VentaResponse>(`${this.apiVentas}/${id}`);
   }
 }
