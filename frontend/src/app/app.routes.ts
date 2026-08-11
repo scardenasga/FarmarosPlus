@@ -8,7 +8,6 @@ import { ProductDetailComponent } from './inventory/pages/product-detail/product
 import { EditarProductoComponent } from './inventory/pages/editar-producto/editar-producto.component';
 import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
 import { IngresoStockComponent } from './inventory/pages/ingreso-stock/ingreso-stock.component';
-import { GestionLotesComponent } from './inventory/pages/gestion-lotes/gestion-lotes.component';
 import {HistorialVentasComponent} from './ventas/pages/historial-ventas/historial-ventas.component';
 import {BuscarProductoComponent} from './ventas/pages/buscar-producto/buscar-producto.component';
 import {RegistrarVentaComponent} from './ventas/pages/registrar-venta/registrar-venta.component';
@@ -95,7 +94,6 @@ export const routes: Routes = [
   { path: 'inventario', component: InventoryComponent },
   { path: 'inventario/crear', component: CrearProductoComponent },
   { path: 'inventario/ingreso', component: IngresoStockComponent },
-  { path: 'inventario/gestion-lotes', component: GestionLotesComponent },
   { path: 'inventario/:id', component: ProductDetailComponent },
   { path: 'inventario/editar/:id', component: EditarProductoComponent },
 
