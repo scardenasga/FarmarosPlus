@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest, IngresoStockRequest } from '../models/product.model';
+import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest, IngresoStockRequest, LoteResponse } from '../models/product.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -34,6 +34,10 @@ export class InventoryService {
 
   registrarIngreso(codigoBarras: string, request: IngresoStockRequest): Observable<any> {
     return this.http.post(`${this.productsUrl}/codigo-barras/${codigoBarras}/ingresos`, request);
+  }
+
+  getLotsExpiringBy(date: string): Observable<LoteResponse[]> {
+    return this.http.get<LoteResponse[]>(`/api/inventario/lotes/proximos-a-vencer?fechaCorte=${date}`);
   }
 
   searchProducts(nombre?: string, codigo?: string): Observable<Product[]> {
