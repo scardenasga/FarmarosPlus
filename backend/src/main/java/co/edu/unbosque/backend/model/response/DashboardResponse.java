@@ -13,8 +13,10 @@ import java.util.List;
  * - Inventario por categoría
  * - Productos más vendidos
  * - Productos con stock bajo
+ * - Comparativa mensual de ventas y costos
  *
  * @author Angie Tatiana Ortiz
+ * @author Sebastian Cardenas Garcia
  */
 public record DashboardResponse(
         DashboardResumenResponse resumen,
@@ -23,7 +25,7 @@ public record DashboardResponse(
         List<InventarioCategoriaResponse> inventarioPorCategoria,
         List<ProductoDestacadoResponse> productosDestacados,
         List<ProductoStockBajoResponse> productosStockBajo,
+        List<ComparativaMensualResponse> comparativaMensual,
         LocalDateTime fechaConsulta
-        
 ) {
 }

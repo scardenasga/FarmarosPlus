@@ -2,16 +2,14 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService, ThemeType } from '../../../services/theme.service';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
-import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, TopBarComponent, BottomNavBarComponent],
+  imports: [CommonModule, TopBarComponent],
   templateUrl: './settings.component.html',
   styles: [`
     .settings-page {
-      padding-bottom: 100px;
       min-height: 100vh;
       background-color: var(--background);
     }

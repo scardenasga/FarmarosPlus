@@ -1,136 +1,263 @@
-<div class="dashboard-page">
-  <app-top-bar
-    title="Resumen del negocio"
-    [showBack]="false"
-    [showAlert]="true"
-    (alert)="handleAlerts()">
-  </app-top-bar>
+<div class="home-dashboard-page">
+  <!-- Page Header -->
+  <div class="page-header-simple">
+    <h1>Resumen del Negocio</h1>
 
-  @if (loading()) {
-    <div class="state-msg">Cargando resumen...</div>
-  } @else if (error()) {
-    <div class="state-msg error">{{ error() }}</div>
-  } @else if (dashboard()) {
-    <main class="dashboard-grid">
-      <section class="kpi-grid" aria-label="Indicadores clave">
-        @for (card of summaryCards(); track card.label) {
-          <article class="kpi-card" [class]="'tone-' + card.tone">
-            <div class="kpi-card__head">
-              <span class="kpi-card__icon">{{ card.icon }}</span>
-              <span class="kpi-card__label">{{ card.label }}</span>
-            </div>
-            <strong class="kpi-card__value">{{ card.value }}</strong>
-            <p class="kpi-card__helper">{{ card.helper }}</p>
-          </article>
+    <!-- Notification Bell Component -->
+    <div class="notification-wrapper">
+      <button class="notification-btn" title="Notificaciones" (click)="toggleNotifications()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        @if (alertaService.contadorNoLeidas() > 0) {
+          <span class="notification-badge">
+            {{ alertaService.contadorNoLeidas() > 99 ? '99+' : alertaService.contadorNoLeidas() }}
+          </span>
         }
-      </section>
+      </button>
 
-      <section class="chart-grid">
-        <app-chart-panel
-          title="Ventas por día"
-          subtitle="La tendencia más útil para saber cómo va el negocio."
-          badge="Principal"
-          chartType="line"
-          [chartData]="ventasTrendData()"
-          [chartOptions]="salesTrendOptions"
-          [showLegend]="false"
-          height="260px"
-          emptyMessage="No hay ventas para el período seleccionado.">
-        </app-chart-panel>
-
-        <app-chart-panel
-          title="Top productos"
-          subtitle="Solo los que más rotan."
-          badge="Rotación"
-          chartType="bar"
-          [chartData]="topProductsData()"
-          [chartOptions]="topProductsOptions"
-          [showLegend]="false"
-          height="280px"
-          emptyMessage="No hay productos vendidos en el período seleccionado.">
-        </app-chart-panel>
-      </section>
-
-      <section class="list-card">
-        <div class="list-card__header">
-          <div>
-            <span class="list-card__eyebrow">Inventario crítico</span>
-            <h2>Productos con stock bajo</h2>
-          </div>
-          <button class="text-button" (click)="revisarStock()">Ver inventario</button>
+      <!-- Dropdown Menu -->
+      <div class="notification-dropdown" [class.active]="showNotifications()">
+        <div class="dropdown-header">
+          <h4>Notificaciones</h4>
+          <span (click)="marcarTodasLeidas()">Marcar leídas</span>
         </div>
-
-        @if (lowStockList().length === 0) {
-          <div class="empty-inline">No hay productos bajo el mínimo configurado.</div>
-        } @else {
-          <div class="item-list">
-            @for (product of lowStockList(); track product.idProducto) {
-              <div class="item-row danger">
-                <div>
-                  <strong>{{ product.nombre }}</strong>
-                  <span>Stock actual {{ product.stockActual }} · mínimo {{ product.stockMinimo }}</span>
+        <div class="dropdown-list">
+          @if (notificationsList().length === 0) {
+            <div class="notif-item" (click)="navegarAAlertas()">
+              <div class="notif-icon green">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <div>
+                <div class="notif-title">Sistema al día</div>
+                <div class="notif-desc">No hay alertas urgentes pendientes.</div>
+                <div class="notif-time">Ahora</div>
+              </div>
+            </div>
+          } @else {
+            @for (notif of notificationsList(); track notif.id) {
+              <div class="notif-item" (click)="navegarAAlertas()">
+                <div class="notif-icon" [ngClass]="notif.tipo === 'STOCK_MINIMO' ? 'red' : 'orange'">
+                  @if (notif.tipo === 'STOCK_MINIMO') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  }
                 </div>
-                <span class="item-row__metric">-{{ product.stockMinimo - product.stockActual }}</span>
+                <div>
+                  <div class="notif-title">{{ notif.titulo }}</div>
+                  <div class="notif-desc">{{ notif.mensaje }}</div>
+                  <div class="notif-time">{{ notif.fechaGeneracion | date:'shortTime' }}</div>
+                </div>
               </div>
             }
-          </div>
-        }
-      </section>
-
-      <section class="detail-gate">
-        <div class="detail-gate__copy">
-          <span class="detail-gate__eyebrow">Detalle opcional</span>
-          <h2>Ver más información</h2>
-          <p>Si necesitas revisar vencimientos, categorías o comparaciones de inventario, abre el detalle.</p>
+          }
         </div>
-        <button class="detail-gate__button" (click)="toggleMore()">
-          {{ showMore() ? 'Ocultar' : 'Ver más' }}
-        </button>
-      </section>
+      </div>
+    </div>
+  </div>
 
-      @if (showMore()) {
-        <section class="secondary-panel">
-          <div class="secondary-panel__body">
-            <div class="secondary-stats">
-              @for (stat of secondaryStats(); track stat.label) {
-                <div class="secondary-stat">
-                  <strong>{{ stat.value }}</strong>
-                  <span>{{ stat.label }}</span>
-                  <small>{{ stat.helper }}</small>
-                </div>
-              }
-            </div>
+  @if (loading()) {
+    <div class="state-loading">
+      <div class="spinner"></div>
+      <p>Cargando resumen del negocio...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-error">
+      <p>{{ error() }}</p>
+      <button class="btn-secondary" (click)="cargarDashboard()">Reintentar</button>
+    </div>
+  } @else if (dashboard()) {
+    <!-- Top 6 Compact KPI Cards Grid -->
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-gold">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M12 6v12M9 9.5c0-1 1-1.5 3-1.5s3 .5 3 1.5-1 1.5-3 2c-2 .5-3 1-3 2s1 1.5 3 1.5 3-.5 3-1.5"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Ventas del Día</h3>
+        <div class="kpi-value">{{ formatCurrency(ventasDelDia()) }}</div>
+        <span class="kpi-subtitle">{{ cantidadVentasDelDia() }} venta{{ cantidadVentasDelDia() === 1 ? '' : 's' }} hoy</span>
+      </article>
 
-            <div class="secondary-charts">
-              <app-chart-panel
-                title="Inventario por categoría"
-                subtitle="Detalle de distribución."
-                badge="Detalle"
-                chartType="doughnut"
-                [chartData]="inventoryMixData()"
-                [chartOptions]="inventoryMixOptions"
-                [showLegend]="true"
-                height="260px"
-                emptyMessage="No hay categorías con inventario disponible.">
-              </app-chart-panel>
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-blue">
+          <svg viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Ventas del Mes</h3>
+        <div class="kpi-value">{{ formatCurrency(ventasDelMes()) }}</div>
+        <span class="kpi-subtitle">{{ cantidadVentasDelMes() }} ventas período</span>
+      </article>
 
-              <app-chart-panel
-                title="Stock bajo vs mínimo"
-                subtitle="Comparación útil cuando quieres abrir el inventario."
-                badge="Detalle"
-                chartType="bar"
-                [chartData]="lowStockData()"
-                [chartOptions]="lowStockOptions"
-                [showLegend]="true"
-                height="260px"
-                emptyMessage="No hay productos en stock bajo.">
-              </app-chart-panel>
-            </div>
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-purple">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Ticket Promedio</h3>
+        <div class="kpi-value">{{ formatCurrency(ticketPromedio()) }}</div>
+        <span class="kpi-subtitle">Prom. por ticket</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-brown">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Compras del Mes</h3>
+        <div class="kpi-value">{{ formatCurrency(comprasDelMes()) }}</div>
+        <span class="kpi-subtitle">Proveedores</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-red">
+          <svg viewBox="0 0 24 24">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+            <polyline points="17 18 23 18 23 12"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Ganancia del Mes</h3>
+        <div class="kpi-value" [class.negative]="gananciaDelMes() < 0" [class.positive]="gananciaDelMes() >= 0">
+          {{ formatCurrency(gananciaDelMes()) }}
+        </div>
+        <span class="kpi-subtitle" [class.badge-red]="margenGanancia() < 0" [class.badge-green]="margenGanancia() >= 0">
+          Margen {{ margenGanancia() }}%
+        </span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-orange">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="12" y1="14" x2="12" y2="18"/>
+          </svg>
+        </div>
+        <h3 class="kpi-title">Por Caducar</h3>
+        <div class="kpi-value" style="color: #c2410c;">{{ productosPorVencer() }} prod.</div>
+        <span class="kpi-subtitle badge-orange">En 30 días</span>
+      </article>
+    </section>
+
+    <!-- Line Chart Main Section -->
+    <section class="chart-main-section">
+      <div class="chart-header">
+        <div class="chart-header-left">
+          <span class="badge-tag">Principal</span>
+          <div>
+            <h2 class="chart-title">Ventas por día</h2>
+            <p class="chart-subtitle">La tendencia más útil para saber cómo va el negocio.</p>
           </div>
-        </section>
-      }
-    </main>
-  }
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas
+          baseChart
+          type="line"
+          [data]="salesTrendData()"
+          [options]="salesTrendOptions">
+        </canvas>
+      </div>
+    </section>
 
-  <div class="bottom-nav-spacer"></div>
+    <!-- Donut & Bar Profit Split -->
+    <section class="analytics-grid">
+      <article class="analytics-card">
+        <div class="chart-header" style="margin-bottom: 8px;">
+          <span class="badge-tag" style="background-color: var(--accent-green-dark, #0d5238);">Rentabilidad</span>
+        </div>
+        <h3 class="chart-title" style="font-size: 0.95rem;">Ganancias vs Costos del mes</h3>
+        <p class="chart-subtitle">Análisis gráfico dividido de la rentabilidad del negocio.</p>
+
+        <div class="donut-content">
+          <div class="profit-subchart">
+            <div class="donut-chart-wrapper">
+              <canvas
+                baseChart
+                type="doughnut"
+                [data]="profitDonutData()"
+                [options]="profitDonutOptions">
+              </canvas>
+            </div>
+            <span class="subchart-caption">Distribución Neta vs Costos</span>
+          </div>
+
+          <div class="profit-subchart">
+            <div class="bar-chart-wrapper">
+              <canvas
+                baseChart
+                type="bar"
+                [data]="profitBarData()"
+                [options]="profitBarOptions">
+              </canvas>
+            </div>
+            <span class="subchart-caption">Comparativa Mensual</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Bottom Sections Grid: Inventario Crítico & CTA Banner -->
+    <section class="bottom-sections-grid">
+      <!-- Left Side: Inventario Crítico -->
+      <article class="compact-stock-card">
+        <div class="table-header">
+          <div>
+            <span class="eyebrow-red">Inventario Crítico</span>
+            <h3 class="chart-title" style="font-size: 0.95rem; margin-top: 2px;">Stock bajo</h3>
+          </div>
+          <button class="btn-secondary" (click)="navegarAInventario()">Ver todos</button>
+        </div>
+
+        <div class="stock-list">
+          @if (lowStockList().length === 0) {
+            <div class="empty-stock">No hay productos en nivel crítico.</div>
+          } @else {
+            @for (item of lowStockList(); track item.idProducto) {
+              <div class="stock-item-compact" [style.border-left-color]="item.stockActual === 0 ? 'var(--accent-red)' : '#ea580c'">
+                <div>
+                  <div class="stock-name-compact">{{ item.nombre }}</div>
+                  <div class="stock-desc-compact">Actual: {{ item.stockActual }} | Mín: {{ item.stockMinimo }}</div>
+                </div>
+                <div class="stock-count-compact" [class.badge-orange-stock]="item.stockActual > 0">
+                  -{{ item.stockMinimo - item.stockActual }} un.
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </article>
+
+      <!-- Right Side: CTA Banner Card for Advanced Analytics -->
+      <article class="cta-banner-card">
+        <div>
+          <h3 class="cta-title">¿Necesitas análisis más profundos?</h3>
+          <p class="cta-desc">Accede a gráficas interactivas, filtros por período, categorías, comparativas históricas y exportación de reportes.</p>
+        </div>
+        <button class="btn-banner" (click)="navegarAAnalitica()">Ver análisis avanzado &rarr;</button>
+      </article>
+    </section>
+  }
 </div>

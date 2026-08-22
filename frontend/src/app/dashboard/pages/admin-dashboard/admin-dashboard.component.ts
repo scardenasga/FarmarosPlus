@@ -3,17 +3,16 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { ChartData, ChartOptions } from 'chart.js';
+import { NgChartsModule } from 'ng2-charts';
 
 import { DashboardService } from '../../services/dashboard.service';
-import { DashboardResponse } from '../../models/dashboard.model';
-import { ChartPanelComponent } from '../../../shared/components/chart-panel/chart-panel.component';
-import { AlertaService } from '../../../services/alerta.service';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
+import { DashboardResponse, ProductoStockBajo } from '../../models/dashboard.model';
+import { AlertaResponse, AlertaService } from '../../../services/alerta.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, ChartPanelComponent, TopBarComponent],
+  imports: [CommonModule, NgChartsModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -27,7 +26,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly lastUpdated = signal('');
-  readonly showMore = signal(false);
+  readonly showNotifications = signal(false);
+  readonly notificationsList = signal<AlertaResponse[]>([]);
+
   private currentPeriod: { fechaInicio: string; fechaFin: string } | null = null;
 
   ngOnInit(): void {
@@ -39,7 +40,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       fechaFin: this.toIso(fin)
     };
     this.cargarDashboard();
-    this.refreshSub = interval(60000).subscribe(() => this.cargarDashboard());
+    this.cargarAlertas();
+    this.refreshSub = interval(60000).subscribe(() => {
+      this.cargarDashboard();
+      this.cargarAlertas();
+    });
   }
 
   ngOnDestroy(): void {
@@ -61,92 +66,93 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('No se pudo cargar el resumen.');
+          this.error.set('No se pudo cargar el resumen del negocio.');
           this.loading.set(false);
         }
       });
   }
 
-  handleAlerts(): void {
+  cargarAlertas(): void {
+    this.alertaService.listarAlertas(true).subscribe({
+      next: list => {
+        this.notificationsList.set(list);
+        this.alertaService.contadorNoLeidas.set(list.length);
+      },
+      error: () => {}
+    });
+  }
+
+  toggleNotifications(): void {
+    this.showNotifications.update(val => !val);
+  }
+
+  marcarTodasLeidas(): void {
+    this.alertaService.marcarTodasLeidas().subscribe({
+      next: () => {
+        this.notificationsList.set([]);
+        this.alertaService.contadorNoLeidas.set(0);
+        this.showNotifications.set(false);
+      },
+      error: () => {
+        this.notificationsList.set([]);
+        this.alertaService.contadorNoLeidas.set(0);
+        this.showNotifications.set(false);
+      }
+    });
+  }
+
+  navegarAAlertas(): void {
+    this.showNotifications.set(false);
     this.router.navigate(['/alertas']);
   }
 
-  revisarStock(): void {
+  navegarAInventario(): void {
     this.router.navigate(['/inventario']);
   }
 
-  toggleMore(): void {
-    this.showMore.update(value => !value);
+  navegarAAnalitica(): void {
+    this.router.navigate(['/analitica']);
   }
 
-  ventasTrendData = computed<ChartData<'line', number[], string>>(() => {
+  // KPI Computeds
+  readonly ventasDelDia = computed(() => this.dashboard()?.resumen.ventasDelDia ?? 0);
+  readonly cantidadVentasDelDia = computed(() => this.dashboard()?.resumen.cantidadVentasDelDia ?? 0);
+  readonly ventasDelMes = computed(() => this.dashboard()?.resumen.ventasDelMes ?? 0);
+  readonly cantidadVentasDelMes = computed(() => this.dashboard()?.resumen.cantidadVentasDelMes ?? 0);
+  readonly comprasDelMes = computed(() => this.dashboard()?.resumen.comprasDelMes ?? 0);
+  readonly gananciaDelMes = computed(() => this.dashboard()?.resumen.gananciaDelMes ?? 0);
+  readonly margenGanancia = computed(() => this.dashboard()?.resumen.margenGanancia ?? 0);
+  readonly productosPorVencer = computed(() => this.dashboard()?.resumen.productosPorVencer ?? 0);
+
+  readonly ticketPromedio = computed(() => {
+    const total = this.ventasDelMes();
+    const count = this.cantidadVentasDelMes();
+    return count > 0 ? total / count : 0;
+  });
+
+  readonly lowStockList = computed<ProductoStockBajo[]>(() => {
+    return (this.dashboard()?.productosStockBajo ?? []).slice(0, 3);
+  });
+
+  // Main Sales Trend Line Chart
+  readonly salesTrendData = computed<ChartData<'line', number[], string>>(() => {
     const ventas = this.dashboard()?.ventasPorDia ?? [];
     return {
       labels: ventas.map(item => this.formatShortDate(item.fecha)),
       datasets: [
         {
           data: ventas.map(item => item.total),
-          label: 'Ventas',
-          borderColor: 'rgba(0, 137, 123, 1)',
-          backgroundColor: 'rgba(0, 137, 123, 0.18)',
-          tension: 0.35,
+          label: 'Ventas ($)',
+          borderColor: '#0d6e48',
+          borderWidth: 2.5,
+          backgroundColor: 'rgba(13, 110, 72, 0.2)',
           fill: true,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        }
-      ]
-    };
-  });
-
-  topProductsData = computed<ChartData<'bar', number[], string>>(() => {
-    const top = this.dashboard()?.productosDestacados ?? [];
-    return {
-      labels: top.slice(0, 6).map(item => this.truncateLabel(item.nombre, 16)),
-      datasets: [
-        {
-          data: top.slice(0, 6).map(item => item.cantidadVendida),
-          label: 'Unidades vendidas',
-          borderRadius: 10,
-          backgroundColor: top.slice(0, 6).map((_, index) => this.palette[index % this.palette.length]),
-          borderSkipped: false
-        }
-      ]
-    };
-  });
-
-  inventoryMixData = computed<ChartData<'doughnut', number[], string>>(() => {
-    const categories = this.dashboard()?.inventarioPorCategoria ?? [];
-    return {
-      labels: categories.map(item => this.truncateLabel(item.categoria, 14)),
-      datasets: [
-        {
-          data: categories.map(item => item.stockTotal),
-          backgroundColor: categories.map((_, index) => this.palette[index % this.palette.length]),
-          borderWidth: 0,
-          hoverOffset: 6
-        }
-      ]
-    };
-  });
-
-  lowStockData = computed<ChartData<'bar', number[], string>>(() => {
-    const products = this.dashboard()?.productosStockBajo ?? [];
-    return {
-      labels: products.slice(0, 6).map(item => this.truncateLabel(item.nombre, 18)),
-      datasets: [
-        {
-          data: products.slice(0, 6).map(item => item.stockActual),
-          label: 'Stock actual',
-          backgroundColor: 'rgba(244, 67, 54, 0.75)',
-          borderRadius: 10,
-          borderSkipped: false
-        },
-        {
-          data: products.slice(0, 6).map(item => item.stockMinimo),
-          label: 'Stock mínimo',
-          backgroundColor: 'rgba(0, 137, 123, 0.35)',
-          borderRadius: 10,
-          borderSkipped: false
+          tension: 0.2,
+          pointBackgroundColor: '#e11d48',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         }
       ]
     };
@@ -157,136 +163,89 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#6f6f6f' } },
       y: {
-        beginAtZero: true,
+        grid: { color: '#f1f5f9' },
         ticks: {
-          color: '#6f6f6f',
-          callback: (value: string | number) => this.formatCompactNumber(Number(value))
-        },
-        grid: { color: 'rgba(127, 127, 127, 0.14)' }
+          font: { size: 10 },
+          callback: (value: any) => this.formatCompactNumber(Number(value))
+        }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 10 } }
       }
     }
   };
 
-  readonly topProductsOptions: ChartOptions<'bar'> = {
+  // Profit Donut Chart (Rentabilidad: Costos vs Ganancia Neta)
+  readonly profitDonutData = computed<ChartData<'doughnut', number[], string>>(() => {
+    const compras = this.comprasDelMes();
+    const ganancia = Math.max(0, this.gananciaDelMes());
+    const ventas = this.ventasDelMes();
+
+    const dataValues = (compras === 0 && ganancia === 0)
+      ? [1, 1]
+      : [compras, ganancia > 0 ? ganancia : ventas];
+
+    return {
+      labels: ['Costo Proveedores', 'Ganancia Neta'],
+      datasets: [
+        {
+          data: dataValues,
+          backgroundColor: ['#e11d48', '#0d6e48'],
+          borderWidth: 0
+        }
+      ]
+    };
+  });
+
+  readonly profitDonutOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
+    cutout: '70%',
+    plugins: { legend: { display: false } }
+  };
+
+  // Profit Bar Chart (Comparativa Mensual)
+  readonly profitBarData = computed<ChartData<'bar', number[], string>>(() => {
+    const comp = this.dashboard()?.comparativaMensual ?? [];
+    const labels = comp.map(item => item.mes);
+    const ventas = comp.map(item => item.ventas);
+    const costos = comp.map(item => item.costos);
+
+    return {
+      labels: labels.length > 0 ? labels : ['Jun', 'Jul', 'Ago'],
+      datasets: [
+        {
+          label: 'Ventas',
+          data: ventas.length > 0 ? ventas : [85000, 92000, 99200],
+          backgroundColor: '#0d6e48',
+          borderRadius: 4
+        },
+        {
+          label: 'Costos',
+          data: costos.length > 0 ? costos : [110000, 125000, 142150],
+          backgroundColor: '#e11d48',
+          borderRadius: 4
+        }
+      ]
+    };
+  });
+
+  readonly profitBarOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
+      y: { display: false },
       x: {
-        beginAtZero: true,
-        ticks: {
-          color: '#6f6f6f',
-          callback: (value: string | number) => this.formatCompactNumber(Number(value))
-        },
-        grid: { color: 'rgba(127, 127, 127, 0.12)' }
-      },
-      y: { ticks: { color: '#6f6f6f' }, grid: { display: false } }
-    }
-  };
-
-  readonly inventoryMixOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '68%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#4a4a4a',
-          boxWidth: 12,
-          usePointStyle: true
-        }
+        grid: { display: false },
+        ticks: { font: { size: 9 } }
       }
     }
   };
 
-  readonly lowStockOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: {
-        position: 'top',
-        labels: { color: '#4a4a4a' }
-      }
-    },
-    scales: {
-      x: { beginAtZero: true, ticks: { color: '#6f6f6f' }, grid: { color: 'rgba(127, 127, 127, 0.12)' } },
-      y: { ticks: { color: '#6f6f6f' }, grid: { display: false } }
-    }
-  };
-
-  readonly palette = [
-    '#00897b',
-    '#1565c0',
-    '#7b1fa2',
-    '#ef6c00',
-    '#2e7d32',
-    '#c62828'
-  ];
-
-  readonly summaryCards = computed(() => {
-    const dashboard = this.dashboard();
-    if (!dashboard) return [];
-
-    return [
-      {
-        label: 'Ventas del día',
-        value: this.formatCurrency(dashboard.resumen.ventasDelDia),
-        helper: `${dashboard.resumen.cantidadVentasDelDia} venta${dashboard.resumen.cantidadVentasDelDia === 1 ? '' : 's'} hoy`,
-        icon: '💰',
-        tone: 'success'
-      },
-      {
-        label: 'Ventas del mes',
-        value: this.formatCurrency(dashboard.resumen.ventasDelMes),
-        helper: `${dashboard.resumen.cantidadVentasDelMes} ventas en el período`,
-        icon: '📈',
-        tone: 'info'
-      },
-      {
-        label: 'Stock bajo',
-        value: this.formatCompactNumber(dashboard.resumen.productosStockBajo),
-        helper: 'Productos que requieren reposición',
-        icon: '⚠️',
-        tone: 'danger'
-      }
-    ];
-  });
-
-  readonly lowStockList = computed(() => (this.dashboard()?.productosStockBajo ?? []).slice(0, 3));
-
-  readonly secondaryStats = computed(() => {
-    const dashboard = this.dashboard();
-    if (!dashboard) return [];
-
-    return [
-      {
-        label: 'Por vencer',
-        value: dashboard.resumen.productosPorVencer,
-        helper: 'Productos y lotes en seguimiento'
-      },
-      {
-        label: 'Stock bajo',
-        value: dashboard.resumen.productosStockBajo,
-        helper: 'Comparte la misma fuente del inventario'
-      },
-      {
-        label: 'Alertas activas',
-        value: this.alertaService.contadorNoLeidas(),
-        helper: 'Pendientes por revisar'
-      }
-    ];
-  });
-
-  private toIso(date: Date): string {
-    return date.toISOString().split('T')[0];
-  }
-
-  private formatCurrency(value: number): string {
+  formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
@@ -294,17 +253,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }).format(value ?? 0);
   }
 
-  private formatCompactNumber(value: number): string {
+  formatCompactNumber(value: number): string {
     return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(value ?? 0);
   }
 
   private formatShortDate(dateValue: string): string {
-    const date = new Date(dateValue);
-    return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short' }).format(date);
+    if (!dateValue) return '';
+    const parts = dateValue.split('-');
+    if (parts.length === 3) {
+      const day = parts[2];
+      const monthNum = parseInt(parts[1], 10);
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return `${parseInt(day, 10)} de ${months[monthNum - 1]?.toLowerCase() || ''}`;
+    }
+    return dateValue;
   }
 
-  private truncateLabel(value: string, max: number): string {
-    if (!value) return '';
-    return value.length > max ? `${value.slice(0, max - 1)}…` : value;
+  private toIso(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 }

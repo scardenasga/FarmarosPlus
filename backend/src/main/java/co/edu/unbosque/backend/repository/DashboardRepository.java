@@ -110,6 +110,58 @@ public interface DashboardRepository extends JpaRepository<Venta, Long> {
 
 
     /**
+     * Agrupa las ventas por categoría en un rango de fechas.
+     */
+    @Query("""
+        SELECT
+            COALESCE(c.nombre, 'Sin categoria'),
+            COALESCE(SUM(dv.subtotalLinea), 0),
+            COALESCE(SUM(dv.cantidad), 0)
+        FROM DetalleVenta dv
+        JOIN dv.producto p
+        LEFT JOIN p.categoria c
+        WHERE dv.venta.estado = 'COMPLETADA'
+        AND dv.venta.fecha BETWEEN :inicio AND :fin
+        GROUP BY c.idCategoria, c.nombre
+        ORDER BY SUM(dv.subtotalLinea) DESC
+        """)
+    List<Object[]> ventasPorCategoriaPeriodo(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+
+    /**
+     * Obtiene el desglose de ventas y stock por producto en un período.
+     */
+    @Query("""
+        SELECT
+            p.uniqueID,
+            p.nombre,
+            COALESCE(c.nombre, 'Sin categoria'),
+            COALESCE(SUM(dv.cantidad), 0),
+            COALESCE(SUM(dv.subtotalLinea), 0),
+            p.costo,
+            p.precioVenta,
+            p.stockActual,
+            p.stockMinimo,
+            c.idCategoria
+        FROM Producto p
+        LEFT JOIN p.categoria c
+        LEFT JOIN DetalleVenta dv ON dv.producto.uniqueID = p.uniqueID
+            AND dv.venta.estado = 'COMPLETADA'
+            AND dv.venta.fecha BETWEEN :inicio AND :fin
+        WHERE p.estado = 'ACTIVO'
+        GROUP BY p.uniqueID, p.nombre, c.nombre, p.costo, p.precioVenta, p.stockActual, p.stockMinimo, c.idCategoria
+        ORDER BY SUM(dv.subtotalLinea) DESC, p.nombre ASC
+        """)
+    List<Object[]> productosAnaliticaPeriodo(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+
+    /**
      * Cuenta los productos activos.
      */
     @Query("""
@@ -149,6 +201,22 @@ public interface DashboardRepository extends JpaRepository<Venta, Long> {
 
 
     /**
+     * Calcula el valor estimado de inventario en riesgo de vencimiento.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(l.cantidad * p.costo), 0)
+        FROM Lote l
+        JOIN l.producto p
+        WHERE l.cantidad > 0
+        AND l.fechaVencimiento BETWEEN :hoy AND :fechaLimite
+        """)
+    Double calcularValorLotesPorVencer(
+            @Param("hoy") LocalDate hoy,
+            @Param("fechaLimite") LocalDate fechaLimite
+    );
+
+
+    /**
      * Obtiene los productos cuyo stock actual
      * es menor o igual al stock mínimo.
      */
@@ -175,5 +243,33 @@ public interface DashboardRepository extends JpaRepository<Venta, Long> {
         WHERE p.estado = 'ACTIVO'
         """)
     Double calcularValorInventario();
+
+
+    /**
+     * Total monetario de compras a proveedores en un período.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(cp.total), 0)
+        FROM CompraProveedor cp
+        WHERE cp.fechaRecepcion BETWEEN :inicio AND :fin
+        """)
+    Double totalComprasProveedor(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+
+    /**
+     * Total monetario de recepciones de compra en un período.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(rc.totalRecepcion), 0)
+        FROM RecepcionCompra rc
+        WHERE rc.fechaRecepcion BETWEEN :inicio AND :fin
+        """)
+    Double totalRecepcionesCompra(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
 
 }

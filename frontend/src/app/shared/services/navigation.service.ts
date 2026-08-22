@@ -4,13 +4,31 @@ import { Injectable, signal } from '@angular/core';
   providedIn: 'root'
 })
 export class NavigationService {
-  showBottomNav = signal<boolean>(true);
+  showSidebar = signal<boolean>(true);
+  isSidebarExpanded = signal<boolean>(false);
+
+  // Alias for backward compatibility
+  get showBottomNav() {
+    return this.showSidebar;
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarExpanded.update(val => !val);
+  }
+
+  expandSidebar(): void {
+    this.isSidebarExpanded.set(true);
+  }
+
+  collapseSidebar(): void {
+    this.isSidebarExpanded.set(false);
+  }
 
   hideNav(): void {
-    this.showBottomNav.set(false);
+    this.showSidebar.set(false);
   }
 
   showNav(): void {
-    this.showBottomNav.set(true);
+    this.showSidebar.set(true);
   }
 }

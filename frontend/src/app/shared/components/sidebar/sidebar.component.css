@@ -1,0 +1,182 @@
+/* ==================== SIDEBAR BASE (Collapsed: 72px) ==================== */
+:host {
+  display: block;
+}
+
+.sidebar-compact {
+  width: 72px;
+  background-color: var(--accent-green-dark, #0d5238);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 20px;
+  z-index: 100;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* ==================== EXPANDED STATE ==================== */
+.sidebar-compact.expanded {
+  width: 220px;
+  align-items: flex-start;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ==================== HEADER (Toggle + Brand) ==================== */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.toggle-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a3ccb9;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #156d4b;
+  color: #ffffff;
+}
+
+.toggle-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-title {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.brand-plus {
+  color: #6ee7b7;
+  font-weight: 900;
+}
+
+/* ==================== NAV ITEMS ==================== */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  flex: 1;
+}
+
+.sidebar-compact.expanded .sidebar-nav {
+  align-items: stretch;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a3ccb9;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* Expanded: stretch to full width */
+.sidebar-compact.expanded .nav-btn {
+  width: auto;
+  justify-content: flex-start;
+  padding: 0 18px;
+  border-radius: 0;
+  height: 44px;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background-color: #156d4b;
+  color: #ffffff;
+}
+
+.icon-box {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-box svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== BOTTOM SECTION ==================== */
+.sidebar-bottom {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-compact.expanded .sidebar-bottom {
+  align-items: stretch;
+}
+
+.nav-btn-bottom {
+  margin-bottom: 0;
+}

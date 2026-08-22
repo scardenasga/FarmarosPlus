@@ -1,13 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { BottomNavBarComponent } from './shared/components/bottom-nav-bar/bottom-nav-bar.component';
+import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { NavigationService } from './shared/services/navigation.service';
 import { ThemeService } from './services/theme.service';
 import { AlertaService } from './services/alerta.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, BottomNavBarComponent],
+  imports: [RouterOutlet, SidebarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

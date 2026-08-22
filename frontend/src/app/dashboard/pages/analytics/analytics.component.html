@@ -1,0 +1,358 @@
+<div class="analytics-page">
+  <!-- Page Header -->
+  <div class="page-header-simple">
+    <h1>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Módulo de Analítica Avanzada
+    </h1>
+
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="goBackHome()">
+        &larr; Volver al Resumen
+      </button>
+      <button class="btn-green" (click)="exportToCSV()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar Reporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Control Configuration Panel -->
+  <section class="analytics-control-panel" [class.collapsed]="isFilterCollapsed()">
+    <div class="panel-header-bar">
+      <div class="panel-header-left">
+        <span class="panel-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtros
+        </span>
+        <!-- Dynamic Summary Badge Bar -->
+        <div class="active-filters-badges">
+          <span class="filter-badge-summary">{{ badgeRange() }}</span>
+          <span class="filter-badge-summary">{{ badgeCategory() }}</span>
+          <span class="filter-badge-summary">{{ badgeMetric() }}</span>
+        </div>
+      </div>
+
+      <button class="btn-compact-toggle" (click)="toggleFilters()">
+        <span>{{ isFilterCollapsed() ? 'Expandir Filtros' : 'Contraer Filtros' }}</span>
+        <svg class="toggle-icon" [class.rotated]="!isFilterCollapsed()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body-filters">
+      <div class="filter-row">
+        <!-- Rango de Tiempo Predefinido -->
+        <div class="filter-group">
+          <label>Rango de Tiempo</label>
+          <select class="form-control" [ngModel]="selectedPreset()" (change)="onPresetChange($event)">
+            <option value="7d">Últimos 7 días</option>
+            <option value="30d">Últimos 30 días</option>
+            <option value="90d">Trimestre Actual</option>
+            <option value="custom">Personalizado...</option>
+          </select>
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="filter-group">
+          <label>Fecha Inicio</label>
+          <input type="date" class="form-control" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); selectedPreset.set('custom'); onFilterChange()">
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="filter-group">
+          <label>Fecha Fin</label>
+          <input type="date" class="form-control" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); selectedPreset.set('custom'); onFilterChange()">
+        </div>
+
+        <!-- Categoría -->
+        <div class="filter-group">
+          <label>Categoría</label>
+          <select class="form-control" [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event); onFilterChange()">
+            <option value="ALL">Todas las Categorías</option>
+            @for (cat of categories(); track cat.id) {
+              <option [value]="cat.id.toString()">{{ cat.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Producto Específico -->
+        <div class="filter-group">
+          <label>Producto Específico</label>
+          <select class="form-control" [ngModel]="selectedProduct()" (ngModelChange)="selectedProduct.set($event); onFilterChange()">
+            <option value="ALL">Todos los Productos</option>
+            @for (prod of products(); track prod.id) {
+              <option [value]="prod.id.toString()">{{ prod.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-row filter-row-bottom">
+        <!-- Métrica a Graficar -->
+        <div class="filter-group metric-group">
+          <label>Métrica a Graficar</label>
+          <select class="form-control" [ngModel]="selectedMetric()" (ngModelChange)="selectedMetric.set($event)">
+            <option value="sales">Ventas Totales ($)</option>
+            <option value="units">Unidades Vendidas (un.)</option>
+            <option value="margin">Margen de Ganancia (%)</option>
+          </select>
+        </div>
+
+        <!-- Selector de Tipo de Gráfica -->
+        <div class="filter-group chart-type-group">
+          <label>Configuración de Gráfica</label>
+          <div class="chart-type-selector">
+            <button class="chart-type-btn" [class.active]="chartVisualType() === 'line'" (click)="setChartVisualType('line')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+              Línea
+            </button>
+            <button class="chart-type-btn" [class.active]="chartVisualType() === 'bar'" (click)="setChartVisualType('bar')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              Barras
+            </button>
+            <button class="chart-type-btn" [class.active]="chartVisualType() === 'area'" (click)="setChartVisualType('area')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"/><path d="M18 12l-5-5-4 4-3-3"/>
+              </svg>
+              Área
+            </button>
+          </div>
+        </div>
+
+        <!-- Muestreo Comparativo -->
+        <div class="filter-group compare-group">
+          <label class="toggle-switch">
+            <input type="checkbox" [ngModel]="compareWithPrevious()" (ngModelChange)="compareWithPrevious.set($event); onFilterChange()">
+            <span class="toggle-slider"></span>
+            Comparar Período Anterior
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <div class="state-loading">
+      <div class="spinner"></div>
+      <p>Cargando analítica avanzada...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-error">
+      <p>{{ error() }}</p>
+      <button class="btn-secondary" (click)="cargarAnalitica()">Reintentar</button>
+    </div>
+  } @else if (data()) {
+    <!-- KPI Summary Cards for Advanced Analytics -->
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-green">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 6v12M9 9.5c0-1 1-1.5 3-1.5s3 .5 3 1.5-1 1.5-3 2c-2 .5-3 1-3 2s1 1.5 3 1.5 3-.5 3-1.5"/></svg>
+        </div>
+        <h3 class="kpi-title">Ventas Filtradas</h3>
+        <div class="kpi-value positive">{{ formatCurrency(data()!.resumen.ventasFiltradas) }}</div>
+        <span class="kpi-subtitle badge-green">
+          {{ data()!.resumen.crecimientoVentas >= 0 ? '+' : '' }}{{ data()!.resumen.crecimientoVentas }}% vs previo
+        </span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-blue">
+          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <h3 class="kpi-title">Unidades Vendidas</h3>
+        <div class="kpi-value">{{ data()!.resumen.unidadesVendidas }} un.</div>
+        <span class="kpi-subtitle">Prom. {{ data()!.resumen.promedioUnidadesPorDia }} / día</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-purple">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3 class="kpi-title">Margen Bruto Prom.</h3>
+        <div class="kpi-value positive">{{ data()!.resumen.margenBrutoPromedio }}%</div>
+        <span class="kpi-subtitle badge-green">Óptimo</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-gold">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        </div>
+        <h3 class="kpi-title">Categoría Líder</h3>
+        <div class="kpi-value cat-value">{{ data()!.resumen.categoriaLider }}</div>
+        <span class="kpi-subtitle">{{ data()!.resumen.porcentajeCategoriaLider }}% del total</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-brown">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="kpi-title">Top Producto</h3>
+        <div class="kpi-value prod-value" [title]="data()!.resumen.topProducto">{{ data()!.resumen.topProducto }}</div>
+        <span class="kpi-subtitle">{{ data()!.resumen.unidadesTopProducto }} unidades</span>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon-wrapper icon-red">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        </div>
+        <h3 class="kpi-title">Pérdidas / Vencidos</h3>
+        <div class="kpi-value negative">{{ formatCurrency(data()!.resumen.perdidasRiesgo) }}</div>
+        <span class="kpi-subtitle badge-red">{{ data()!.resumen.productosEnRiesgo }} prods en riesgo</span>
+      </article>
+    </section>
+
+    <!-- Main Interactive Configurable Dynamic Chart -->
+    <section class="chart-main-section">
+      <div class="chart-header">
+        <div class="chart-header-left">
+          <span class="badge-tag">Análisis Configurable</span>
+          <div>
+            <h2 class="chart-title">{{ dynamicChartTitle() }}</h2>
+            <p class="chart-subtitle">Mostrando comportamiento detallado por rango de tiempo y filtros seleccionados.</p>
+          </div>
+        </div>
+        <span class="realtime-badge">
+          En Tiempo Real
+        </span>
+      </div>
+      <div class="chart-container" style="height: 320px;">
+        <canvas
+          baseChart
+          [type]="chartVisualType() === 'area' ? 'line' : chartVisualType()"
+          [data]="mainChartData()"
+          [options]="mainChartOptions">
+        </canvas>
+      </div>
+    </section>
+
+    <!-- Two Columns Breakdown Grid -->
+    <div class="two-cols-analytics">
+      <!-- Left: Horizontal Bar Chart -->
+      <article class="analytics-card">
+        <div class="chart-header" style="margin-bottom: 8px;">
+          <span class="badge-tag" style="background-color: var(--accent-blue);">Categorías</span>
+        </div>
+        <h3 class="chart-title" style="font-size: 0.95rem;">Ventas por Categoría</h3>
+        <p class="chart-subtitle">Desglose comparativo por línea de medicamentos.</p>
+        <div style="height: 220px; position: relative; margin-top: 10px;">
+          <canvas
+            baseChart
+            type="bar"
+            [data]="categoryChartData()"
+            [options]="categoryChartOptions">
+          </canvas>
+        </div>
+      </article>
+
+      <!-- Right: Performance Insights Box -->
+      <article class="analytics-card" style="justify-content: space-between;">
+        <div>
+          <div class="chart-header" style="margin-bottom: 8px;">
+            <span class="badge-tag" style="background-color: var(--accent-purple);">Diagnóstico</span>
+          </div>
+          <h3 class="chart-title" style="font-size: 0.95rem;">Métricas de Rentabilidad y Proyección</h3>
+          <p class="chart-subtitle">Resumen cuantitativo del comportamiento del catálogo de medicamentos.</p>
+
+          <div class="insights-list">
+            <div class="insight-item insight-green">
+              <div class="insight-title">Producto más Rentable</div>
+              <div class="insight-desc">{{ data()!.insights.productoMasRentable }}</div>
+            </div>
+
+            <div class="insight-item insight-blue">
+              <div class="insight-title">Día de Mayor Pico de Demanda</div>
+              <div class="insight-desc">{{ data()!.insights.diaMayorDemanda }}</div>
+            </div>
+
+            <div class="insight-item insight-red">
+              <div class="insight-title">Rotación Crítica de Inventario</div>
+              <div class="insight-desc">{{ data()!.insights.rotacionCritica }}</div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Detailed Analytics Product Data Grid Table -->
+    <section class="data-table-container">
+      <div class="table-toolbar">
+        <div>
+          <h3 class="chart-title" style="font-size: 1rem;">Desglose Detallado por Producto</h3>
+          <p class="chart-subtitle">Listado con rendimiento, ventas, unidades y nivel de stock actual.</p>
+        </div>
+        <div class="search-input-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar producto..."
+            [ngModel]="searchTerm()"
+            (ngModelChange)="searchTerm.set($event)">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Unid. Vendidas</th>
+              <th>Ventas Totales</th>
+              <th>Margen %</th>
+              <th>Stock Actual</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (filteredProducts().length === 0) {
+              <tr>
+                <td colspan="7" class="table-empty">
+                  No se encontraron productos con los filtros seleccionados.
+                </td>
+              </tr>
+            } @else {
+              @for (item of filteredProducts(); track item.idProducto) {
+                <tr>
+                  <td style="font-weight: 700;">{{ item.nombre }}</td>
+                  <td>{{ item.categoria }}</td>
+                  <td>{{ item.unidadesVendidas }} un.</td>
+                  <td style="font-weight: 700;">{{ formatCurrency(item.ventasTotales) }}</td>
+                  <td style="color: var(--accent-green); font-weight: 700;">{{ item.margenGanancia }}%</td>
+                  <td>{{ item.stockActual }} / {{ item.stockMinimo }} un.</td>
+                  <td>
+                    @if (item.estadoStock === 'critical') {
+                      <span class="status-badge critical">Crítico</span>
+                    } @else if (item.estadoStock === 'warning') {
+                      <span class="status-badge warning">Bajo Stock</span>
+                    } @else {
+                      <span class="status-badge ok">Normal</span>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>
