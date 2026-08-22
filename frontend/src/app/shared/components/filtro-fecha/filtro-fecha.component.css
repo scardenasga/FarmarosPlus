@@ -2,16 +2,16 @@
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #000000; /* Fondo negro del cuerpo */
-  border: 1px solid #444; /* Borde sutil */
-  border-radius: 12px; /* Redondeado según la imagen */
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
   height: 36px;
   min-width: 140px;
-  overflow: hidden; /* Para que el fondo del icono no se salga de las esquinas */
+  overflow: hidden;
 }
 
 .icon-container {
-  background-color: #a5b4ba; /* El color gris azulado exacto de tu imagen */
+  background-color: var(--outline);
   width: 36px;
   height: 100%;
   display: flex;
@@ -28,7 +28,7 @@
 }
 
 .fecha-label {
-  color: white;
+  color: var(--on-surface);
   font-size: 0.8rem;
   font-family: sans-serif;
 }
@@ -37,7 +37,6 @@
   margin-left: 5px;
 }
 
-/* El input invisible que detecta el click en todo el componente */
 input[type="date"] {
   position: absolute;
   top: 0;
@@ -48,7 +47,6 @@ input[type="date"] {
   cursor: pointer;
 }
 
-/* Estilo para cuando el input está enfocado */
 .fecha-wrapper:focus-within {
-  border-color: #a5b4ba;
+  border-color: var(--primary);
 }

@@ -2,16 +2,14 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService, ThemeType } from '../../../services/theme.service';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
-import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, TopBarComponent, BottomNavBarComponent],
+  imports: [CommonModule, TopBarComponent],
   templateUrl: './settings.component.html',
   styles: [`
     .settings-page {
-      padding-bottom: 100px;
       min-height: 100vh;
       background-color: var(--background);
     }
@@ -105,6 +103,8 @@ export class SettingsComponent {
     { id: 'dark-blue-theme', name: 'Noche Azul', colors: ['#e5f1ff', '#101417', '#93c8f4'] },
     { id: 'ligth-green-theme', name: 'Verde Contraste', colors: ['#0c3407', '#f8fbf1', '#ffffff'] },
     { id: 'dark-green-theme', name: 'Bosque Profundo', colors: ['#cdfdbc', '#11140f', '#a1cf92'] },
+    { id: 'sepia-theme', name: 'Sepia Cálido', colors: ['#8b5e3c', '#faf6f0', '#d4a574'] },
+    { id: 'high-contrast-theme', name: 'Alto Contraste', colors: ['#00ffff', '#000000', '#008b8b'] },
   ];
 
   changeTheme(theme: ThemeType) {

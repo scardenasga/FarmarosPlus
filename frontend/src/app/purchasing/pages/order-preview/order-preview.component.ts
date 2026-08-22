@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PurchasingService } from '../../services/purchasing.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
-import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 
 @Component({
   selector: 'app-order-preview',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, BottomNavBarComponent, TopBarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, TopBarComponent],
   templateUrl: './order-preview.component.html',
   styleUrl: './order-preview.component.css'
 })

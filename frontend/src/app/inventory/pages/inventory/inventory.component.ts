@@ -1,7 +1,6 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
-import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { InventorySearchComponent } from '../../components/inventory-search/inventory-search.component';
 import { InventorySummaryComponent } from '../../components/inventory-summary/inventory-summary.component';

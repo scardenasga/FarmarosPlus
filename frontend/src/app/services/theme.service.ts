@@ -1,6 +1,6 @@
 import { Injectable, signal, effect } from '@angular/core';
 
-export type ThemeType = 'dark-theme' | 'light-theme' | 'ligth-blue-theme' | 'dark-blue-theme' | 'ligth-green-theme' | 'dark-green-theme';
+export type ThemeType = 'dark-theme' | 'light-theme' | 'ligth-blue-theme' | 'dark-blue-theme' | 'ligth-green-theme' | 'dark-green-theme' | 'sepia-theme' | 'high-contrast-theme';
 
 @Injectable({
   providedIn: 'root'
@@ -42,7 +42,9 @@ export class ThemeService {
       'ligth-blue-theme', 
       'dark-blue-theme', 
       'ligth-green-theme', 
-      'dark-green-theme'
+      'dark-green-theme',
+      'sepia-theme',
+      'high-contrast-theme'
     ];
     
     // Limpiar clases previas y añadir la nueva

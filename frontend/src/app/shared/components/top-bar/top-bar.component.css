@@ -8,8 +8,8 @@
 }
 .title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--on-background);
   flex-grow: 1;
   text-align: center;
@@ -24,6 +24,12 @@
 }
 .icon-button:hover {
   background-color: var(--surface-container-high);
+}
+
+.icon-spacer {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
 }
 .alert-btn {
   position: relative;

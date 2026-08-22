@@ -33,6 +33,7 @@ import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-pr
 
 // --- COMPONENTES DE DASHBOARD ---
 import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin-dashboard.component';
+import { AnalyticsComponent } from './dashboard/pages/analytics/analytics.component';
 
 export const routes: Routes = [
   // Redirige raíz al dashboard
@@ -40,6 +41,11 @@ export const routes: Routes = [
 
   // --- DASHBOARD ADMINISTRATIVO (Home principal) ---
   { path: 'dashboard', component: AdminDashboardComponent },
+
+  // --- MÓDULO DE ANALÍTICA AVANZADA ---
+  { path: 'analitica', component: AnalyticsComponent },
+  { path: 'dashboard/analitica', redirectTo: 'analitica', pathMatch: 'full' },
+  { path: 'reportes/analitica', redirectTo: 'analitica', pathMatch: 'full' },
 
   // --- HEALTH (redirige al dashboard) ---
   { path: 'health', component: HealthComponent },

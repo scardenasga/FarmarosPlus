@@ -2,7 +2,6 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router'; 
 import { PurchasingService } from '../../services/purchasing.service';
-import { BottomNavBarComponent } from '../../../shared/components/bottom-nav-bar/bottom-nav-bar.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { AlertaDetallada } from '../../models/purchasing.model';
 import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
@@ -10,7 +9,7 @@ import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.comp
 @Component({
   selector: 'app-order-notifications',
   standalone: true,
-  imports: [CommonModule, BottomNavBarComponent, SearchBarComponent, TopBarComponent],
+  imports: [CommonModule, SearchBarComponent, TopBarComponent],
   templateUrl: './order-notifications.component.html',
   styleUrl: './order-notifications.component.css'
 })

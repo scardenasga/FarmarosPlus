@@ -1,6 +1,8 @@
-<main class="main-content" [class.no-padding]="!navService.showBottomNav()">
+@if (navService.showSidebar()) {
+  <app-sidebar />
+}
+<main class="main-content"
+      [class.sidebar-expanded]="navService.isSidebarExpanded()"
+      [class.no-padding]="!navService.showSidebar()">
   <router-outlet />
 </main>
-@if (navService.showBottomNav()) {
-  <app-bottom-nav-bar />
-}

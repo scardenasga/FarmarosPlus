@@ -1,10 +1,10 @@
 .btn-flotante-accion {
-  position: absolute; 
+  position: absolute;
   bottom: 90px;
   right: 20px;
   width: 56px;
   height: 56px;
-  background-color: #0d4d3e; /* Tu verde oscuro */
+  background-color: var(--primary-container);
   border: none;
   border-radius: 14px;
   display: flex;
@@ -14,6 +14,7 @@
   z-index: 100;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: var(--on-primary-container);
 }
 
 .btn-flotante-accion:active {

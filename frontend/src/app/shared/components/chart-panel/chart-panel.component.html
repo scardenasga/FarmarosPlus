@@ -1,0 +1,35 @@
+<section class="chart-panel">
+  @if (title() || subtitle() || badge()) {
+    <header class="chart-panel__header">
+      <div class="chart-panel__text">
+        @if (badge()) {
+          <span class="chart-panel__badge">{{ badge() }}</span>
+        }
+        @if (title()) {
+          <h3>{{ title() }}</h3>
+        }
+        @if (subtitle()) {
+          <p>{{ subtitle() }}</p>
+        }
+      </div>
+    </header>
+  }
+
+  <div class="chart-panel__body" [style.min-height]="height()">
+    @if (hasData()) {
+      <canvas
+        baseChart
+        class="chart-panel__canvas"
+        [type]="chartType()"
+        [data]="chartData()"
+        [options]="chartOptions()"
+        [legend]="showLegend()">
+      </canvas>
+    } @else {
+      <div class="chart-panel__empty">
+        <span>📭</span>
+        <p>{{ emptyMessage() }}</p>
+      </div>
+    }
+  </div>
+</section>

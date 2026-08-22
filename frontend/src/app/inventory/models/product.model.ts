@@ -11,6 +11,10 @@ export interface Lote {
   cantidad: number;
 }
 
+export interface LoteResponse extends Lote {
+  producto?: Product;
+}
+
 export interface Product {
   id: number;
   nombre: string;

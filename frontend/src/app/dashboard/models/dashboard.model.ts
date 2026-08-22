@@ -5,6 +5,9 @@ export interface DashboardResumen {
   cantidadVentasDelMes: number;
   productosStockBajo: number;
   productosPorVencer: number;
+  comprasDelMes: number;
+  gananciaDelMes: number;
+  margenGanancia: number;
 }
 
 export interface VentaPorDia {
@@ -40,11 +43,10 @@ export interface ProductoDestacado {
   totalVendido: number;
 }
 
-export interface ProductoPorVencer {
-  idProducto: number;
-  nombre: string;
-  fechaVencimiento: string;
-  stockActual: number;
+export interface ComparativaMensual {
+  mes: string;
+  ventas: number;
+  costos: number;
 }
 
 export interface DashboardResponse {
@@ -54,7 +56,49 @@ export interface DashboardResponse {
   inventarioPorCategoria: InventarioCategoria[];
   productosDestacados: ProductoDestacado[];
   productosStockBajo: ProductoStockBajo[];
-  productosPorVencer: ProductoPorVencer[];
+  comparativaMensual: ComparativaMensual[];
+  fechaConsulta: string;
+}
+
+export interface ProductoAnalitica {
+  idProducto: number;
+  nombre: string;
+  categoria: string;
+  unidadesVendidas: number;
+  ventasTotales: number;
+  margenGanancia: number;
+  stockActual: number;
+  stockMinimo: number;
+  estadoStock: 'ok' | 'warning' | 'critical';
+}
+
+export interface AnaliticaResumen {
+  ventasFiltradas: number;
+  crecimientoVentas: number;
+  unidadesVendidas: number;
+  promedioUnidadesPorDia: number;
+  margenBrutoPromedio: number;
+  categoriaLider: string;
+  porcentajeCategoriaLider: number;
+  topProducto: string;
+  unidadesTopProducto: number;
+  perdidasRiesgo: number;
+  productosEnRiesgo: number;
+}
+
+export interface AnaliticaInsights {
+  productoMasRentable: string;
+  diaMayorDemanda: string;
+  rotacionCritica: string;
+}
+
+export interface AnaliticaDashboardResponse {
+  resumen: AnaliticaResumen;
+  tendenciaActual: VentaPorDia[];
+  tendenciaAnterior: VentaPorDia[];
+  ventasPorCategoria: InventarioCategoria[];
+  productos: ProductoAnalitica[];
+  insights: AnaliticaInsights;
   fechaConsulta: string;
 }
 

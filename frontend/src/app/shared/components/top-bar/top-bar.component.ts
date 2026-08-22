@@ -9,6 +9,7 @@ import { AlertaService } from '../../../services/alerta.service';
 })
 export class TopBarComponent {
   title = input<string>('');
+  showBack = input<boolean>(true);
   showAlert = input<boolean>(true);
   showActions = input<boolean>(false);
   back = output<void>();
