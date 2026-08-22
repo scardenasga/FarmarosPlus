@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BASE VARIABLES (Shared across all themes)
+   BASE VARIABLES (Dashboard Design Tokens - default to dark-theme values)
    ========================================================================== */
 :root {
   /* Spacing */
@@ -22,21 +22,21 @@
   --shadow-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
   --shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
   --shadow-3: 0px 3px 4px 0px rgba(0, 0, 0, 0.2);
-  --shadow-card: 0 4px 12px rgba(13, 110, 72, 0.05);
 
-  /* Dashboard Design Palette Tokens */
-  --bg-main: #f1f4f0;
-  --card-bg: #ffffff;
-  --text-dark: #1e293b;
-  --text-muted: #64748b;
-  --accent-green: #0d6e48;
-  --accent-green-dark: #0d5238;
-  --accent-green-light: #e6f4ee;
-  --accent-red: #e11d48;
-  --accent-red-bg: #ffe4e6;
-  --accent-blue: #0284c7;
-  --accent-purple: #7e22ce;
-  --border-color: #e2e8f0;
+  /* Dashboard Design Palette Tokens (overridden per theme) */
+  --bg-main: #0e1513;
+  --card-bg: #1a211f;
+  --text-dark: #dee4e1;
+  --text-muted: #89938f;
+  --accent-green: #83d5c5;
+  --accent-green-dark: #005047;
+  --accent-green-light: #005047;
+  --accent-red: #ffb4ab;
+  --accent-red-bg: #93000a;
+  --accent-blue: #a8c8ff;
+  --accent-purple: #cfbcff;
+  --border-color: #3f4946;
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 
@@ -84,6 +84,21 @@
   --on-error: #690005;
   --success: #008545;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--primary-container);
+  --accent-red: var(--error);
+  --accent-red-bg: var(--on-error);
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* --- LIGHT THEME (Inactive - Move :root here to activate) --- */
@@ -125,6 +140,21 @@
   --on-error: #ffffff;
   --success: #006d37;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--surface-container);
+  --accent-red: var(--error);
+  --accent-red-bg: #ffdad6;
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 /*----  LIGTH BLUE HIGH CONTRAST  ----*/
 .ligth-blue-theme {
@@ -152,7 +182,7 @@
   --surface: #f7f9ff;
   --on-surface: #000000;
   --surface-variant: #f7f9ff;
-  --on-surface-variant: ;
+  --on-surface-variant: #272d32;
   --outline: #272d32;
 
   /* Surface Containers */
@@ -165,6 +195,21 @@
   --on-error: #ffffff;
   --success: #008545;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--surface-container);
+  --accent-red: var(--error);
+  --accent-red-bg: #ffdad6;
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /*----  DARK BLUE HIGH CONTRAST  ----*/
@@ -206,6 +251,21 @@
   --on-error: #220001;
   --success: #008545;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--primary-container);
+  --accent-red: var(--error);
+  --accent-red-bg: var(--on-error);
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /*----  LIGTH GREEN HIGH CONTRAST  ----*/
@@ -234,7 +294,7 @@
   --surface: #f8fbf1;
   --on-surface: #000000;
   --surface-variant: #f8fbf1;
-  --on-surface-variant: #000000;
+  --on-surface-variant: #282e25;
   --outline: #282e25;
 
   /* Surface Containers */
@@ -247,6 +307,21 @@
   --on-error: #ffffff;
   --success: #008545;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--surface-container);
+  --accent-red: var(--error);
+  --accent-red-bg: #ffdad6;
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /*----  DARK GREEN HIGH CONTRAST  ----*/
@@ -288,6 +363,21 @@
   --on-error: #220001;
   --success: #008545;
   --on-success: #ffffff;
+
+  /* Dashboard tokens */
+  --bg-main: var(--background);
+  --card-bg: var(--surface-container-low);
+  --text-dark: var(--on-background);
+  --text-muted: var(--outline);
+  --accent-green: var(--primary);
+  --accent-green-dark: var(--primary-container);
+  --accent-green-light: var(--primary-container);
+  --accent-red: var(--error);
+  --accent-red-bg: var(--on-error);
+  --accent-blue: var(--secondary);
+  --accent-purple: var(--tertiary);
+  --border-color: var(--surface-variant);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ==========================================================================

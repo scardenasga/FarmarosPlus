@@ -5,7 +5,7 @@
 
 .sidebar-compact {
   width: 72px;
-  background-color: var(--accent-green-dark, #0d5238);
+  background-color: var(--primary-container, #005047);
   height: 100vh;
   position: fixed;
   top: 0;
@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a3ccb9;
+  color: var(--on-primary-container, #9ff2e1);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -55,8 +55,8 @@
 }
 
 .toggle-btn:hover {
-  background-color: #156d4b;
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--on-primary-container, #ffffff);
 }
 
 .toggle-btn svg {
@@ -79,12 +79,12 @@
 .brand-name {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--on-primary-container, #ffffff);
   letter-spacing: -0.02em;
 }
 
 .brand-plus {
-  color: #6ee7b7;
+  color: var(--primary, #83d5c5);
   font-weight: 900;
 }
 
@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a3ccb9;
+  color: var(--on-primary-container, #9ff2e1);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -132,8 +132,8 @@
 
 .nav-btn:hover,
 .nav-btn.active {
-  background-color: #156d4b;
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--on-primary-container, #ffffff);
 }
 
 .icon-box {
