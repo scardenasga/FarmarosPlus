@@ -67,7 +67,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--on-primary, #ffffff);
   box-shadow: 0 2px 4px rgba(225, 29, 72, 0.3);
   padding: 0 2px;
 }
@@ -148,9 +148,9 @@
   flex-shrink: 0;
 }
 
-.notif-icon.red { background-color: #ffe4e6; color: #e11d48; }
-.notif-icon.orange { background-color: #ffedd5; color: #ea580c; }
-.notif-icon.green { background-color: #e6f4ee; color: #0d6e48; }
+.notif-icon.red { background-color: var(--danger-bg); color: var(--danger-text); }
+.notif-icon.orange { background-color: var(--orange-bg); color: var(--orange-text); }
+.notif-icon.green { background-color: var(--success-bg); color: var(--success-text); }
 
 .notif-title {
   font-size: 0.78rem;
@@ -231,12 +231,12 @@
   stroke-linejoin: round;
 }
 
-.icon-gold { background-color: #fef3c7; color: #d97706; }
-.icon-blue { background-color: #e0f2fe; color: #0284c7; }
-.icon-purple { background-color: #f3e8ff; color: #7e22ce; }
-.icon-brown { background-color: #ffedd5; color: #c2410c; }
-.icon-red { background-color: #ffe4e6; color: #e11d48; }
-.icon-orange { background-color: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+.icon-gold { background-color: var(--gold-bg); color: var(--gold-text); }
+.icon-blue { background-color: var(--info-bg); color: var(--info-text); }
+.icon-purple { background-color: var(--purple-bg); color: var(--purple-text); }
+.icon-brown { background-color: var(--brown-bg); color: var(--brown-text); }
+.icon-red { background-color: var(--danger-bg); color: var(--danger-text); }
+.icon-orange { background-color: var(--orange-bg); color: var(--orange-text); border: 1px solid var(--orange-bg); }
 .icon-green { background-color: var(--accent-green-light, #e6f4ee); color: var(--accent-green, #0d6e48); }
 
 .kpi-title {
@@ -286,7 +286,7 @@
 
 .kpi-subtitle.badge-red { background-color: var(--accent-red-bg, #ffe4e6); color: var(--accent-red, #e11d48); }
 .kpi-subtitle.badge-green { background-color: var(--accent-green-light, #e6f4ee); color: var(--accent-green, #0d6e48); }
-.kpi-subtitle.badge-orange { background-color: #ffedd5; color: #c2410c; }
+.kpi-subtitle.badge-orange { background-color: var(--orange-bg); color: var(--orange-text); }
 
 /* ==================== LINE CHART MAIN ==================== */
 .chart-main-section {
@@ -432,7 +432,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 800;
-  color: #dc2626;
+  color: var(--accent-red, #dc2626);
   font-size: 0.68rem;
   display: block;
 }

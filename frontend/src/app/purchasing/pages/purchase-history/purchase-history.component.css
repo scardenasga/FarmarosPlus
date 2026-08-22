@@ -37,12 +37,12 @@
 .oc-code { color:var(--primary); font-size:13px; font-weight:800; letter-spacing:.5px; }
 .compra-meta { color:var(--on-surface-variant); font-size:12px; }
 .estado-badge { display:inline-flex; align-items:center; gap:5px; border-radius:var(--radius-full); padding:5px 8px; background:var(--secondary-container); color:var(--on-secondary-container); font-size:11px; font-weight:700; }
-.estado-badge i { width:7px; height:7px; border-radius:50%; background:#3c9b68; }
-.estado-CERRADA { background:#d9f1e4; color:#17633d; }.estado-CANCELADA,.estado-NO_RECIBIDA { background:var(--error-container); color:var(--on-error-container); }.estado-NO_RECIBIDA i,.estado-CANCELADA i { background:var(--error); }
+.estado-badge i { width:7px; height:7px; border-radius:50%; background:var(--success-text); }
+.estado-CERRADA { background:var(--success-bg); color:var(--success-text); }.estado-CANCELADA,.estado-NO_RECIBIDA { background:var(--danger-bg); color:var(--danger-text); }.estado-NO_RECIBIDA i,.estado-CANCELADA i { background:var(--error); }
 .estado-stack { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
-.pago-badge { display:inline-flex; align-items:center; gap:5px; border-radius:var(--radius-full); padding:5px 8px; background:#fff1d6; color:#805b16; font-size:11px; font-weight:700; }
-.pago-badge i { width:7px; height:7px; border-radius:50%; background:#d99c26; }
-.pago-PAGADA { background:#d9f1e4; color:#17633d; }.pago-PAGADA i { background:#3c9b68; }
+.pago-badge { display:inline-flex; align-items:center; gap:5px; border-radius:var(--radius-full); padding:5px 8px; background:var(--warning-bg); color:var(--warning-text); font-size:11px; font-weight:700; }
+.pago-badge i { width:7px; height:7px; border-radius:50%; background:var(--warning-text); }
+.pago-PAGADA { background:var(--success-bg); color:var(--success-text); }.pago-PAGADA i { background:var(--success-text); }
 .pago-SIN_RECEPCION { background:var(--surface-container-high); color:var(--on-surface-variant); }.pago-SIN_RECEPCION i { background:var(--outline); }
 
 .eyebrow {
@@ -188,7 +188,7 @@
 }
 .top-meta { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
 .estado-badge { display:inline-flex; align-items:center; gap:5px; border-radius:var(--radius-full); padding:4px 8px; background:var(--secondary-container); color:var(--on-secondary-container); font-size:11px; font-weight:700; }
-.estado-badge i { width:7px; height:7px; border-radius:50%; background:#3c9b68; }
+.estado-badge i { width:7px; height:7px; border-radius:50%; background:var(--success-text); }
 
 .btn-expandir:hover {
   background: var(--primary-container);

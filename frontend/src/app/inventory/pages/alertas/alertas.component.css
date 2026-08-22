@@ -129,7 +129,7 @@
 }
 
 .alerta-card.vencimiento {
-  border-left-color: #E67E22;
+  border-left-color: var(--warning-text);
 }
 
 .alerta-card.leida {
@@ -159,8 +159,8 @@
 }
 
 .badge-venc {
-  background: #FEF3E2;
-  color: #D35400;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 
 .alerta-titulo {

@@ -373,12 +373,12 @@
   stroke-linejoin: round;
 }
 
-.icon-gold { background-color: #fef3c7; color: #d97706; }
-.icon-blue { background-color: #e0f2fe; color: #0284c7; }
-.icon-purple { background-color: #f3e8ff; color: #7e22ce; }
-.icon-brown { background-color: #ffedd5; color: #c2410c; }
-.icon-red { background-color: #ffe4e6; color: #e11d48; }
-.icon-green { background-color: var(--accent-green-light, #e6f4ee); color: var(--accent-green, #0d6e48); }
+.icon-gold { background-color: var(--gold-bg); color: var(--gold-text); }
+.icon-blue { background-color: var(--info-bg); color: var(--info-text); }
+.icon-purple { background-color: var(--purple-bg); color: var(--purple-text); }
+.icon-brown { background-color: var(--brown-bg); color: var(--brown-text); }
+.icon-red { background-color: var(--danger-bg); color: var(--danger-text); }
+.icon-green { background-color: var(--accent-green-light); color: var(--accent-green); }
 
 .kpi-title {
   font-size: 0.62rem;
