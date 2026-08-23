@@ -1,15 +1,160 @@
-<div class="inventory-page">
-  <div class="sticky-header">
-    <div class="header-simple">
-      <span class="header-title">Historial de Ventas</span>
-      <div class="header-simple-actions">
-        <button class="btn-reportes" (click)="irAReportes()">Reportes</button>
-        <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
-      </div>
+<div class="ventas-page">
+  <!-- Encabezado -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Ventas</h1>
+      <p class="header-subtitle">Historial y registro de transacciones</p>
     </div>
-  </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="irAReportes()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/>
+        </svg>
+        Reportes
+      </button>
+      <button type="button" class="btn-primary" (click)="handleAddSale()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Nueva venta
+      </button>
+    </div>
+  </header>
 
-  <main class="content">
+  <!-- Barra de KPIs compacta -->
+  <section class="kpi-strip">
+    <article class="kpi-item">
+      <div class="kpi-icon icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Ventas del día</span>
+        <span class="kpi-valor">${{ ventasDelDia() | number:'1.0-0' }}</span>
+      </div>
+      <span class="kpi-extra">{{ cantidadVentasDelDia() }} tx</span>
+    </article>
+
+    <article class="kpi-item">
+      <div class="kpi-icon icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Ventas del mes</span>
+        <span class="kpi-valor">${{ ventasDelMes() | number:'1.0-0' }}</span>
+      </div>
+    </article>
+
+    <article class="kpi-item">
+      <div class="kpi-icon icon-gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Resultados</span>
+        <span class="kpi-valor">{{ ventasFiltradas().length }}</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- Búsqueda + filtros (juntos) + chips de método -->
+  <section class="toolbar">
+    <div class="toolbar-search">
+      <app-search-bar
+        placeholder="Buscar por ticket o vendedor..."
+        [debounceMs]="200"
+        (search)="onBuscar($event)">
+      </app-search-bar>
+    </div>
+
+    <button
+      type="button"
+      class="btn-filtros"
+      [class.btn-filtros-activo]="panelFiltrosAbierto() || filtrosCount > 0"
+      (click)="togglePanelFiltros()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      Filtros
+      @if (filtrosCount > 0) {
+        <span class="filtros-badge">{{ filtrosCount }}</span>
+      }
+    </button>
+
+    <div class="metodo-chips">
+      <button
+        type="button"
+        class="chip"
+        [class.chip-active]="!filtros().metodo"
+        (click)="seleccionarMetodo(null)">Todos</button>
+      @for (m of metodosPago; track m) {
+        <button
+          type="button"
+          class="chip"
+          [class.chip-active]="filtros().metodo === m"
+          (click)="seleccionarMetodo(filtros().metodo === m ? null : m)">
+          {{ m === 'TRANSFERENCIA' ? 'Transf.' : m.charAt(0) + m.slice(1).toLowerCase() }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Panel de filtros inline (escritorio) -->
+  @if (panelFiltrosAbierto()) {
+    <section class="panel-filtros">
+      <div class="filtro-campo">
+        <label>Desde</label>
+        <input type="date" [(ngModel)]="filtroFechaInicio" />
+      </div>
+      <div class="filtro-campo">
+        <label>Hasta</label>
+        <input type="date" [(ngModel)]="filtroFechaFin" />
+      </div>
+      <div class="filtro-campo">
+        <label>Vendedor</label>
+        <input type="text" [(ngModel)]="filtroVendedor" placeholder="Nombre del vendedor" />
+      </div>
+      <div class="filtro-campo">
+        <label>Estado</label>
+        <select [(ngModel)]="filtroEstado">
+          <option [ngValue]="null">Todos</option>
+          @for (e of estadosVenta; track e) {
+            <option [value]="e">{{ e === 'COMPLETADA' ? 'Completada' : 'Anulada' }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-acciones">
+        <button type="button" class="btn-aplicar" (click)="aplicarFiltros()">Aplicar</button>
+        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+    </section>
+  }
+
+  <!-- Rango de fechas activo -->
+  @if (filtros().fechaInicio || filtros().fechaFin) {
+    <div class="rango-activo">
+      <span>
+        Del {{ filtros().fechaInicio || '...' }} al {{ filtros().fechaFin || '...' }}
+      </span>
+      <button type="button" class="btn-limpiar-fechas" (click)="quitarFecha('fechaInicio'); quitarFecha('fechaFin')" title="Quitar fechas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Tabla de transacciones (contenido principal) -->
+  <main class="tabla-card">
+    <div class="tabla-encabezado">
+      <span class="tabla-titulo">Transacciones</span>
+      <span class="tabla-conteo">{{ ventasFiltradas().length }} {{ ventasFiltradas().length === 1 ? 'transacción' : 'transacciones' }}</span>
+    </div>
+
     @if (errorMessage()) {
       <div class="error-msg">{{ errorMessage() }}</div>
     }
@@ -19,18 +164,49 @@
     }
 
     @if (!isLoading() && !errorMessage()) {
-      <app-venta-list
-        [ventasAgrupadas]="ventasAgrupadas()"
-        (ventaSelected)="verDetalle($event)"
-      ></app-venta-list>
+      <div class="tabla-scroll">
+        <table class="ventas-tabla">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Fecha</th>
+              <th class="col-vendedor">Vendedor</th>
+              <th>Método</th>
+              <th>Estado</th>
+              <th class="col-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of ventasFiltradas(); track v.id) {
+              <tr (click)="verDetalle(v.id)" class="fila-venta">
+                <td class="celda-ticket">#{{ v.id }}</td>
+                <td class="celda-fecha">
+                  <span class="fecha">{{ v.fecha | date:'dd/MM/yyyy' }}</span>
+                  <span class="hora">{{ v.fecha | date:'HH:mm a' }}</span>
+                </td>
+                <td class="col-vendedor celda-vendedor">{{ nombreVendedor(v) }}</td>
+                <td><span class="metodo-pill">{{ metodo(v) }}</span></td>
+                <td><app-estado-venta [estado]="v.estado"></app-estado-venta></td>
+                <td class="col-total celda-total">${{ v.total | number:'1.0-2' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="sin-resultados">
+                  No hay ventas que coincidan con los filtros.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
   </main>
 
-  <app-fab-button (clicked)="handleAddSale()"></app-fab-button>
-
-  <app-sales-filter
-    [isVisible]="isFilterVisible()"
-    (close)="toggleFilter()"
-    (apply)="handleFilterApply($event)"
-  ></app-sales-filter>
+  <!-- Slide-over de detalle -->
+  <app-venta-detalle-panel
+    [ventaId]="panelVentaId()"
+    [visible]="panelVisible()"
+    (closed)="cerrarPanel()"
+    (anulada)="onVentaAnulada($event)">
+  </app-venta-detalle-panel>
 </div>

@@ -1,0 +1,193 @@
+<div class="pos-page">
+  <!-- Encabezado -->
+  <header class="pos-header">
+    <button class="btn-volver" (click)="volver()" aria-label="Volver al historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <div class="header-text">
+      <h1>Nueva venta</h1>
+      <p class="header-subtitle">Terminal punto de venta</p>
+    </div>
+  </header>
+
+  <div class="pos-grid">
+
+    <!-- ============ IZQUIERDA: CATÁLOGO ============ -->
+    <section class="catalogo-card">
+      <div class="buscador">
+        <app-search-bar
+          placeholder="Buscar producto por nombre o código..."
+          [debounceMs]="350"
+          (search)="buscar($event)">
+        </app-search-bar>
+      </div>
+
+      @if (buscando()) {
+        <div class="estado-catalogo">Buscando productos...</div>
+      } @else if (sinResultados()) {
+        <div class="estado-catalogo">Sin resultados para la búsqueda.</div>
+      }
+
+      @if (!buscando() && !sinResultados() && productos().length) {
+        <p class="catalogo-conteo">{{ productos().length }} productos disponibles</p>
+        <div class="productos-grid">
+          @for (p of productos(); track p.id) {
+            <app-product-search-card
+              [product]="p"
+              [quantity]="cantidadDe(p.id)"
+              (add)="agregar(p)">
+            </app-product-search-card>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ============ DERECHA: CARRITO Y COBRO ============ -->
+    <aside class="carrito-card">
+      <div class="carrito-header">
+        <h2>Resumen de compra</h2>
+        @if (carrito().length) {
+          <button class="btn-vaciar" (click)="vaciar()">Vaciar</button>
+        }
+      </div>
+
+      <!-- Ítems -->
+      <div class="carrito-lista">
+        @if (!carrito().length) {
+          <div class="carrito-vacio">El carrito está vacío</div>
+        }
+        @for (item of carrito(); track item.producto.id) {
+          <div class="carrito-item">
+            <button
+              type="button"
+              class="btn-eliminar-item"
+              (click)="eliminar(item)"
+              title="Quitar producto"
+              aria-label="Quitar producto">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+            <div class="item-info">
+              <span class="item-nombre">{{ item.producto.nombre }}</span>
+              <span class="item-detalle">
+                ${{ item.producto.precioVenta | number:'1.0-2' }} c/u
+                @if (item.numeroLote) { · Lote: {{ item.numeroLote }} }
+              </span>
+            </div>
+            <div class="item-controles">
+              <button type="button" class="btn-qty" (click)="disminuir(item)" aria-label="Quitar uno">−</button>
+              <input
+                type="number"
+                class="qty-input"
+                min="1"
+                [max]="item.producto.stockActual"
+                [value]="item.cantidad"
+                (change)="actualizarCantidad(item, $any($event.target).value)"
+                [attr.aria-label]="'Cantidad de ' + item.producto.nombre" />
+              <button
+                type="button"
+                class="btn-qty"
+                [disabled]="item.cantidad >= item.producto.stockActual"
+                (click)="aumentar(item)"
+                aria-label="Agregar uno">+</button>
+            </div>
+            <span class="item-total">
+              ${{ item.producto.precioVenta * item.cantidad | number:'1.0-2' }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <!-- Totales -->
+      <div class="carrito-footer">
+        <div class="totales">
+          <div class="total-linea">
+            <span>Subtotal</span>
+            <span>${{ subtotal() | number:'1.0-2' }}</span>
+          </div>
+          <div class="total-linea">
+            <span>IVA</span>
+            <span>${{ ivaTotal() | number:'1.0-2' }}</span>
+          </div>
+          <div class="total-linea descuento-input">
+            <label for="descuento">Descuento %</label>
+            <input
+              id="descuento"
+              type="number"
+              min="0"
+              max="100"
+              [ngModel]="descuentoPorcentaje()"
+              (ngModelChange)="descuentoPorcentaje.set($any($event))"
+              placeholder="0" />
+            <span class="descuento-monto">-${{ montoDescuento() | number:'1.0-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Método de pago -->
+        <div class="metodos">
+          @for (m of metodosPago; track m) {
+            <button
+              class="metodo-btn"
+              [class.metodo-activo]="metodoPago() === m"
+              (click)="seleccionarMetodo(m)">
+              {{ m === 'TRANSFERENCIA' ? 'Transf.' : m.charAt(0) + m.slice(1).toLowerCase() }}
+            </button>
+          }
+        </div>
+
+        <!-- Dinero recibido (solo efectivo) -->
+        @if (metodoPago() === 'EFECTIVO') {
+          <div class="efectivo-box">
+            <label for="recibido">Recibido</label>
+            <input
+              id="recibido"
+              type="number"
+              min="0"
+              [ngModel]="recibido()"
+              (ngModelChange)="recibido.set($any($event))"
+              placeholder="$0" />
+          </div>
+        }
+
+        <!-- Cambio / falta destacado (solo efectivo) -->
+        @if (metodoPago() === 'EFECTIVO' && (cambio() > 0 || falta() > 0)) {
+          <div
+            class="cambio-destacado"
+            [class.cambio-insuficiente]="falta() > 0">
+            <div class="cambio-icono">
+              @if (falta() > 0) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>
+                </svg>
+              }
+            </div>
+            <div class="cambio-texto">
+              <span class="cambio-etiqueta">{{ falta() > 0 ? 'Falta por cubrir' : 'Cambio a entregar' }}</span>
+              <span class="cambio-valor">${{ (falta() > 0 ? falta() : cambio()) | number:'1.0-2' }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Total y confirmación -->
+        <div class="total-final">
+          <span>Total</span>
+          <span>${{ total() | number:'1.0-2' }}</span>
+        </div>
+
+        <button
+          class="btn-cobrar"
+          [disabled]="!puedeCobrar()"
+          (click)="confirmarVenta()">
+          {{ procesando() ? 'Procesando...' : 'Confirmar venta' }}
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>

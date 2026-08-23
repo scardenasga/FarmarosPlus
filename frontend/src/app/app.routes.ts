@@ -9,9 +9,8 @@ import { EditarProductoComponent } from './inventory/pages/editar-producto/edita
 import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
 import { IngresoStockComponent } from './inventory/pages/ingreso-stock/ingreso-stock.component';
 import {HistorialVentasComponent} from './ventas/pages/historial-ventas/historial-ventas.component';
-import {BuscarProductoComponent} from './ventas/pages/buscar-producto/buscar-producto.component';
-import {RegistrarVentaComponent} from './ventas/pages/registrar-venta/registrar-venta.component';
 import {FiltrarHistorialComponent} from './ventas/pages/filtrar-historial/filtrar-historial.component';
+import {PosVentaComponent} from './ventas/pages/pos-venta/pos-venta.component';
 import {DetalleVentaComponent} from './ventas/pages/detalle-venta/detalle-venta.component';
 import {AnularVentaComponent} from './ventas/pages/anular-venta/anular-venta.component';
 import {SettingsComponent} from './configuracion/pages/settings/settings.component';
@@ -52,8 +51,10 @@ export const routes: Routes = [
 
   // --- VENTAS ---
   { path: 'ventas', component: HistorialVentasComponent },
-  { path: 'ventas/crear', component: BuscarProductoComponent },
-  { path: 'ventas/registrar', component: RegistrarVentaComponent },
+  { path: 'ventas/pos', component: PosVentaComponent },
+  // Flujo antiguo (buscar -> registrar) reemplazado por la vista POS única
+  { path: 'ventas/crear', redirectTo: 'ventas/pos', pathMatch: 'full' },
+  { path: 'ventas/registrar', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
   { path: 'reportes/ventas', component: ReporteVentasComponent },
   { path: 'ventas/:id', component: DetalleVentaComponent },

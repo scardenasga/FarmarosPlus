@@ -1,13 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
+import { NotificacionToastComponent } from './shared/components/notificacion-toast/notificacion-toast.component';
 import { NavigationService } from './shared/services/navigation.service';
 import { ThemeService } from './services/theme.service';
 import { AlertaService } from './services/alerta.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent],
+  imports: [RouterOutlet, SidebarComponent, NotificacionToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
