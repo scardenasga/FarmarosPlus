@@ -1,6 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
@@ -9,24 +8,17 @@ import { EstadoVentaComponent } from '../../../shared/components/estado-venta/es
 import { VentaDetallePanelComponent } from '../../components/venta-detalle-panel/venta-detalle-panel.component';
 import { VentaService } from '../../services/venta.service';
 import {
-  EstadoVenta,
   Venta,
   metodoPagoPrincipal,
   nombreVendedor
 } from '../../models/venta.model';
 
 interface FiltrosActivos {
-  fechaInicio: string | null;
-  fechaFin: string | null;
-  vendedor: string | null;
   estado: string | null;
   metodo: string | null;
 }
 
 const FILTROS_INICIALES: FiltrosActivos = {
-  fechaInicio: null,
-  fechaFin: null,
-  vendedor: null,
   estado: null,
   metodo: null
 };
@@ -36,7 +28,6 @@ const FILTROS_INICIALES: FiltrosActivos = {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     SearchBarComponent,
     EstadoVentaComponent,
     VentaDetallePanelComponent
@@ -59,37 +50,85 @@ export class HistorialVentasComponent implements OnInit {
 
   busqueda = signal<string>('');
   filtros = signal<FiltrosActivos>({ ...FILTROS_INICIALES });
-  panelFiltrosAbierto = signal<boolean>(false);
+  /**
+   * Esta pantalla muestra únicamente las transacciones del día en curso.
+   * Es fijo: para analizar otros períodos se usa el módulo de reportes.
+   */
+  private readonly soloHoy = true;
 
-  // Campos del formulario de filtros (ngModel)
-  filtroFechaInicio: string | null = null;
-  filtroFechaFin: string | null = null;
-  filtroVendedor: string | null = null;
-  filtroEstado: string | null = null;
+  /* ---------- Paginación ---------- */
+  readonly TAMANOS_PAGINA = [5, 10, 25, 50];
+  tamanoPagina = signal<number>(5);
+  pagina = signal<number>(1);
+
+  totalPaginas = computed(() => Math.max(1, Math.ceil(this.ventasFiltradas().length / this.tamanoPagina())));
+
+  ventasPaginadas = computed(() => {
+    const inicio = (this.pagina() - 1) * this.tamanoPagina();
+    return this.ventasFiltradas().slice(inicio, inicio + this.tamanoPagina());
+  });
+
+  rangoMostrado = computed(() => {
+    if (!this.ventasFiltradas().length) return '0 de 0';
+    const inicio = (this.pagina() - 1) * this.tamanoPagina() + 1;
+    const fin = Math.min(this.pagina() * this.tamanoPagina(), this.ventasFiltradas().length);
+    return `${inicio}–${fin} de ${this.ventasFiltradas().length}`;
+  });
+
+  cambiarPagina(nueva: number): void {
+    const destino = Math.min(Math.max(1, nueva), this.totalPaginas());
+    if (destino !== this.pagina()) {
+      this.pagina.set(destino);
+    }
+  }
+
+  cambiarTamanoPagina(tamano: string | number): void {
+    this.tamanoPagina.set(Number(tamano));
+    this.pagina.set(1);
+  }
+
+  paginasVisibles = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.pagina();
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const paginas: (number | '...')[] = [1];
+    const desde = Math.max(2, actual - 1);
+    const hasta = Math.min(total - 1, actual + 1);
+    if (desde > 2) paginas.push('...');
+    for (let i = desde; i <= hasta; i++) paginas.push(i);
+    if (hasta < total - 1) paginas.push('...');
+    paginas.push(total);
+    return paginas;
+  });
+
+  private hoyIso(): string {
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${dia}`;
+  }
 
   readonly nombreVendedor = nombreVendedor;
   readonly metodo = metodoPagoPrincipal;
 
   metodosPago = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'];
-  estadosVenta: (EstadoVenta | string)[] = ['COMPLETADA', 'ANULADA'];
-
-  get filtrosCount(): number {
-    const f = this.filtros();
-    return [f.fechaInicio, f.fechaFin, f.vendedor, f.estado]
-      .filter(v => !!v).length + (f.metodo ? 1 : 0);
-  }
 
   ventasFiltradas = computed(() => {
     const termino = this.busqueda().toLowerCase().trim();
     const f = this.filtros();
+    const hoy = this.hoyIso();
 
     return this.ventas().filter(v => {
+      if (this.soloHoy && !(v.fecha ?? '').startsWith(hoy)) return false;
       if (termino) {
         const idTexto = String(v.id);
         const nombre = nombreVendedor(v).toLowerCase();
         if (!idTexto.includes(termino) && !nombre.includes(termino)) return false;
       }
       if (f.metodo && !v.pagos?.some(p => p.tipo === f.metodo)) return false;
+      if (f.estado && String(v.estado).toUpperCase() !== f.estado) return false;
       return true;
     });
   });
@@ -129,17 +168,13 @@ export class HistorialVentasComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
+    // Sin filtro de fechas en esta pantalla: se carga el histórico completo
+    // y "Solo hoy" filtra localmente por el día actual.
     this.ventaService
-      .consultarHistorico(f.fechaInicio ?? undefined, f.fechaFin ?? undefined, f.estado ?? undefined)
+      .consultarHistorico(undefined, undefined, f.estado ?? undefined)
       .subscribe({
         next: (data) => {
-          let finalData = data || [];
-          if (f.vendedor) {
-            finalData = finalData.filter(v =>
-              nombreVendedor(v).toLowerCase().includes(f.vendedor!.toLowerCase())
-            );
-          }
-          this.ventas.set(finalData);
+          this.ventas.set(data || []);
           this.isLoading.set(false);
         },
         error: () => {
@@ -152,45 +187,19 @@ export class HistorialVentasComponent implements OnInit {
 
   onBuscar(termino: string) {
     this.busqueda.set(termino);
+    this.pagina.set(1);
   }
 
-  /* ---------- Filtros ---------- */
-
-  togglePanelFiltros() {
-    this.panelFiltrosAbierto.update(v => !v);
-  }
-
-  aplicarFiltros() {
-    this.filtros.set({
-      fechaInicio: this.filtroFechaInicio || null,
-      fechaFin: this.filtroFechaFin || null,
-      vendedor: this.filtroVendedor || null,
-      estado: this.filtroEstado || null,
-      metodo: this.filtros().metodo
-    });
-    this.cargarHistorial();
-  }
-
-  limpiarFiltros() {
-    this.filtroFechaInicio = null;
-    this.filtroFechaFin = null;
-    this.filtroVendedor = null;
-    this.filtroEstado = null;
-    this.filtros.set({ ...this.filtros(), ...{
-      fechaInicio: null, fechaFin: null, vendedor: null, estado: null
-    }});
-    this.cargarHistorial();
-  }
+  /* ---------- Filtros (método y estado; las fechas se manejan con "Solo hoy") ---------- */
 
   seleccionarMetodo(metodo: string | null) {
     this.filtros.update(f => ({ ...f, metodo }));
+    this.pagina.set(1);
   }
 
-  quitarFecha(fecha: 'fechaInicio' | 'fechaFin') {
-    this.filtros.update(f => ({ ...f, [fecha]: null }));
-    if (fecha === 'fechaInicio') this.filtroFechaInicio = null;
-    else this.filtroFechaFin = null;
-    this.cargarHistorial();
+  seleccionarEstado(estado: string | null) {
+    this.filtros.update(f => ({ ...f, estado }));
+    this.pagina.set(1);
   }
 
   /* ---------- Panel de detalle ---------- */

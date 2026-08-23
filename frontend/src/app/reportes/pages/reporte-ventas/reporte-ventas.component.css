@@ -374,7 +374,8 @@
   border-radius: 16px;
   box-shadow: var(--shadow-card, 0 4px 12px rgba(0, 0, 0, 0.05));
   overflow: hidden;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .tabla-encabezado {
@@ -460,6 +461,83 @@
 
 .celda-total {
   font-weight: 800;
+}
+
+/* ---------- Paginación ---------- */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-l);
+  padding: var(--space-m) var(--space-l);
+  border-top: 1px solid var(--border-color, var(--outline-variant));
+  flex-wrap: wrap;
+}
+
+.paginacion-info {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted, var(--outline));
+}
+
+.paginacion-controles {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.pag-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, var(--outline-variant));
+  background-color: var(--card-bg, #ffffff);
+  color: var(--text-dark, var(--on-background));
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.pag-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.pag-btn:hover:not(:disabled) {
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.08));
+}
+
+.pag-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pag-actual {
+  background-color: var(--accent-green-dark, var(--primary-container));
+  border-color: transparent;
+  color: var(--on-primary-container);
+}
+
+.pag-puntos {
+  color: var(--text-muted, var(--outline));
+  font-weight: 700;
+  padding: 0 2px;
+}
+
+.pag-tamano {
+  height: 30px;
+  margin-left: var(--space-m);
+  padding: 0 var(--space-s);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dark, var(--on-background));
+  background-color: var(--card-bg, transparent);
 }
 
 /* ---------- Estados ---------- */

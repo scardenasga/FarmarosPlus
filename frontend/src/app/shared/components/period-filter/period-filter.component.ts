@@ -1,6 +1,5 @@
 import { Component, OnInit, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InputFechaComponent } from '../../filtro-fecha/filtro-fecha.component';
 
 export type Periodo = 'DIA' | 'SEMANA' | 'MES' | 'PERSONALIZADO';
 
@@ -18,7 +17,7 @@ export interface PeriodFilterValue {
 @Component({
   selector: 'app-period-filter',
   standalone: true,
-  imports: [CommonModule, InputFechaComponent],
+  imports: [CommonModule],
   templateUrl: './period-filter.component.html',
   styleUrl: './period-filter.component.css'
 })
@@ -27,6 +26,8 @@ export class PeriodFilterComponent implements OnInit {
   fechaInicioPersonalizada: string = '';
   fechaFinPersonalizada: string = '';
   error: string = '';
+
+  private ultimoRango: PeriodFilterValue | null = null;
 
   filtroChange = output<PeriodFilterValue>();
 
@@ -51,6 +52,14 @@ export class PeriodFilterComponent implements OnInit {
   onFechaFinChange(fecha: string): void {
     this.fechaFinPersonalizada = fecha;
     this.emitirRangoPersonalizado();
+  }
+
+  /** Texto descriptivo del rango activo para los períodos rápidos. */
+  rangoAplicadoTexto(): string {
+    if (!this.ultimoRango) return '';
+    const f1 = this.formatear(this.ultimoRango.fechaInicio);
+    const f2 = this.formatear(this.ultimoRango.fechaFin);
+    return `Mostrando del ${f1} al ${f2}`;
   }
 
   private aplicarPeriodoRapido(periodo: Periodo): void {
@@ -81,7 +90,7 @@ export class PeriodFilterComponent implements OnInit {
         break;
     }
 
-    this.filtroChange.emit({
+    this.emitir({
       periodo,
       fechaInicio: this.aIso(inicio),
       fechaFin: this.aIso(fin)
@@ -97,11 +106,21 @@ export class PeriodFilterComponent implements OnInit {
       return;
     }
     this.error = '';
-    this.filtroChange.emit({
+    this.emitir({
       periodo: 'PERSONALIZADO',
       fechaInicio: this.fechaInicioPersonalizada,
       fechaFin: this.fechaFinPersonalizada
     });
+  }
+
+  private emitir(valor: PeriodFilterValue): void {
+    this.ultimoRango = valor;
+    this.filtroChange.emit(valor);
+  }
+
+  private formatear(fechaIso: string): string {
+    const [y, m, d] = fechaIso.split('-');
+    return `${d}/${m}/${y}`;
   }
 
   private aIso(fecha: Date): string {

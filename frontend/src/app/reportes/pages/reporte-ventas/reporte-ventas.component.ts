@@ -141,6 +141,54 @@ export class ReporteVentasComponent implements OnInit {
   /** Solapa activa en la card de análisis: top o menos vendidos. */
   solapaActiva = signal<'top' | 'menos'>('top');
 
+  /* ---------- Paginación ---------- */
+  readonly TAMANOS_PAGINA = [5, 10, 25, 50];
+  tamanoPagina = signal<number>(5);
+  pagina = signal<number>(1);
+
+  totalPaginas = computed(() => Math.max(1, Math.ceil(this.ventas().length / this.tamanoPagina())));
+
+  ventasPaginadas = computed(() => {
+    const inicio = (this.pagina() - 1) * this.tamanoPagina();
+    return this.ventas().slice(inicio, inicio + this.tamanoPagina());
+  });
+
+  rangoMostrado = computed(() => {
+    if (!this.ventas().length) return '0 de 0';
+    const inicio = (this.pagina() - 1) * this.tamanoPagina() + 1;
+    const fin = Math.min(this.pagina() * this.tamanoPagina(), this.ventas().length);
+    return `${inicio}–${fin} de ${this.ventas().length}`;
+  });
+
+  cambiarPagina(nueva: number): void {
+    const destino = Math.min(Math.max(1, nueva), this.totalPaginas());
+    if (destino !== this.pagina()) {
+      this.pagina.set(destino);
+    }
+  }
+
+  cambiarTamanoPagina(tamano: string | number): void {
+    this.tamanoPagina.set(Number(tamano));
+    this.pagina.set(1);
+  }
+
+  /** Lista de números de página con elipsis: 1 … 4 5 6 … 20 */
+  paginasVisibles = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.pagina();
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const paginas: (number | '...')[] = [1];
+    let desde = Math.max(2, actual - 1);
+    let hasta = Math.min(total - 1, actual + 1);
+    if (desde > 2) paginas.push('...');
+    for (let i = desde; i <= hasta; i++) paginas.push(i);
+    if (hasta < total - 1) paginas.push('...');
+    paginas.push(total);
+    return paginas;
+  });
+
   productosSolapa = computed(() =>
     this.solapaActiva() === 'top' ? this.topProductos() : this.menosVendidos()
   );
@@ -165,6 +213,7 @@ export class ReporteVentasComponent implements OnInit {
   handleFiltroChange(filtro: PeriodFilterValue): void {
     this.fechaInicioActual = filtro.fechaInicio;
     this.fechaFinActual = filtro.fechaFin;
+    this.pagina.set(1);
 
     this.cargando.set(true);
     this.error.set('');

@@ -9,7 +9,6 @@
       </button>
       <div class="header-text">
         <h1>Reporte de ventas</h1>
-        <p class="header-subtitle">Resumen y exportación de transacciones</p>
       </div>
     </div>
 
@@ -250,7 +249,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (venta of ventas(); track venta.id) {
+            @for (venta of ventasPaginadas(); track venta.id) {
               <tr>
                 <td class="celda-ticket">#{{ venta.id }}</td>
                 <td>{{ venta.fecha | date:'dd/MM/yyyy · HH:mm' }}</td>
@@ -262,6 +261,52 @@
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ rangoMostrado() }} registros</span>
+
+        <div class="paginacion-controles">
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() === 1"
+            (click)="cambiarPagina(pagina() - 1)"
+            aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+
+          @for (p of paginasVisibles(); track $index) {
+            @if (p === '...') {
+              <span class="pag-puntos">...</span>
+            } @else {
+              <button
+                type="button"
+                class="pag-btn pag-numero"
+                [class.pag-actual]="p === pagina()"
+                (click)="cambiarPagina($any(p))">{{ p }}</button>
+            }
+          }
+
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() >= totalPaginas()"
+            (click)="cambiarPagina(pagina() + 1)"
+            aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+
+          <select
+            class="pag-tamano"
+            (change)="cambiarTamanoPagina($any($event.target).value)"
+            aria-label="Registros por página">
+            @for (t of TAMANOS_PAGINA; track t) {
+              <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option>
+            }
+          </select>
+        </div>
       </div>
     }
   </main>
