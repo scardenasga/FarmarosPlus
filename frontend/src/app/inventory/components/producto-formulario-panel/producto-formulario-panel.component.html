@@ -34,12 +34,40 @@
         <form [formGroup]="productForm" (ngSubmit)="solicitarGuardar()">
           <div class="panel-cuerpo">
 
-            <!-- Identificación -->
-            <section class="grupo">
-              <h3 class="grupo-titulo">Identificación</h3>
-              <div class="campos-grid">
+            <!-- ═══ ¿Qué vas a vender? ═══ -->
+            <span class="seccion-titulo">¿Qué vas a vender?</span>
+
+            <div class="fila-superior">
+
+              @if (!esEditar()) {
+                <label class="zona-imagen" [class.con-preview]="imagenPreview()">
+                  <input type="file" accept="image/*" (change)="seleccionarImagen($event)" />
+
+                  @if (imagenPreview(); as preview) {
+                    <img [src]="preview" alt="Vista previa del producto" />
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="m21 15-5-5L5 21"/>
+                    </svg>
+                    <span class="zona-texto">Imagen</span>
+                  }
+
+                  @if (imagenPreview()) {
+                    <button
+                      type="button"
+                      class="btn-quitar-imagen"
+                      (click)="eliminarImagen(); $event.preventDefault()"
+                      title="Quitar imagen">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  }
+                </label>
+              }
+
+              <div class="col-nombre">
                 <app-form-input
-                  class="campo-full"
                   label="Nombre del producto *"
                   placeholder="Ej. Acetaminofén 500 mg - Caja x 10"
                   [control]="getControl('nombre')">
@@ -47,139 +75,143 @@
 
                 <app-form-input
                   label="Descripción"
-                  placeholder="Opcional..."
+                  placeholder="Presentación, concentración, etc. (opcional)"
                   type="textarea"
                   [control]="getControl('descripcion')">
                 </app-form-input>
 
                 @if (!esEditar()) {
-                  <app-form-input
-                    label="Código de barras *"
-                    placeholder="Escanea o escribe"
-                    [control]="getControl('codigoBarras')"
-                    [hasIcon]="true">
-                  </app-form-input>
-                }
-
-                <app-form-input
-                  label="Categoría"
-                  type="select"
-                  [options]="categorias()"
-                  placeholder="Seleccione una categoría"
-                  [control]="getControl('categoriaId')">
-                </app-form-input>
-
-                @if (esEditar()) {
-                  <app-form-input
-                    label="Estado *"
-                    type="select"
-                    [options]="estados"
-                    [control]="getControl('estado')">
-                  </app-form-input>
+                  <span class="nota-imagen">Imagen solo como vista previa: el guardado se habilitará próximamente.</span>
                 }
               </div>
-            </section>
+            </div>
 
-            <!-- Stock -->
-            <section class="grupo">
-              <h3 class="grupo-titulo">Stock</h3>
-              <div class="campos-grid">
-                @if (!esEditar()) {
-                  <app-form-input
-                    label="Cantidad inicial *"
-                    type="number"
-                    placeholder="0"
-                    [control]="getControl('stockInicial')">
-                  </app-form-input>
-                } @else {
-                  <app-form-input
-                    label="Stock actual *"
-                    type="number"
-                    [control]="getControl('stockActual')">
-                  </app-form-input>
-                }
+            <!-- ═══ Clasificación ═══ -->
+            <span class="seccion-titulo">Clasificación</span>
 
+            <div class="campos-grid">
+              @if (!esEditar()) {
                 <app-form-input
-                  label="Stock mínimo"
+                  label="Código de barras"
+                  placeholder="Escanea o escribe el código"
+                  [control]="getControl('codigoBarras')"
+                  [hasIcon]="true">
+                </app-form-input>
+              }
+
+              <app-form-input
+                label="Categoría del producto"
+                type="select"
+                [options]="categorias()"
+                placeholder="Seleccione una categoría"
+                [control]="getControl('categoriaId')">
+              </app-form-input>
+
+              @if (esEditar()) {
+                <app-form-input
+                  label="Estado en el catálogo"
+                  type="select"
+                  [options]="estados"
+                  [control]="getControl('estado')">
+                </app-form-input>
+              }
+            </div>
+
+            <!-- ═══ Cuánto hay y a cuánto se vende ═══ -->
+            <span class="seccion-titulo">Inventario y precios</span>
+
+            <div class="campos-grid">
+              @if (!esEditar()) {
+                <app-form-input
+                  label="Cantidad que entra hoy *"
                   type="number"
                   placeholder="0"
-                  [control]="getControl('stockMinimo')">
+                  [control]="getControl('stockInicial')">
                 </app-form-input>
-              </div>
-            </section>
-
-            <!-- Precios -->
-            <section class="grupo">
-              <h3 class="grupo-titulo">Costos y venta</h3>
-              <div class="campos-grid">
+              } @else {
                 <app-form-input
-                  label="Costo *"
+                  label="Stock actual *"
                   type="number"
-                  suffix="COP"
-                  [control]="getControl('costo')">
+                  [control]="getControl('stockActual')">
                 </app-form-input>
+              }
 
-                <app-form-input
-                  label="Precio de venta *"
-                  type="number"
-                  suffix="COP"
-                  [control]="getControl('precioVenta')">
-                </app-form-input>
+              <app-form-input
+                label="Alerta de stock bajo (mínimo)"
+                type="number"
+                placeholder="0"
+                [control]="getControl('stockMinimo')">
+              </app-form-input>
 
-                <app-form-input
-                  label="IVA (%)"
-                  type="number"
-                  [control]="getControl('porcentajeIva')">
-                </app-form-input>
+              <app-form-input
+                label="Costo de compra *"
+                type="number"
+                suffix="COP"
+                placeholder="0"
+                [control]="getControl('costo')">
+              </app-form-input>
 
-                @if (productForm.errors?.['priceTooLow'] && productForm.touched) {
-                  <p class="campo-error campo-full">
-                    El precio de venta debe ser mayor al costo con IVA.
-                  </p>
-                }
-              </div>
-            </section>
+              <app-form-input
+                label="Precio al cliente *"
+                type="number"
+                suffix="COP"
+                placeholder="0"
+                [control]="getControl('precioVenta')">
+              </app-form-input>
 
-            <!-- Configuración -->
-            <section class="grupo">
-              <h3 class="grupo-titulo">Configuración</h3>
+              <app-form-input
+                label="IVA aplicado (%)"
+                type="number"
+                [control]="getControl('porcentajeIva')">
+              </app-form-input>
+            </div>
 
-              <div class="toggles-fila">
+            @if (productForm.errors?.['priceTooLow'] && productForm.touched) {
+              <p class="campo-error">
+                El precio al cliente debe ser mayor al costo con IVA incluido.
+              </p>
+            }
+
+            <!-- ═══ Reglas especiales ═══ -->
+            <span class="seccion-titulo">Reglas especiales</span>
+
+            <div class="toggles-fila">
+              <label class="switch-group">
+                <span>Solo venta con fórmula médica</span>
+                <label class="switch">
+                  <input type="checkbox" formControlName="requierePrescripcion">
+                  <span class="slider"></span>
+                </label>
+              </label>
+
+              @if (!esEditar()) {
                 <label class="switch-group">
-                  <span>¿Requiere prescripción?</span>
+                  <span>Controlar por lote</span>
                   <label class="switch">
-                    <input type="checkbox" formControlName="requierePrescripcion">
+                    <input type="checkbox" formControlName="tieneLote">
                     <span class="slider"></span>
                   </label>
                 </label>
-
-                @if (!esEditar()) {
-                  <label class="switch-group">
-                    <span>¿Usar número de lote?</span>
-                    <label class="switch">
-                      <input type="checkbox" formControlName="tieneLote">
-                      <span class="slider"></span>
-                    </label>
-                  </label>
-                }
-              </div>
-
-              @if (!esEditar() && getControl('tieneLote').value) {
-                <div class="campos-grid campos-lote">
-                  <app-form-input
-                    label="Número de lote"
-                    placeholder="Ej. AMX-2026-01"
-                    [control]="getControl('numeroLote')">
-                  </app-form-input>
-
-                  <app-form-input
-                    label="Fecha de vencimiento del lote"
-                    type="date"
-                    [control]="getControl('fechaVencimiento')">
-                  </app-form-input>
-                </div>
               }
-            </section>
+            </div>
+
+            @if (!esEditar() && getControl('tieneLote').value) {
+              <span class="seccion-subtitulo">Datos del lote inicial</span>
+
+              <div class="campos-grid">
+                <app-form-input
+                  label="Número de lote"
+                  placeholder="Ej. AMX-2026-01"
+                  [control]="getControl('numeroLote')">
+                </app-form-input>
+
+                <app-form-input
+                  label="Vence el"
+                  type="date"
+                  [control]="getControl('fechaVencimiento')">
+                </app-form-input>
+              </div>
+            }
           </div>
         </form>
       }

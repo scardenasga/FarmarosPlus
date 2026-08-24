@@ -53,6 +53,36 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     { id: 'DESCONTINUADO', nombre: 'DESCONTINUADO' }
   ];
 
+  /* ---------- Imagen (UI preparada; el backend aún no persiste imágenes) ---------- */
+  imagenPreview = signal<string | null>(null);
+  imagenNombre = signal<string>('');
+
+  seleccionarImagen(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    if (!archivo) return;
+
+    if (!archivo.type.startsWith('image/')) {
+      this.notificacion.advertencia('Selecciona un archivo de imagen (PNG, JPG, etc.).');
+      return;
+    }
+
+    const lector = new FileReader();
+    lector.onload = () => {
+      this.imagenPreview.set(String(lector.result));
+      this.imagenNombre.set(archivo.name);
+    };
+    lector.readAsDataURL(archivo);
+
+    // Permite volver a elegir la misma imagen después de quitarla.
+    input.value = '';
+  }
+
+  eliminarImagen(): void {
+    this.imagenPreview.set(null);
+    this.imagenNombre.set('');
+  }
+
   esEditar(): boolean {
     return this.modo() === 'editar';
   }

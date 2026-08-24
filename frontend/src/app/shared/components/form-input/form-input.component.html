@@ -1,8 +1,8 @@
-<div class="form-group">
+<div class="form-group" [class.invalid]="control().invalid && control().touched">
   <label>{{ label() }}</label>
   <div class="input-container">
     @if (type() === 'textarea') {
-      <textarea [formControl]="control()" [placeholder]="placeholder()"></textarea>
+      <textarea [formControl]="control()" [placeholder]="placeholder()" rows="2"></textarea>
     } @else if (type() === 'select') {
       <select [formControl]="control()">
         <option [ngValue]="null">{{ placeholder() || 'Seleccione una opción' }}</option>
@@ -10,16 +10,23 @@
           <option [ngValue]="opt.id">{{ opt.nombre }}</option>
         }
       </select>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
     } @else {
       <input [type]="type()" [formControl]="control()" [placeholder]="placeholder()">
       @if (suffix()) {
         <span class="suffix-text">{{ suffix() }}</span>
       }
       @if (hasIcon()) {
-        <button type="button" class="icon-button">
+        <span class="icon-button">
           <ng-content></ng-content>
-        </button>
+        </span>
       }
     }
   </div>
+
+  @if (control().invalid && control().touched) {
+    <span class="error-hint">Campo requerido o inválido</span>
+  }
 </div>
