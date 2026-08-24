@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { SesionService } from '../../../shared/services/sesion.service';
 import { VentaService } from '../../services/venta.service';
 
 @Component({
@@ -19,7 +20,7 @@ export class AnularVentaComponent implements OnInit {
   cargando: boolean = false;
   cargandoVenta: boolean = true;
   error: string = '';
-  usuarioId: number = 1;
+  private sesion = inject(SesionService);
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -53,8 +54,8 @@ export class AnularVentaComponent implements OnInit {
 
     const request = {
       confirmacion: true,
-      usuarioId: this.usuarioId,
-      usuarioResponsable: 'Tatiana',
+      usuarioId: this.sesion.idUsuario(),
+      usuarioResponsable: this.sesion.username(),
       motivoAnulacion: this.motivoAnulacion || 'Anulación sin motivo especificado'
     };
 

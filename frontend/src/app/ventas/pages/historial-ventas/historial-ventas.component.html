@@ -1,15 +1,126 @@
-<div class="inventory-page">
-  <div class="sticky-header">
-    <div class="header-simple">
-      <span class="header-title">Historial de Ventas</span>
-      <div class="header-simple-actions">
-        <button class="btn-reportes" (click)="irAReportes()">Reportes</button>
-        <app-filter-button (clicked)="toggleFilter()"></app-filter-button>
-      </div>
+<div class="ventas-page">
+  <!-- Encabezado -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Ventas</h1>
     </div>
-  </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="irAReportes()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/>
+        </svg>
+        Reportes
+      </button>
+      <button type="button" class="btn-primary" (click)="handleAddSale()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Nueva venta
+      </button>
+    </div>
+  </header>
 
-  <main class="content">
+  <!-- Barra de KPIs compacta -->
+  <section class="kpi-strip">
+    <article class="kpi-item">
+      <div class="kpi-icon icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Ventas del día</span>
+        <span class="kpi-valor">${{ ventasDelDia() | number:'1.0-0' }}</span>
+      </div>
+      <span
+        class="kpi-extra"
+        title="Número de ventas completadas registradas hoy.">
+        {{ cantidadVentasDelDia() }} {{ cantidadVentasDelDia() === 1 ? 'venta' : 'ventas' }}
+      </span>
+    </article>
+
+    <article class="kpi-item">
+      <div class="kpi-icon icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Ventas del mes</span>
+        <span class="kpi-valor">${{ ventasDelMes() | number:'1.0-0' }}</span>
+      </div>
+    </article>
+
+    <article class="kpi-item">
+      <div class="kpi-icon icon-gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+        </svg>
+      </div>
+      <div class="kpi-texto">
+        <span class="kpi-etiqueta">Resultados</span>
+        <span class="kpi-valor">{{ ventasFiltradas().length }}</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- Búsqueda + chips de método y estado -->
+  <section class="toolbar">
+    <div class="toolbar-search">
+      <app-search-bar
+        placeholder="Buscar por ticket o vendedor..."
+        [debounceMs]="200"
+        (search)="onBuscar($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="metodo-chips">
+      <button
+        type="button"
+        class="chip"
+        [class.chip-active]="!filtros().metodo"
+        (click)="seleccionarMetodo(null)">Todos</button>
+      @for (m of metodosPago; track m) {
+        <button
+          type="button"
+          class="chip"
+          [class.chip-active]="filtros().metodo === m"
+          (click)="seleccionarMetodo(filtros().metodo === m ? null : m)">
+          {{ m === 'TRANSFERENCIA' ? 'Transf.' : m.charAt(0) + m.slice(1).toLowerCase() }}
+        </button>
+      }
+
+      <span class="chips-separador"></span>
+
+      <button
+        type="button"
+        class="chip chip-estado-todas"
+        [class.chip-active]="!filtros().estado"
+        (click)="seleccionarEstado(null)">Todas</button>
+      <button
+        type="button"
+        class="chip chip-estado-completada"
+        [class.chip-active-completada]="filtros().estado === 'COMPLETADA'"
+        (click)="seleccionarEstado(filtros().estado === 'COMPLETADA' ? null : 'COMPLETADA')">
+        Completadas
+      </button>
+      <button
+        type="button"
+        class="chip chip-estado-anulada"
+        [class.chip-active-anulada]="filtros().estado === 'ANULADA'"
+        (click)="seleccionarEstado(filtros().estado === 'ANULADA' ? null : 'ANULADA')">
+        Anuladas
+      </button>
+    </div>
+  </section>
+
+  <!-- Tabla de transacciones (contenido principal) -->
+  <main class="tabla-card">
+    <div class="tabla-encabezado">
+      <span class="tabla-titulo">Transacciones</span>
+      <span class="tabla-conteo">{{ ventasFiltradas().length }} {{ ventasFiltradas().length === 1 ? 'transacción' : 'transacciones' }}</span>
+    </div>
+
     @if (errorMessage()) {
       <div class="error-msg">{{ errorMessage() }}</div>
     }
@@ -19,18 +130,97 @@
     }
 
     @if (!isLoading() && !errorMessage()) {
-      <app-venta-list
-        [ventasAgrupadas]="ventasAgrupadas()"
-        (ventaSelected)="verDetalle($event)"
-      ></app-venta-list>
+      <div class="tabla-scroll">
+        <table class="ventas-tabla">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Fecha</th>
+              <th class="col-vendedor">Vendedor</th>
+              <th>Método</th>
+              <th>Estado</th>
+              <th class="col-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of ventasPaginadas(); track v.id) {
+              <tr (click)="verDetalle(v.id)" class="fila-venta">
+                <td class="celda-ticket">#{{ v.id }}</td>
+                <td class="celda-fecha">
+                  <span class="fecha">{{ v.fecha | date:'dd/MM/yyyy' }}</span>
+                  <span class="hora">{{ v.fecha | date:'HH:mm a' }}</span>
+                </td>
+                <td class="col-vendedor celda-vendedor">{{ nombreVendedor(v) }}</td>
+                <td><span class="metodo-pill">{{ metodo(v) }}</span></td>
+                <td><app-estado-venta [estado]="v.estado"></app-estado-venta></td>
+                <td class="col-total celda-total">${{ v.total | number:'1.0-2' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="sin-resultados">
+                  No hay ventas que coincidan con los filtros.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (ventasFiltradas().length > 0) {
+        <div class="paginacion">
+          <span class="paginacion-info">Mostrando {{ rangoMostrado() }} registros</span>
+
+          <div class="paginacion-controles">
+            <button
+              type="button"
+              class="pag-btn"
+              [disabled]="pagina() === 1"
+              (click)="cambiarPagina(pagina() - 1)"
+              aria-label="Página anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            @for (p of paginasVisibles(); track $index) {
+              @if (p === '...') {
+                <span class="pag-puntos">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="pag-btn pag-numero"
+                  [class.pag-actual]="p === pagina()"
+                  (click)="cambiarPagina($any(p))">{{ p }}</button>
+              }
+            }
+
+            <button
+              type="button"
+              class="pag-btn"
+              [disabled]="pagina() >= totalPaginas()"
+              (click)="cambiarPagina(pagina() + 1)"
+              aria-label="Página siguiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+
+            <select
+              class="pag-tamano"
+              (change)="cambiarTamanoPagina($any($event.target).value)"
+              aria-label="Registros por página">
+              @for (t of TAMANOS_PAGINA; track t) {
+                <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
     }
   </main>
 
-  <app-fab-button (clicked)="handleAddSale()"></app-fab-button>
-
-  <app-sales-filter
-    [isVisible]="isFilterVisible()"
-    (close)="toggleFilter()"
-    (apply)="handleFilterApply($event)"
-  ></app-sales-filter>
+  <!-- Slide-over de detalle -->
+  <app-venta-detalle-panel
+    [ventaId]="panelVentaId()"
+    [visible]="panelVisible()"
+    (closed)="cerrarPanel()"
+    (anulada)="onVentaAnulada($event)">
+  </app-venta-detalle-panel>
 </div>

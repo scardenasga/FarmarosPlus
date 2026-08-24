@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BotonRetrocederComponent } from '../../../shared/components/boton-retroceder/boton-retroceder.component';
+import { SesionService } from '../../../shared/services/sesion.service';
 import { VentaService } from '../../services/venta.service';
 
 @Component({
@@ -16,7 +17,7 @@ export class RegistrarVentaComponent implements OnInit {
 
   productos: any[] = [];
   metodoPago: string = 'EFECTIVO';
-  usuarioId: number = 1;
+  private sesion = inject(SesionService);
   cargando: boolean = false;
   error: string = '';
   hoy: Date = new Date();
@@ -59,7 +60,7 @@ export class RegistrarVentaComponent implements OnInit {
   this.error = '';
 
   const request = {
-    usuarioId: this.usuarioId,
+    usuarioId: this.sesion.idUsuario(),
     detalles: this.productos.map(p => ({
         productoId: p.id,
         loteId: p.loteId?? null,

@@ -5,19 +5,19 @@
       class="period-btn"
       [class.active]="periodo === 'DIA'"
       (click)="seleccionarPeriodo('DIA')"
-    >Día</button>
+    >Hoy</button>
     <button
       type="button"
       class="period-btn"
       [class.active]="periodo === 'SEMANA'"
       (click)="seleccionarPeriodo('SEMANA')"
-    >Semana</button>
+    >Esta semana</button>
     <button
       type="button"
       class="period-btn"
       [class.active]="periodo === 'MES'"
       (click)="seleccionarPeriodo('MES')"
-    >Mes</button>
+    >Este mes</button>
     <button
       type="button"
       class="period-btn"
@@ -28,18 +28,31 @@
 
   @if (periodo === 'PERSONALIZADO') {
     <div class="custom-range">
-      <app-input-fecha
-        [fecha]="fechaInicioPersonalizada"
-        (fechaChange)="onFechaInicioChange($event)"
-      ></app-input-fecha>
-      <span class="range-separator">a</span>
-      <app-input-fecha
-        [fecha]="fechaFinPersonalizada"
-        (fechaChange)="onFechaFinChange($event)"
-      ></app-input-fecha>
+      <div class="fecha-campo">
+        <label>Desde</label>
+        <input
+          type="date"
+          [value]="fechaInicioPersonalizada"
+          (change)="onFechaInicioChange($any($event.target).value)"
+        />
+      </div>
+      <svg class="range-separator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+      </svg>
+      <div class="fecha-campo">
+        <label>Hasta</label>
+        <input
+          type="date"
+          [value]="fechaFinPersonalizada"
+          (change)="onFechaFinChange($any($event.target).value)"
+        />
+      </div>
+
+      @if (error) {
+        <p class="error-text">{{ error }}</p>
+      }
     </div>
-    @if (error) {
-      <p class="error-text">{{ error }}</p>
-    }
+  } @else {
+    <span class="rango-aplicado">{{ rangoAplicadoTexto() }}</span>
   }
 </div>

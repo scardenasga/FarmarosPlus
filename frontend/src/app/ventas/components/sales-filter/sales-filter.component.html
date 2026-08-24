@@ -26,10 +26,21 @@
 
     <div class="filter-section">
       <p class="section-title">Vendedor</p>
-      <app-form-input 
-        label="Nombre del Vendedor" 
+      <app-form-input
+        label="Nombre del Vendedor"
         [control]="vendorFormControl"
         placeholder="Ej: Juan Pérez"
+      ></app-form-input>
+    </div>
+
+    <div class="filter-section">
+      <p class="section-title">Estado</p>
+      <app-form-input
+        label="Estado de la Venta"
+        type="select"
+        [control]="estadoFormControl"
+        [options]="estados"
+        placeholder="Todas"
       ></app-form-input>
     </div>
   </form>

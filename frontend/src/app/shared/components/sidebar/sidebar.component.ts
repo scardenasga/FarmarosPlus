@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -11,6 +11,11 @@ interface SidebarItem {
   title: string;
   iconPath: string;
   isBottom?: boolean;
+}
+
+interface SidebarSubmenu {
+  label: string;
+  link: string;
 }
 
 @Component({
@@ -32,12 +37,6 @@ export class SidebarComponent {
       iconPath: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'
     },
     {
-      label: 'Ventas (POS)',
-      title: 'Punto de Venta (POS)',
-      link: '/ventas',
-      iconPath: 'M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'
-    },
-    {
       label: 'Inventario',
       title: 'Inventario y Medicamentos',
       link: '/inventario',
@@ -57,6 +56,13 @@ export class SidebarComponent {
     }
   ];
 
+  /** Subsecciones del módulo de ventas accesibles desde el menú desplegable. */
+  readonly ventasSubmenu: SidebarSubmenu[] = [
+    { label: 'Historial de ventas', link: '/ventas' },
+    { label: 'Nueva venta (POS)', link: '/ventas/pos' },
+    { label: 'Reporte de ventas', link: '/reportes/ventas' }
+  ];
+
   readonly bottomItem: SidebarItem = {
     label: 'Configuración',
     title: 'Configuración del Sistema',
@@ -64,6 +70,9 @@ export class SidebarComponent {
     iconPath: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
     isBottom: true
   };
+
+  /** Estado del menú desplegable de ventas. */
+  ventasSubmenuAbierto = signal<boolean>(false);
 
   currentRoute = toSignal(
     this.router.events.pipe(
@@ -73,15 +82,38 @@ export class SidebarComponent {
     )
   );
 
-  isRouteActive(link: string): boolean {
+  isRouteActive(link: string, exacto: boolean = false): boolean {
     const current = this.currentRoute() || '';
     if (link === '/dashboard') {
       return current === '/dashboard' || current === '/' || current === '';
     }
+    // Exacto: solo marca cuando la ruta coincide sin prefijos compartidos
+    // (evita que /ventas quede activo al estar en /ventas/pos).
+    if (exacto) {
+      return current === link;
+    }
     return current.startsWith(link);
+  }
+
+  /** ¿La ruta actual pertenece al módulo de ventas o sus reportes? */
+  esSeccionVentasActiva(): boolean {
+    const current = this.currentRoute() || '';
+    return current.startsWith('/ventas') || current.startsWith('/reportes/ventas');
+  }
+
+  toggleVentasSubmenu(event: Event): void {
+    event.stopPropagation();
+    this.ventasSubmenuAbierto.update(v => !v);
   }
 
   toggleSidebar(): void {
     this.navService.toggleSidebar();
+  }
+
+  constructor() {
+    // Si la ruta inicial pertenece a ventas, el submenu nace abierto.
+    if (this.esSeccionVentasActiva()) {
+      this.ventasSubmenuAbierto.set(true);
+    }
   }
 }

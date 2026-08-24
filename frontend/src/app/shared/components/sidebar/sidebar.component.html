@@ -39,24 +39,56 @@
       }
     </a>
 
-    <!-- 2. Punto de Venta (POS) -->
-    <a
-      [routerLink]="'/ventas'"
-      class="nav-btn"
-      [class.active]="isRouteActive('/ventas')"
-      [title]="'Punto de Venta (POS)'"
-    >
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24">
-          <circle cx="9" cy="21" r="1"/>
-          <circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
+    <!-- 2. Ventas con submenu desplegable -->
+    <div class="nav-group">
+      <div
+        class="nav-btn nav-fila"
+        [class.active]="esSeccionVentasActiva()"
+      >
+        <a
+          [routerLink]="'/ventas'"
+          class="fila-enlace"
+          title="Ventas"
+          (click)="ventasSubmenuAbierto.set(true)"
+        >
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24">
+              <circle cx="9" cy="21" r="1"/>
+              <circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+          </div>
+          @if (navService.isSidebarExpanded()) {
+            <span class="nav-label">Ventas</span>
+          }
+        </a>
+
+        @if (navService.isSidebarExpanded()) {
+          <button
+            type="button"
+            class="submenu-chevron"
+            [class.chevron-abierto]="ventasSubmenuAbierto()"
+            (click)="toggleVentasSubmenu($event)"
+            [attr.aria-label]="ventasSubmenuAbierto() ? 'Contraer submenu de ventas' : 'Expandir submenu de ventas'">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        }
       </div>
-      @if (navService.isSidebarExpanded()) {
-        <span class="nav-label">Ventas (POS)</span>
+
+      @if (navService.isSidebarExpanded() && ventasSubmenuAbierto()) {
+        <ul class="submenu">
+          @for (item of ventasSubmenu; track item.link) {
+            <li>
+              <a
+                [routerLink]="item.link"
+                class="submenu-item"
+                [class.submenu-activo]="isRouteActive(item.link, true)"
+              >{{ item.label }}</a>
+            </li>
+          }
+        </ul>
       }
-    </a>
+    </div>
 
     <!-- 3. Inventario y Medicamentos -->
     <a

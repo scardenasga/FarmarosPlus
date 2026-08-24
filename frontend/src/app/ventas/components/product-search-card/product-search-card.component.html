@@ -1,41 +1,42 @@
-<article class="product-card" [class.selected]="isSelected()">
+<article class="product-card" [class.selected]="isSelected()" (click)="seleccionar()">
   <div class="image-container">
     @if (product().imagenUrl) {
       <img [src]="product().imagenUrl" [alt]="product().nombre" class="product-image">
     } @else {
-      <div class="placeholder-image flex-center">📦</div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+      </svg>
     }
   </div>
 
   <div class="info-container">
     <h3 class="product-name">{{ product().nombre }}</h3>
+    @if (product().codigoBarras) {
+      <span class="product-codigo">{{ product().codigoBarras }}</span>
+    }
     <div class="metrics">
-      <span class="price">${{ product().precioVenta | number }}</span>
-      <span class="stock">{{ product().stockActual }} disponibles</span>
+      <span class="price">${{ product().precioVenta | number:'1.0-2' }}</span>
+      <span class="stock" [class.stock-bajo]="(product().stockActual ?? 0) <= (product().stockMinimo ?? 0)">
+        Stock: {{ product().stockActual }}
+      </span>
     </div>
   </div>
 
   <div class="actions-container">
-    @if (!isSelected()) {
-      <button class="add-btn flex-center" (click)="add.emit()" aria-label="Agregar producto">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+    @if (isSelected()) {
+      <span class="agregado-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <path d="M20 6 9 17l-5-5"/>
         </svg>
-      </button>
+        x{{ quantity() }}
+      </span>
     } @else {
-      <div class="quantity-controls">
-        <button class="qty-btn flex-center" (click)="decrease.emit()" aria-label="Disminuir cantidad">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 13H5V11H19V13Z" fill="currentColor"/>
-          </svg>
-        </button>
-        <span class="qty-value">{{ quantity() }}</span>
-        <button class="qty-btn flex-center" (click)="increase.emit()" aria-label="Aumentar cantidad">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
+      <span class="agregar-hint" title="Agregar a la venta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </span>
     }
   </div>
 </article>

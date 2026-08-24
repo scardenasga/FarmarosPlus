@@ -1,10 +1,10 @@
 import { Component, input, output, computed } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-product-search-card',
   standalone: true,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule],
   templateUrl: './product-search-card.component.html',
   styleUrl: './product-search-card.component.css'
 })
@@ -17,7 +17,10 @@ export class ProductSearchCardComponent {
   increase = output<void>();
   decrease = output<void>();
 
-  get avatarText(): string {
-    return this.product().nombre?.substring(0, 3).toUpperCase() || 'PRO';
+  /** Un clic en cualquier parte de la tarjeta agrega el producto a la venta. */
+  seleccionar(): void {
+    if (!this.isSelected()) {
+      this.add.emit();
+    }
   }
 }

@@ -1,63 +1,313 @@
 <div class="reporte-page">
-  <div class="sticky-header">
-    <app-top-bar title="Reporte de ventas" [showAlert]="false" (back)="volver()"></app-top-bar>
-  </div>
+  <!-- Encabezado -->
+  <header class="page-header">
+    <div class="header-left">
+      <button type="button" class="btn-volver" (click)="volver()" aria-label="Volver a ventas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </button>
+      <div class="header-text">
+        <h1>Reporte de ventas</h1>
+      </div>
+    </div>
 
-  <main class="content-area">
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn-exportar"
+        [disabled]="exportando() || ventas().length === 0"
+        (click)="exportarPdf()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+        {{ exportando() ? 'Generando...' : 'PDF' }}
+      </button>
+      <button
+        type="button"
+        class="btn-exportar verde"
+        [disabled]="exportando() || ventas().length === 0"
+        (click)="exportarExcel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+        Excel
+      </button>
+    </div>
+  </header>
+
+  <!-- Filtro de período: arriba de todo, controla todo lo que está abajo -->
+  <section class="toolbar">
+    <span class="toolbar-hint">Selecciona el período a analizar:</span>
     <app-period-filter (filtroChange)="handleFiltroChange($event)"></app-period-filter>
+  </section>
+
+  <!-- KPIs compactos -->
+  @if (!cargando() && !error()) {
+    <section class="kpi-strip">
+      <article class="kpi-item">
+        <div class="kpi-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            Transacciones
+            <span class="info-icono" title="Número de ventas registradas en el período, incluyendo las anuladas.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">{{ ventas().length }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            Total (IVA incl.)
+            <span class="info-icono" title="Suma del dinero ingresado con ventas completadas. El valor ya incluye el IVA: útil para cuadrar caja.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">${{ totalPeriodo() | number:'1.0-0' }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            Venta promedio por cliente
+            <span class="info-icono" title="Lo que gasta en promedio un cliente en una compra.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">${{ ticketPromedio() | number:'1.0-0' }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            Unidades vendidas
+            <span class="info-icono" title="Cantidad total de productos entregados en ventas completadas.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">{{ unidadesVendidas() }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 14l6-6"/><circle cx="12" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 16.5 10.5 8"/><path d="m13.5 8 2.5 8.5"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            IVA recaudado
+            <span class="info-icono" title="Impuesto incluido en las ventas completadas del período.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">${{ ivaRecaudado() | number:'1.0-0' }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item" [class.kpi-alerta]="anuladasCount() > 0">
+        <div class="kpi-icon icon-red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">
+            Anuladas
+            <span class="info-icono" title="Ventas canceladas del período: representan dinero que no ingresó a la caja.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+          </span>
+          <span class="kpi-valor">{{ anuladasCount() }}</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Análisis del período -->
+    @if (topProductos().length) {
+      <section class="analisis-card">
+        <div class="analisis-header">
+          <h2>Análisis del período</h2>
+          @if (tendencia() !== null) {
+            <span
+              class="tendencia-badge"
+              [class.tendencia-up]="(tendencia() ?? 0) >= 0"
+              [class.tendencia-down]="(tendencia() ?? 0) < 0"
+              title="Compara lo vendido al final del período contra lo vendido al comienzo.">
+              {{ (tendencia() ?? 0) >= 0 ? '▲' : '▼' }}
+              {{ (tendencia() ?? 0) >= 0 ? '+' : '' }}{{ tendencia() | number:'1.1-1' }}%
+              <small>Crecimiento respecto al inicio del período</small>
+            </span>
+          }
+        </div>
+
+        <div class="solapas">
+          <button
+            type="button"
+            class="solapa"
+            [class.solapa-activa]="solapaActiva() === 'top'"
+            (click)="cambiarSolapa('top')">
+            Top 5 más vendidos
+          </button>
+          <button
+            type="button"
+            class="solapa"
+            [class.solapa-activa]="solapaActiva() === 'menos'"
+            (click)="cambiarSolapa('menos')">
+            Menos vendidos
+          </button>
+        </div>
+
+        <div class="lista-productos">
+          @for (p of productosSolapa(); track p.nombre) {
+            <div class="producto-fila">
+              <span class="producto-nombre" [title]="p.nombre">{{ p.nombre }}</span>
+              <div class="producto-barra">
+                <div
+                  class="producto-barra-fill"
+                  [class.barra-baja]="solapaActiva() === 'menos'"
+                  [style.width.%]="(p.unidades / maxUnidadesSolapa()) * 100">
+                </div>
+              </div>
+              <span class="producto-dato">{{ p.unidades }} u · ${{ p.ingresos | number:'1.0-0' }}</span>
+            </div>
+          }
+
+          @if (mejorDia(); as mejor) {
+            <div class="rendimiento-box">
+              <div class="rendimiento-linea">
+                <span class="rendimiento-label">Mejor día</span>
+                <span class="rendimiento-valor">{{ formatearDia(mejor.dia) }} · ${{ mejor.total | number:'1.0-0' }}</span>
+              </div>
+              @if (promedioDiario() > 0) {
+                <div class="rendimiento-linea">
+                  <span class="rendimiento-label">Venta promedio por día</span>
+                  <span class="rendimiento-valor">${{ promedioDiario() | number:'1.0-0' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  <!-- Tabla -->
+  <main class="tabla-card">
+    <div class="tabla-encabezado">
+      <span class="tabla-titulo">Transacciones</span>
+      <span class="tabla-conteo">{{ ventas().length }} {{ ventas().length === 1 ? 'registro' : 'registros' }}</span>
+    </div>
 
     @if (cargando()) {
-      <div class="loading-state">
+      <div class="estado-tabla">
         <div class="spinner"></div>
         <p>Generando reporte...</p>
       </div>
     } @else if (error()) {
-      <p class="error-text">{{ error() }}</p>
+      <div class="estado-error">{{ error() }}</div>
+    } @else if (ventas().length === 0) {
+      <div class="estado-vacio">
+        <p>No hay ventas registradas en el período seleccionado.</p>
+      </div>
     } @else {
-      <div class="summary-card">
-        <div class="summary-item">
-          <span class="summary-label">Ventas</span>
-          <span class="summary-value">{{ ventas().length }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Total del período</span>
-          <span class="summary-value">{{ totalPeriodo() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-        </div>
-      </div>
-
-      <div class="export-actions">
-        <button class="btn btn-secondary" [disabled]="exportando() || ventas().length === 0" (click)="exportarPdf()">
-          Exportar PDF
-        </button>
-        <button class="btn btn-secondary" [disabled]="exportando() || ventas().length === 0" (click)="exportarExcel()">
-          Exportar Excel
-        </button>
-      </div>
-
-      @if (ventas().length > 0) {
+      <div class="tabla-scroll">
         <table class="ventas-table">
           <thead>
             <tr>
+              <th>Ticket</th>
               <th>Fecha</th>
               <th>Vendedor</th>
-              <th>Total</th>
+              <th>Método</th>
+              <th>Estado</th>
+              <th class="col-total">Total</th>
             </tr>
           </thead>
           <tbody>
-            @for (venta of ventas(); track venta.idVenta) {
+            @for (venta of ventasPaginadas(); track venta.id) {
               <tr>
-                <td>{{ venta.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ venta.usuario?.nombreCompleto || '—' }}</td>
-                <td class="text-right">{{ venta.total | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                <td class="celda-ticket">#{{ venta.id }}</td>
+                <td>{{ venta.fecha | date:'dd/MM/yyyy · HH:mm' }}</td>
+                <td class="celda-vendedor">{{ vendedor(venta) }}</td>
+                <td><span class="metodo-pill">{{ metodo(venta) }}</span></td>
+                <td><app-estado-venta [estado]="venta.estado"></app-estado-venta></td>
+                <td class="col-total celda-total">${{ venta.total | number:'1.0-2' }}</td>
               </tr>
             }
           </tbody>
         </table>
-      } @else {
-        <div class="empty-state">
-          <p>No hay ventas registradas en el período seleccionado.</p>
+      </div>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ rangoMostrado() }} registros</span>
+
+        <div class="paginacion-controles">
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() === 1"
+            (click)="cambiarPagina(pagina() - 1)"
+            aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+
+          @for (p of paginasVisibles(); track $index) {
+            @if (p === '...') {
+              <span class="pag-puntos">...</span>
+            } @else {
+              <button
+                type="button"
+                class="pag-btn pag-numero"
+                [class.pag-actual]="p === pagina()"
+                (click)="cambiarPagina($any(p))">{{ p }}</button>
+            }
+          }
+
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() >= totalPaginas()"
+            (click)="cambiarPagina(pagina() + 1)"
+            aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+
+          <select
+            class="pag-tamano"
+            (change)="cambiarTamanoPagina($any($event.target).value)"
+            aria-label="Registros por página">
+            @for (t of TAMANOS_PAGINA; track t) {
+              <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option>
+            }
+          </select>
         </div>
-      }
+      </div>
     }
   </main>
 </div>

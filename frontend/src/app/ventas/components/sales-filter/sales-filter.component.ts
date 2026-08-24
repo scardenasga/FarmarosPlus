@@ -8,6 +8,7 @@ export interface SalesFilterOptions {
   fechaInicio: string | null;
   fechaFin: string | null;
   vendedor: string | null;
+  estado: string | null;
 }
 
 @Component({
@@ -77,11 +78,18 @@ export class SalesFilterComponent {
     fechaInicio: [null as string | null],
     fechaFin: [null as string | null],
     vendedor: [null as string | null],
+    estado: [null as string | null],
   });
 
   get startFormControl() { return this.filterForm.get('fechaInicio') as FormControl; }
   get endFormControl() { return this.filterForm.get('fechaFin') as FormControl; }
   get vendorFormControl() { return this.filterForm.get('vendedor') as FormControl; }
+  get estadoFormControl() { return this.filterForm.get('estado') as FormControl; }
+
+  estados = [
+    { id: 'COMPLETADA', nombre: 'Completada' },
+    { id: 'ANULADA', nombre: 'Anulada' },
+  ];
 
   clearFilters() {
     this.filterForm.reset();
@@ -92,6 +100,7 @@ export class SalesFilterComponent {
       fechaInicio: this.filterForm.value.fechaInicio ?? null,
       fechaFin: this.filterForm.value.fechaFin ?? null,
       vendedor: this.filterForm.value.vendedor ?? null,
+      estado: this.filterForm.value.estado ?? null,
     };
     this.apply.emit(options);
     this.close.emit();
