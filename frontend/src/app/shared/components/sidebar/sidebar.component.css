@@ -194,6 +194,11 @@
   text-decoration: none;
 }
 
+/* Modo colapsado: centrar el icono dentro de la caja de 44px */
+.sidebar-compact:not(.expanded) .fila-enlace {
+  justify-content: center;
+}
+
 .submenu-chevron {
   width: 24px;
   height: 24px;
