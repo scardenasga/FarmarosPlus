@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest, IngresoStockRequest, LoteResponse } from '../models/product.model';
+import { CrearProductoRequest, Product, Categoria, ProductoDetalleResponse, ActualizarProductoRequest, IngresoStockRequest, LoteResponse, TendenciaProducto } from '../models/product.model';
 import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -45,6 +46,20 @@ export class InventoryService {
     if (nombre) params += `nombre=${nombre}`;
     if (codigo) params += (params ? '&' : '') + `codigo=${codigo}`;
     return this.http.get<Product[]>(`${this.productsUrl}/buscar?${params}`);
+  }
+
+  /**
+   * Tendencia de ventas por producto: % de cambio entre los últimos `dias`
+   * y el periodo anterior de igual duración (solo ventas completadas).
+   */
+  getTendencias(dias: number): Observable<TendenciaProducto[]> {
+    const params = new HttpParams().set('dias', String(dias));
+    return this.http.get<TendenciaProducto[]>(`${this.productsUrl}/tendencia-ventas`, { params });
+  }
+
+  /** Eliminación física: solo permitida por el backend para productos sin ventas. */
+  eliminarProducto(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.productsUrl}/${id}`);
   }
 
   // Categories

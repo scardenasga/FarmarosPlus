@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { CategoriaService } from '../../../services/categoria.service';
 import { Categoria } from '../../../inventory/models/product.model';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
@@ -13,7 +12,7 @@ import { FabButtonComponent } from '../../../shared/components/fab-button/fab-bu
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TopBarComponent, FormInputComponent, ConfirmationDialogComponent, FabButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormInputComponent, ConfirmationDialogComponent, FabButtonComponent],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.css'
 })

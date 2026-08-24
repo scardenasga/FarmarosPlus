@@ -1,0 +1,212 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">
+          {{ esEditar() ? 'Editar producto' : 'Nuevo producto' }}
+        </span>
+        <h2>
+          @if (esEditar()) {
+            {{ detalle()?.nombre || 'Cargando...' }}
+          } @else {
+            Completa la información del producto
+          }
+        </h2>
+        @if (esEditar() && detalle(); as d) {
+          <span class="panel-ref">REF #{{ d.codigoBarras }} · ID #{{ d.id }}</span>
+        }
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="cerrar()" aria-label="Cerrar formulario">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (esEditar() && cargandoDetalle()) {
+      <div class="panel-estado">
+        <div class="spinner"></div>
+        <p>Cargando datos del producto...</p>
+      </div>
+    } @else {
+
+      @if (productForm) {
+        <form [formGroup]="productForm" (ngSubmit)="solicitarGuardar()">
+          <div class="panel-cuerpo">
+
+            <!-- Identificación -->
+            <section class="grupo">
+              <h3 class="grupo-titulo">Identificación</h3>
+              <div class="campos-grid">
+                <app-form-input
+                  class="campo-full"
+                  label="Nombre del producto *"
+                  placeholder="Ej. Acetaminofén 500 mg - Caja x 10"
+                  [control]="getControl('nombre')">
+                </app-form-input>
+
+                <app-form-input
+                  label="Descripción"
+                  placeholder="Opcional..."
+                  type="textarea"
+                  [control]="getControl('descripcion')">
+                </app-form-input>
+
+                @if (!esEditar()) {
+                  <app-form-input
+                    label="Código de barras *"
+                    placeholder="Escanea o escribe"
+                    [control]="getControl('codigoBarras')"
+                    [hasIcon]="true">
+                  </app-form-input>
+                }
+
+                <app-form-input
+                  label="Categoría"
+                  type="select"
+                  [options]="categorias()"
+                  placeholder="Seleccione una categoría"
+                  [control]="getControl('categoriaId')">
+                </app-form-input>
+
+                @if (esEditar()) {
+                  <app-form-input
+                    label="Estado *"
+                    type="select"
+                    [options]="estados"
+                    [control]="getControl('estado')">
+                  </app-form-input>
+                }
+              </div>
+            </section>
+
+            <!-- Stock -->
+            <section class="grupo">
+              <h3 class="grupo-titulo">Stock</h3>
+              <div class="campos-grid">
+                @if (!esEditar()) {
+                  <app-form-input
+                    label="Cantidad inicial *"
+                    type="number"
+                    placeholder="0"
+                    [control]="getControl('stockInicial')">
+                  </app-form-input>
+                } @else {
+                  <app-form-input
+                    label="Stock actual *"
+                    type="number"
+                    [control]="getControl('stockActual')">
+                  </app-form-input>
+                }
+
+                <app-form-input
+                  label="Stock mínimo"
+                  type="number"
+                  placeholder="0"
+                  [control]="getControl('stockMinimo')">
+                </app-form-input>
+              </div>
+            </section>
+
+            <!-- Precios -->
+            <section class="grupo">
+              <h3 class="grupo-titulo">Costos y venta</h3>
+              <div class="campos-grid">
+                <app-form-input
+                  label="Costo *"
+                  type="number"
+                  suffix="COP"
+                  [control]="getControl('costo')">
+                </app-form-input>
+
+                <app-form-input
+                  label="Precio de venta *"
+                  type="number"
+                  suffix="COP"
+                  [control]="getControl('precioVenta')">
+                </app-form-input>
+
+                <app-form-input
+                  label="IVA (%)"
+                  type="number"
+                  [control]="getControl('porcentajeIva')">
+                </app-form-input>
+
+                @if (productForm.errors?.['priceTooLow'] && productForm.touched) {
+                  <p class="campo-error campo-full">
+                    El precio de venta debe ser mayor al costo con IVA.
+                  </p>
+                }
+              </div>
+            </section>
+
+            <!-- Configuración -->
+            <section class="grupo">
+              <h3 class="grupo-titulo">Configuración</h3>
+
+              <div class="toggles-fila">
+                <label class="switch-group">
+                  <span>¿Requiere prescripción?</span>
+                  <label class="switch">
+                    <input type="checkbox" formControlName="requierePrescripcion">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+
+                @if (!esEditar()) {
+                  <label class="switch-group">
+                    <span>¿Usar número de lote?</span>
+                    <label class="switch">
+                      <input type="checkbox" formControlName="tieneLote">
+                      <span class="slider"></span>
+                    </label>
+                  </label>
+                }
+              </div>
+
+              @if (!esEditar() && getControl('tieneLote').value) {
+                <div class="campos-grid campos-lote">
+                  <app-form-input
+                    label="Número de lote"
+                    placeholder="Ej. AMX-2026-01"
+                    [control]="getControl('numeroLote')">
+                  </app-form-input>
+
+                  <app-form-input
+                    label="Fecha de vencimiento del lote"
+                    type="date"
+                    [control]="getControl('fechaVencimiento')">
+                  </app-form-input>
+                </div>
+              }
+            </section>
+          </div>
+        </form>
+      }
+    }
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-panel secundario" (click)="cerrar()">Cancelar</button>
+      <button
+        type="button"
+        class="btn-panel primario"
+        [disabled]="guardando() || cargandoDetalle()"
+        (click)="solicitarGuardar()">
+        {{ guardando() ? 'Guardando...' : (esEditar() ? 'Guardar cambios' : 'Crear producto') }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        title="{{ esEditar() ? '¿Guardar cambios?' : '¿Crear producto?' }}"
+        content="{{ esEditar()
+          ? 'Se actualizará la información de este producto. ¿Desea continuar?'
+          : 'Se creará un nuevo producto con los datos ingresados. ¿Desea continuar?' }}"
+        cancelText="Revisar"
+        confirmText="{{ esEditar() ? 'Actualizar' : 'Crear' }}"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmarGuardado()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

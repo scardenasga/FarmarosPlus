@@ -203,3 +203,53 @@ input:checked + .slider:before {
   justify-content: center;
   color: var(--outline);
 }
+
+/* ==================== LAYOUT PC ==================== */
+.content-area {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-l);
+  align-items: start;
+}
+
+/* La primera tarjeta ocupa todo el ancho */
+form > .section-card:first-child {
+  grid-column: 1 / -1;
+}
+
+.section-card {
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(0, 0, 0, 0.05));
+}
+
+.section-title {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  font-weight: 800;
+}
+
+.sticky-footer {
+  position: static;
+  background: transparent;
+  justify-content: flex-end;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--space-l) var(--space-xl);
+  z-index: auto;
+}
+
+.btn {
+  flex: 0 0 auto;
+  height: 40px;
+  font-size: 0.8rem;
+  padding: 0 22px;
+  border-radius: 10px;
+}

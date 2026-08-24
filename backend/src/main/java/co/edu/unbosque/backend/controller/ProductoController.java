@@ -9,6 +9,7 @@ import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
 import co.edu.unbosque.backend.model.response.CategoriaResponse;
 import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
+import co.edu.unbosque.backend.model.response.TendenciaProductoResponse;
 import co.edu.unbosque.backend.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -237,6 +238,40 @@ public class ProductoController {
             return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(productoService.buscarActivosPorNombreOCodigo(termino));
+    }
+
+    /**
+     * Tendencia de ventas por producto: compara las unidades vendidas en los
+     * ultimos {@code dias} dias contra el periodo anterior de igual duracion.
+     * El tamanio del periodo es configurable para poder analizar ventanas
+     * de 7, 30, 90 dias, etc.
+     */
+    @GetMapping("/tendencia-ventas")
+    @Operation(
+            summary = "Tendencia de ventas por producto",
+            description = "Compara las unidades vendidas de cada producto en los ultimos N dias "
+                    + "contra los N dias anteriores. Solo considera ventas COMPLETADAS."
+    )
+    public ResponseEntity<List<TendenciaProductoResponse>> tendenciaVentas(
+            @RequestParam(defaultValue = "30") int dias
+    ) {
+        return ResponseEntity.ok(productoService.calcularTendenciaVentas(dias));
+    }
+
+    /**
+     * Elimina fisicamente un producto solo si nunca fue vendido.
+     * Si tiene ventas registradas retorna 400 con la sugerencia de
+     * marcarlo como DESCONTINUADO.
+     */
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @Operation(
+            summary = "Eliminar producto",
+            description = "Eliminacion fisica permitida solo para productos sin ventas registradas. "
+                    + "Si el producto tiene ventas, se sugiere usar el estado DESCONTINUADO."
+    )
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        productoService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
     }
 
     /**

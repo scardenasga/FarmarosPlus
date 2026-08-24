@@ -1,12 +1,10 @@
 <div class="category-page">
-  <div class="sticky-header">
-    <app-top-bar 
-      title="Gestionar Categorías" 
-      [showAlert]="false" 
-      [showActions]="false"
-      (back)="volver()"
-    ></app-top-bar>
-  </div>
+  <header class="page-header-pc">
+    <button type="button" class="btn-volver-pc" (click)="volver()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <h1>Gestionar Categorías</h1>
+  </header>
 
   <main class="content-area">
     @if (cargando()) {

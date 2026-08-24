@@ -35,4 +35,6 @@ public interface ProveedorProductoRepository extends JpaRepository<ProveedorProd
             @Param("proveedorId") Long proveedorId,
             @Param("productoId") Long productoId
     );
+
+    List<ProveedorProducto> findByProducto_UniqueID(Long idProducto);
 }

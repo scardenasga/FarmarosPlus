@@ -3,9 +3,7 @@ import { Routes } from '@angular/router';
 // --- COMPONENTES DE INVENTARIO ---
 import { InventoryComponent} from './inventory/pages/inventory/inventory.component';
 import {HealthComponent} from './health/health.component';
-import { CrearProductoComponent } from './inventory/pages/crear-producto/crear-producto.component';
 import { ProductDetailComponent } from './inventory/pages/product-detail/product-detail.component';
-import { EditarProductoComponent } from './inventory/pages/editar-producto/editar-producto.component';
 import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
 import { IngresoStockComponent } from './inventory/pages/ingreso-stock/ingreso-stock.component';
 import {HistorialVentasComponent} from './ventas/pages/historial-ventas/historial-ventas.component';
@@ -83,10 +81,11 @@ export const routes: Routes = [
   // --- INVENTARIO ---
   { path: 'inventario/categorias', component: CategoriasComponent },
   { path: 'inventario', component: InventoryComponent },
-  { path: 'inventario/crear', component: CrearProductoComponent },
   { path: 'inventario/ingreso', component: IngresoStockComponent },
+  // Crear/editar producto ahora son paneles deslizantes dentro de /inventario
+  { path: 'inventario/crear', redirectTo: 'inventario', pathMatch: 'full' },
+  { path: 'inventario/editar/:id', redirectTo: 'inventario', pathMatch: 'full' },
   { path: 'inventario/:id', component: ProductDetailComponent },
-  { path: 'inventario/editar/:id', component: EditarProductoComponent },
 
   // --- PROVEEDORES ---
   { path: 'proveedores', component: SupplierListComponent },
@@ -98,12 +97,6 @@ export const routes: Routes = [
   { path: 'compras-gestion', component: PurchasingDashboardComponent },
 
   // --- CONFIGURACIÓN ---
-  { path: 'inventario', component: InventoryComponent },
-  { path: 'inventario/crear', component: CrearProductoComponent },
-  { path: 'inventario/ingreso', component: IngresoStockComponent },
-  { path: 'inventario/:id', component: ProductDetailComponent },
-  { path: 'inventario/editar/:id', component: EditarProductoComponent },
-
   { path: 'health', component: HealthComponent },
   { path: 'configuracion', component: SettingsComponent },
 ];
