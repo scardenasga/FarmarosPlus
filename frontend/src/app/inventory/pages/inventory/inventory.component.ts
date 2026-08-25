@@ -345,10 +345,6 @@ export class InventoryComponent implements OnInit {
     );
   }
 
-  agregarStockSeleccion(): void {
-    this.router.navigate(['/inventario/ingreso']);
-  }
-
   /* ---------- Eliminación ---------- */
 
   eliminacionPendiente = signal<number[] | null>(null);

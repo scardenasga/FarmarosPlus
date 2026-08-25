@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,6 +17,11 @@ export class ConfirmationDialogComponent {
 
   onCancel = output<void>();
   onConfirm = output<void>();
+
+  /** Detecta acciones destructivas para teñir el diálogo de advertencia. */
+  esPeligroso = computed(() =>
+    /eliminar|anular|descontinu|descart/i.test(this.title() + ' ' + this.confirmText())
+  );
 
   cancel(): void {
     this.onCancel.emit();

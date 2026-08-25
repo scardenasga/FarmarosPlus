@@ -1,78 +1,126 @@
-.dialog-overlay {
+﻿.dialog-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: var(--space-l);
+  z-index: 1010;
+  animation: overlay-entrada 0.2s ease-out;
+}
+
+@keyframes overlay-entrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .dialog-container {
-  width: 280px;
-  background-color: var(--surface-container);
-  border-radius: 26px;
-  padding: 24px;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  padding: var(--space-l);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  animation: fadeIn 0.3s ease-out;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-s);
+  animation: tarjeta-entrada 0.2s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes tarjeta-entrada {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ---------- Icono ---------- */
+.dialog-icono {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full, 9999px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+  background-color: var(--info-bg);
+  color: var(--info-text);
+}
+
+.dialog-icono svg {
+  width: 22px;
+  height: 22px;
+}
+
+.peligroso .dialog-icono {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* ---------- Texto ---------- */
 .dialog-title {
-  color: var(--on-background);
-  font-family: "Roboto";
-  font-size: 24px;
-  font-weight: 500;
   margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-dark, var(--on-background));
 }
 
 .dialog-content {
-  color: var(--on-surface);
-  font-family: "Roboto";
-  font-size: 14px;
-  line-height: 1.4;
   margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-muted, var(--on-surface));
 }
 
+/* ---------- Acciones ---------- */
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-top: 8px;
+  gap: var(--space-m);
+  margin-top: var(--space-l);
+  width: 100%;
 }
 
 .dialog-btn {
-  font-family: "Roboto";
-  font-size: 18px;
-  font-weight: 600;
-  background: none;
-  border: none;
+  min-width: 96px;
+  height: 38px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 8px 12px;
-  transition: opacity 0.2s;
+  transition: filter 0.2s, transform 0.1s, background-color 0.2s;
+}
+
+.dialog-btn:hover {
+  filter: brightness(1.05);
 }
 
 .dialog-btn:active {
-  opacity: 0.7;
+  transform: scale(0.97);
 }
 
 .dialog-btn-cancel {
-  color: var(--on-surface);
+  background-color: transparent;
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+}
+
+.dialog-btn-cancel:hover {
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.08));
 }
 
 .dialog-btn-confirm {
-  color: var(--primary);
-  background-color: var(--primary-container);
-  border-radius: 20px;
-  padding: 8px 24px;
+  background-color: var(--accent-green-dark, var(--primary-container));
+  color: var(--on-primary-container);
+  border: none;
+}
+
+/* Variante destructiva: botón rojo */
+.dialog-btn-peligroso {
+  background-color: var(--danger-text, #c92a2a);
+  color: #ffffff;
 }
