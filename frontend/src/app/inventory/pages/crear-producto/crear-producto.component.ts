@@ -1,7 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -12,7 +11,7 @@ import {Categoria, CrearProductoRequest} from '../../models/product.model';
 @Component({
   selector: 'app-crear-producto',
   standalone: true,
-  imports: [ReactiveFormsModule, TopBarComponent, FormInputComponent, ConfirmationDialogComponent],
+  imports: [ReactiveFormsModule, FormInputComponent, ConfirmationDialogComponent],
   templateUrl: './crear-producto.component.html',
   styleUrl: './crear-producto.component.css'
 })

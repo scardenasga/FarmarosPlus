@@ -82,13 +82,22 @@ export interface ProductoDetalleResponse {
   porcentajeIva: number;
   requierePrescripcion: boolean;
   estado: string;
-  lotes: Lote[];
+  lotes?: Lote[];
 }
 
 // Interfaces adicionales necesarias:
 export interface CategoriaResponse {
   id: number;
   nombre: string;
+}
+
+/** Tendencia de ventas de un producto (backend: TendenciaProductoResponse). */
+export interface TendenciaProducto {
+  idProducto: number;
+  unidadesRecientes: number;
+  unidadesPrevias: number;
+  porcentajeCambio: number;
+  diasComparacion: number;
 }
 
 export interface IngresoStockRequest {

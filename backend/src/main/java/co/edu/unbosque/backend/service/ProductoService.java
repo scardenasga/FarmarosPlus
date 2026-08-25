@@ -16,18 +16,22 @@ import co.edu.unbosque.backend.model.response.LoteProductoResponse;
 import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.repository.CategoriaRepository;
+import co.edu.unbosque.backend.repository.DetalleVentaRepository;
 import co.edu.unbosque.backend.repository.HistorialPrecioProductoRepository;
 import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
+import co.edu.unbosque.backend.model.response.TendenciaProductoResponse;
 import jakarta.persistence.Tuple;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Servicio de aplicación para el catálogo de productos.
@@ -44,6 +48,8 @@ public class ProductoService {
     private final LoteRepository loteRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final HistorialPrecioProductoRepository historialPrecioProductoRepository;
+    private final DetalleVentaRepository detalleVentaRepository;
+    private final co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository;
     private final CurrentUserService currentUserService;
 
     public ProductoService(
@@ -52,6 +58,8 @@ public class ProductoService {
             LoteRepository loteRepository,
             MovimientoInventarioRepository movimientoInventarioRepository,
             HistorialPrecioProductoRepository historialPrecioProductoRepository,
+            DetalleVentaRepository detalleVentaRepository,
+            co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository,
             CurrentUserService currentUserService
     ) {
         this.productoRepository = productoRepository;
@@ -59,6 +67,8 @@ public class ProductoService {
         this.loteRepository = loteRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.historialPrecioProductoRepository = historialPrecioProductoRepository;
+        this.detalleVentaRepository = detalleVentaRepository;
+        this.proveedorProductoRepository = proveedorProductoRepository;
         this.currentUserService = currentUserService;
     }
 
@@ -313,6 +323,115 @@ public class ProductoService {
         return productoRepository.buscarActivosPorNombreOCodigo(termino).stream()
                 .map(this::toProductoResponse)
                 .toList();
+    }
+
+    /**
+     * Lista TODOS los productos sin importar su estado (activos, inactivos
+     * y descontinuados). Usado por el inventario para permitir filtros por estado.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarTodos() {
+        return productoRepository.findAll().stream()
+                .map(this::toProductoResponse)
+                .toList();
+    }
+
+    /**
+     * Calcula la tendencia de ventas por producto: compara las unidades
+     * vendidas en los ultimos {@code dias} dias contra el periodo inmediatamente
+     * anterior de igual duracion. Solo se consideran ventas COMPLETADAS.
+     *
+     * @param dias tamanio del periodo de comparacion en dias (minimo 1)
+     * @return tendencia por producto, ordenada por magnitud del cambio
+     */
+    @Transactional(readOnly = true)
+    public List<TendenciaProductoResponse> calcularTendenciaVentas(int dias) {
+        int diasValidos = Math.max(1, dias);
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime inicioReciente = ahora.minusDays(diasValidos);
+        LocalDateTime inicioPrevio = inicioReciente.minusDays(diasValidos);
+
+        Map<Long, Long> recientes = aMapaUnidades(detalleVentaRepository
+                .sumarUnidadesPorProducto(inicioReciente, ahora));
+        Map<Long, Long> previos = aMapaUnidades(detalleVentaRepository
+                .sumarUnidadesPorProducto(inicioPrevio, inicioReciente));
+
+        java.util.Set<Long> ids = new java.util.HashSet<>(recientes.keySet());
+        ids.addAll(previos.keySet());
+
+        return ids.stream()
+                .map(id -> {
+                    long recientesDelProducto = recientes.getOrDefault(id, 0L);
+                    long previosDelProducto = previos.getOrDefault(id, 0L);
+                    return new TendenciaProductoResponse(
+                            id,
+                            recientesDelProducto,
+                            previosDelProducto,
+                            calcularPorcentajeCambio(recientesDelProducto, previosDelProducto),
+                            diasValidos
+                    );
+                })
+                .sorted(Comparator.comparingDouble(t -> -Math.abs(t.porcentajeCambio())))
+                .toList();
+    }
+
+    /**
+     * Variacion porcentual entre dos periodos. Si no hubo ventas previas,
+     * un periodo reciente con ventas representa +100% y sin ventas 0%.
+     */
+    public static double calcularPorcentajeCambio(long unidadesRecientes, long unidadesPrevias) {
+        if (unidadesPrevias <= 0) {
+            return unidadesRecientes > 0 ? 100.0 : 0.0;
+        }
+        return ((unidadesRecientes - unidadesPrevias) / (double) unidadesPrevias) * 100.0;
+    }
+
+    /**
+     * Elimina fisicamente un producto solo si nunca fue vendido.
+     *
+     * Reglas:
+     * - Si el producto tiene lineas de venta registradas se lanza error: en ese
+     *   caso debe marcarse como DESCONTINUADO para conservar el historial.
+     * - Si no tiene ventas, se eliminan sus datos dependientes (movimientos,
+     *   lotes, historial de precios y relaciones proveedor-producto) y luego
+     *   el producto.
+     */
+    @Transactional
+    public void eliminarProducto(Long idProducto) {
+        Producto producto = productoRepository.findById(idProducto)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe el producto con id " + idProducto
+                ));
+
+        boolean tieneVentas = !detalleVentaRepository
+                .findByProducto_UniqueIDOrderByIdDetalleDesc(idProducto).isEmpty();
+        if (tieneVentas) {
+            throw new BusinessException(
+                    "No se puede eliminar \"" + producto.getNombre() +
+                    "\" porque tiene ventas registradas. Marquelo como DESCONTINUADO para retirarlo del catalogo."
+            );
+        }
+
+        movimientoInventarioRepository.deleteAll(
+                movimientoInventarioRepository.findByProducto_UniqueIDOrderByFechaMovimientoDesc(idProducto));
+        historialPrecioProductoRepository.deleteAll(
+                historialPrecioProductoRepository.findByProducto_UniqueIDOrderByFechaCambioDesc(idProducto));
+        proveedorProductoRepository.deleteAll(
+                proveedorProductoRepository.findByProducto_UniqueID(idProducto));
+        loteRepository.deleteAll(
+                loteRepository.findByProducto_UniqueIDOrderByFechaVencimientoAsc(idProducto));
+
+        productoRepository.delete(producto);
+    }
+
+    private Map<Long, Long> aMapaUnidades(List<Object[]> filas) {
+        Map<Long, Long> mapa = new java.util.LinkedHashMap<>();
+        for (Object[] fila : filas) {
+            Long idProducto = (Long) fila[0];
+            Number unidades = (Number) fila[1];
+            mapa.put(idProducto, unidades != null ? unidades.longValue() : 0L);
+        }
+        return mapa;
     }
 
     @Transactional

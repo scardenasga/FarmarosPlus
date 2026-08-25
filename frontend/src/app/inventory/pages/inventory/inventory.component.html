@@ -1,58 +1,473 @@
-<div class="inventory-page">
-  <div class="sticky-header">
-    <app-top-bar
-      title="Inventario"
-      [showActions]="true"
-      (back)="handleBack()"
-      (alert)="handleAlerts()"
-      (action)="toggleActions()"
-    ></app-top-bar>
+<div class="inventario-page">
+  <!-- Encabezado -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Inventario</h1>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="irACategorias()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Categorías
+      </button>
+      <button type="button" class="btn-secondary" (click)="irAIngresoStock()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
+        </svg>
+        Agregar stock
+      </button>
+      <button type="button" class="btn-primary" (click)="irANuevoProducto()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Nuevo producto
+      </button>
+    </div>
+  </header>
 
-    <app-inventory-search
-      [activeFilters]="activeFilterCount()"
-      (search)="handleSearch($event)"
-      (toggleFilter)="toggleFilter()"
-    ></app-inventory-search>
+  <!-- Búsqueda + chips de categoría -->
+  <section class="toolbar">
+    <div class="toolbar-search">
+      <app-search-bar
+        placeholder="Buscar producto por nombre o código..."
+        [debounceMs]="250"
+        (search)="onBuscar($event)">
+      </app-search-bar>
+    </div>
 
-    <app-inventory-summary
-      [totalProducts]="filteredProducts().length"
-      (openSort)="toggleSort()"
-    ></app-inventory-summary>
+    <div class="filtros-grupo">
+      <label class="filtro-campo-label">
+        Categoría
+        <select
+          class="filtro-select"
+          [value]="categoriaSeleccionada() ?? ''"
+          (change)="seleccionarCategoria($any($event.target).value === '' ? null : aNumero($any($event.target).value))">
+          <option [value]="''">Todas</option>
+          @for (cat of categorias(); track cat.id) {
+            <option [value]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+      </label>
 
-    <app-active-filters
-      [filters]="activeFilterChips()"
-      (remove)="handleRemoveFilter($event)"
-    ></app-active-filters>
-  </div>
+      <span class="filtros-separador"></span>
 
-  <main class="content">
-    <app-product-list
-      [products]="filteredProducts()"
-      (productSelected)="handleProductSelect($event)"
-    ></app-product-list>
+      <div class="metodo-chips">
+        @for (op of opcionesEstado; track op.valor) {
+          <button
+            type="button"
+            class="chip"
+            [class.chip-active]="estadoFiltro() === op.valor"
+            (click)="seleccionarEstado(op.valor)">
+            {{ op.etiqueta }}
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Conteo + vista + tendencia -->
+  <section class="subtoolbar">
+    <span class="conteo">{{ productosFiltrados().length }} productos disponibles</span>
+
+    <div class="controles-derecha">
+      <label
+        class="tendencia-selector"
+        title="Controla el badge de % que aparece en cada producto: compara sus ventas de los últimos N días contra los N días anteriores. Verde = vende más que antes, rojo = vende menos.">
+        Tendencia:
+        <select
+          [value]="tendenciaDias()"
+          (change)="cambiarPeriodoTendencia(aNumero($any($event.target).value))"
+          title="Período con el que se compara el rendimiento de ventas de cada producto.">
+          @for (d of opcionesTendencia; track d) {
+            <option [value]="d">Últimos {{ d }} días</option>
+          }
+        </select>
+      </label>
+
+      <span class="vista-label">Vista:</span>
+      <div class="vista-toggle">
+        <button
+          type="button"
+          class="vista-btn"
+          [class.vista-activa]="vista() === 'grid'"
+          (click)="cambiarVista('grid')"
+          aria-label="Vista de tarjetas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="vista-btn"
+          [class.vista-activa]="vista() === 'tabla'"
+          (click)="cambiarVista('tabla')"
+          aria-label="Vista de lista">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra de acciones masivas -->
+  @if (haySeleccion && vista() === 'tabla') {
+    <section class="acciones-barra">
+      <span class="seleccion-contador">{{ seleccionados().size }} seleccionado(s)</span>
+      <span class="barra-separador"></span>
+      <span class="accion-etiqueta">Cambiar estado:</span>
+      <button
+        type="button"
+        class="accion-btn estado-activo-btn"
+        [disabled]="cambiandoEstado()"
+        (click)="cambiarEstadoSeleccion('ACTIVO')">Activar</button>
+      <button
+        type="button"
+        class="accion-btn estado-inactivo-btn"
+        [disabled]="cambiandoEstado()"
+        (click)="cambiarEstadoSeleccion('INACTIVO')">Desactivar</button>
+      <button
+        type="button"
+        class="accion-btn estado-descontinuado-btn"
+        [disabled]="cambiandoEstado()"
+        (click)="cambiarEstadoSeleccion('DESCONTINUADO')">Descontinuar</button>
+
+      <button
+        type="button"
+        class="accion-btn eliminar-btn"
+        (click)="solicitarEliminacion(idsSeleccionados())">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Eliminar
+      </button>
+
+      <button type="button" class="btn-limpiar-seleccion" (click)="limpiarSeleccion()" title="Quitar selección">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </section>
+  }
+
+  <!-- Contenido -->
+  <main class="contenido-card">
+    @if (cargando()) {
+      <div class="estado-tabla">
+        <div class="spinner"></div>
+        <p>Cargando inventario...</p>
+      </div>
+    } @else if (productosFiltrados().length === 0) {
+      <div class="estado-vacio">No se encontraron productos.</div>
+    } @else if (vista() === 'grid') {
+      <!-- ===== VISTA TARJETAS ===== -->
+      <div class="productos-grid">
+        @for (p of productosPaginados(); track p.id) {
+          <article class="producto-card" (click)="abrirDetalle(p)">
+            <div class="card-imagen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+              </svg>
+              @if (trendDe(p.id); as t) {
+                <span
+                  class="trend-badge"
+                  [class.trend-up]="t >= 0"
+                  [class.trend-down]="t < 0">
+                  {{ t >= 0 ? '+' : '' }}{{ t | number:'1.0-0' }}%
+                </span>
+              }
+            </div>
+            <div class="card-info">
+              <h4 class="card-nombre" [title]="p.nombre">{{ p.nombre }}</h4>
+              <span class="card-desc" [title]="descripcionCorta(p)">{{ descripcionCorta(p) }}</span>
+            </div>
+            <div class="card-pie">
+              <span class="card-precio">${{ p.precioVenta | number:'1.0-0' }}</span>
+              <span class="stock-pill" [class]="claseStock(p)">{{ etiquetaStock(p) }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <!-- ===== VISTA TABLA ===== -->
+      <div class="tabla-scroll">
+        <table class="productos-tabla">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input
+                  type="checkbox"
+                  [checked]="todosVisiblesSeleccionados"
+                  (change)="toggleTodos($event)" />
+              </th>
+              <th>Producto</th>
+              <th class="col-desc">Presentación / Categoría</th>
+              <th class="col-centro">Estado</th>
+              <th class="col-centro col-rendimiento">Rendimiento</th>
+              <th class="col-precio">Precio</th>
+              <th class="col-centro">Stock</th>
+              <th class="col-centro">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of productosPaginados(); track p.id) {
+              <tr class="fila-producto" (click)="abrirDetalle(p)">
+                <td class="col-check" (click)="$event.stopPropagation()">
+                  <input
+                    type="checkbox"
+                    [checked]="estaSeleccionado(p.id)"
+                    (change)="toggleSeleccion(p.id, $event)" />
+                </td>
+                <td class="celda-nombre">
+                  <span class="mini-imagen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                      <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+                    </svg>
+                  </span>
+                  <span class="nombre-texto" [title]="p.nombre">{{ p.nombre }}</span>
+                </td>
+                <td class="col-desc celda-desc">{{ descripcionCorta(p) }}</td>
+                <td class="col-centro">
+                  <span class="estado-pill" [class]="'estado-' + p.estado.toLowerCase()">{{ p.estado }}</span>
+                </td>
+                <td class="col-centro">
+                  @if (trendDe(p.id); as t) {
+                    <span
+                      class="trend-badge"
+                      [class.trend-up]="t >= 0"
+                      [class.trend-down]="t < 0">
+                      {{ t >= 0 ? '+' : '' }}{{ t | number:'1.0-0' }}%
+                    </span>
+                  } @else {
+                    <span class="sin-dato">—</span>
+                  }
+                </td>
+                <td class="col-precio celda-precio">${{ p.precioVenta | number:'1.0-2' }}</td>
+                <td class="col-centro">
+                  <span class="stock-pill" [class]="claseStock(p)">{{ etiquetaStock(p) }}</span>
+                </td>
+                <td class="col-centro">
+                  <div class="fila-acciones">
+                    <button
+                      type="button"
+                      class="icono-accion"
+                      title="Editar"
+                      (click)="$event.stopPropagation(); irAEditar(p.id)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="icono-accion peligro"
+                      title="Eliminar producto"
+                      (click)="$event.stopPropagation(); solicitarEliminacion([p.id])">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Paginación -->
+    @if (!cargando() && productosFiltrados().length > 0) {
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ rangoMostrado() }} productos</span>
+        <div class="paginacion-controles">
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() === 1"
+            (click)="cambiarPagina(pagina() - 1)"
+            aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          @for (pg of paginasVisibles(); track $index) {
+            @if (pg === '...') {
+              <span class="pag-puntos">...</span>
+            } @else {
+              <button
+                type="button"
+                class="pag-btn pag-numero"
+                [class.pag-actual]="pg === pagina()"
+                (click)="cambiarPagina($any(pg))">{{ pg }}</button>
+            }
+          }
+          <button
+            type="button"
+            class="pag-btn"
+            [disabled]="pagina() >= totalPaginas()"
+            (click)="cambiarPagina(pagina() + 1)"
+            aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <select
+            class="pag-tamano"
+            (change)="cambiarTamanoPagina($any($event.target).value)"
+            aria-label="Registros por página">
+            @for (t of TAMANOS_PAGINA; track t) {
+              <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option>
+            }
+          </select>
+        </div>
+      </div>
+    }
   </main>
 
-  <app-fab-button
-    (clicked)="handleAddProduct()"
-  ></app-fab-button>
+  <!-- ===== PANEL DE DETALLE (derecha) ===== -->
+  @if (panelVisible()) {
+    <div class="panel-backdrop" (click)="cerrarDetalle()"></div>
 
-  <app-inventory-filter
-    [isVisible]="isFilterVisible()"
-    (close)="toggleFilter()"
-    (apply)="handleFilterApply($event)"
-  ></app-inventory-filter>
+    <aside class="panel-detalle">
+      <header class="panel-header">
+        <div class="panel-header-texto">
+          <span class="panel-ref">REF #{{ detalleProducto()?.codigoBarras || '—' }}</span>
+          <h2>{{ detalleProducto()?.nombre || 'Producto' }}</h2>
+          <span class="panel-desc">{{ detalleProducto()?.descripcion || detalleProducto()?.categoria?.nombre || '' }}</span>
+        </div>
+        <button type="button" class="btn-cerrar-panel" (click)="cerrarDetalle()" aria-label="Cerrar panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
 
-  <app-inventory-sort
-    [isVisible]="isSortVisible()"
-    [currentField]="sortField()"
-    [currentOrder]="sortOrder()"
-    (close)="toggleSort()"
-    (sort)="handleSortApply($event)"
-  ></app-inventory-sort>
+      @if (detalleCargando()) {
+        <div class="panel-estado">
+          <div class="spinner"></div>
+          <p>Cargando detalle...</p>
+        </div>
+      } @else {
 
-  <app-inventory-actions
-    [isVisible]="isActionsVisible()"
-    (close)="toggleActions()"
-    (actionSelected)="handleActionSelection($event)"
-  ></app-inventory-actions>
+        @if (detalleProducto(); as d) {
+        <div class="panel-cuerpo">
+          <div class="panel-badges">
+            @if (d.categoria) {
+              <span class="badge-categoria">{{ d.categoria.nombre }}</span>
+            }
+            <span class="estado-pill" [class]="'estado-' + d.estado.toLowerCase()">{{ d.estado }}</span>
+            @if (trendDetalle(); as t) {
+              <span class="trend-badge" [class.trend-up]="t >= 0" [class.trend-down]="t < 0">
+                {{ t >= 0 ? '+' : '' }}{{ t | number:'1.0-0' }}% ventas
+              </span>
+            }
+          </div>
+
+          <div class="panel-grid">
+            <div class="panel-mini-card">
+              <span class="mini-label">Stock actual</span>
+              <div class="mini-valor-linea">
+                <span class="mini-valor">{{ d.stockActual }}</span>
+                <span class="mini-unidad">uds</span>
+              </div>
+              <span class="mini-extra">Mín: {{ d.stockMinimo }}</span>
+            </div>
+
+            <div class="panel-mini-card">
+              <span class="mini-label">Finanzas</span>
+              <div class="mini-fila"><span>IVA:</span><strong>{{ d.porcentajeIva | number:'1.0-0' }}%</strong></div>
+              <div class="mini-fila"><span>Margen:</span><strong class="margen">{{ d.margenGanancia | number:'1.0-0' }}%</strong></div>
+            </div>
+          </div>
+
+          <!-- Lotes -->
+          <details class="panel-acordeon" open>
+            <summary>
+              <span>Lotes y vencimientos ({{ (d.lotes ?? []).length }})</span>              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="acordeon-cuerpo">
+              @for (lote of (d.lotes ?? []); track lote.id) {
+                <div class="lote-fila">
+                  <div>
+                    <p class="lote-nombre">Lote #{{ lote.numeroLote || 'S/N' }}</p>
+                    <p class="lote-vence">Vence: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                  <span class="lote-cantidad">{{ lote.cantidad }} uds</span>
+                </div>
+              } @empty {
+                <p class="sin-lotes">Este producto no tiene lotes registrados.</p>
+              }
+            </div>
+          </details>
+
+          <div class="precio-card">
+            <div>
+              <span class="mini-label">Precio de venta</span>
+              <p class="precio-costo">Costo: ${{ d.costo | number:'1.0-2' }}</p>
+            </div>
+            <span class="precio-valor">${{ d.precioVenta | number:'1.0-2' }}</span>
+          </div>
+
+          <!-- Código de barras decorativo -->
+          <div class="barcode-card">
+            <div class="barcode-barras">
+              @for (ancho of patronBarras(d.codigoBarras); track $index) {
+                <span class="barra" [style.width.px]="ancho"></span>
+              }
+            </div>
+            <span class="barcode-codigo">{{ d.codigoBarras }}</span>
+          </div>
+        </div>
+
+        <footer class="panel-footer">
+          <button type="button" class="btn-panel secundario" (click)="irAIngresoStock()">
+            Agregar stock
+          </button>
+          <button type="button" class="btn-panel primario" (click)="irAEditar(d.id)">
+            Editar
+          </button>
+        </footer>
+      }
+      }
+    </aside>
+  }
+
+  <!-- Confirmación de eliminación -->
+  @if (eliminacionPendiente(); as pendientes) {
+    <app-confirmation-dialog
+      title="¿Eliminar producto?"
+      [content]="'Estás a punto de eliminar ' + eliminacionTexto() + '. Esta acción no se puede deshacer y solo es posible si nunca han tenido ventas.'"
+      confirmText="Eliminar"
+      cancelText="Cancelar"
+      (onCancel)="cancelarEliminacion()"
+      (onConfirm)="confirmarEliminacion()">
+    </app-confirmation-dialog>
+  }
+
+  <!-- Formulario deslizante de crear / editar producto -->
+  @if (panelFormulario(); as panel) {
+    <app-producto-formulario-panel
+      [modo]="panel.modo"
+      [productoId]="panel.productoId ?? null"
+      [abierto]="formularioAbierto()"
+      [categorias]="categorias()"
+      (cerrado)="cerrarFormulario()"
+      (guardado)="alGuardarProducto()">
+    </app-producto-formulario-panel>
+  }
+
+  <!-- Panel deslizante de ingreso de stock -->
+  <app-ingreso-stock-panel
+    [abierto]="panelIngresoAbierto()"
+    (cerrado)="cerrarPanelIngreso()"
+    (guardado)="alGuardarIngreso()">
+  </app-ingreso-stock-panel>
+
+  <!-- Panel deslizante de gestión de categorías -->
+  <app-categorias-panel
+    [abierto]="panelCategoriasAbierto()"
+    (cerrado)="cerrarPanelCategorias()"
+    (cambios)="alCambiarCategorias()">
+  </app-categorias-panel>
 </div>

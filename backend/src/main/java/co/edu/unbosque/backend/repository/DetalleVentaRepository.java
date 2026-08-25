@@ -72,4 +72,24 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Long
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
+
+    /**
+     * Suma las unidades vendidas por producto dentro de un periodo,
+     * considerando solo ventas completadas.
+     *
+     * @param fechaInicio inicio inclusivo
+     * @param fechaFin fin inclusivo
+     * @return pares [idProducto, unidadesVendidas]
+     */
+    @Query("""
+            SELECT dv.producto.uniqueID, SUM(dv.cantidad)
+            FROM DetalleVenta dv
+            WHERE dv.venta.estado = 'COMPLETADA'
+              AND dv.venta.fecha BETWEEN :fechaInicio AND :fechaFin
+            GROUP BY dv.producto.uniqueID
+            """)
+    List<Object[]> sumarUnidadesPorProducto(
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin
+    );
 }

@@ -122,3 +122,86 @@ form {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ==================== HEADER PC ==================== */
+.page-header-pc {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-l) var(--space-xl) var(--space-s);
+}
+
+.btn-volver-pc {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+  flex-shrink: 0;
+}
+
+.btn-volver-pc svg {
+  width: 18px;
+  height: 18px;
+}
+
+.page-header-pc h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-dark, var(--on-background));
+}
+
+/* ==================== LAYOUT PC ==================== */
+.content-area {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.content-area form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-l);
+  align-items: start;
+}
+
+/* La identificación del producto ocupa todo el ancho */
+.content-area form .section-card:first-child {
+  grid-column: 1 / -1;
+}
+
+.section-card {
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(0, 0, 0, 0.05));
+}
+
+.section-title {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  font-weight: 800;
+}
+
+.sticky-footer {
+  position: static;
+  background: transparent;
+  justify-content: flex-end;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--space-l) var(--space-xl);
+  z-index: auto;
+}
+
+.btn {
+  flex: 0 0 auto;
+  height: 40px;
+  font-size: 0.8rem;
+  padding: 0 22px;
+  border-radius: 10px;
+}
