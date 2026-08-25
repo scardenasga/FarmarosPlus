@@ -4,9 +4,7 @@ import { Routes } from '@angular/router';
 import { InventoryComponent} from './inventory/pages/inventory/inventory.component';
 import {HealthComponent} from './health/health.component';
 import { ProductDetailComponent } from './inventory/pages/product-detail/product-detail.component';
-import { CategoriasComponent } from './inventory/pages/categorias/categorias.component';
-import { IngresoStockComponent } from './inventory/pages/ingreso-stock/ingreso-stock.component';
-import {HistorialVentasComponent} from './ventas/pages/historial-ventas/historial-ventas.component';
+import { HistorialVentasComponent} from './ventas/pages/historial-ventas/historial-ventas.component';
 import {FiltrarHistorialComponent} from './ventas/pages/filtrar-historial/filtrar-historial.component';
 import {PosVentaComponent} from './ventas/pages/pos-venta/pos-venta.component';
 import {DetalleVentaComponent} from './ventas/pages/detalle-venta/detalle-venta.component';
@@ -79,9 +77,11 @@ export const routes: Routes = [
   { path: 'previsualizar-orden/:id', redirectTo: 'purchasing/order-preview/:id', pathMatch: 'full' },
 
   // --- INVENTARIO ---
-  { path: 'inventario/categorias', component: CategoriasComponent },
+  // Categorias ahora es un panel deslizante dentro de /inventario
+  { path: 'inventario/categorias', redirectTo: 'inventario', pathMatch: 'full' },
   { path: 'inventario', component: InventoryComponent },
-  { path: 'inventario/ingreso', component: IngresoStockComponent },
+  // Ingreso de stock ahora es un panel deslizante dentro de /inventario
+  { path: 'inventario/ingreso', redirectTo: 'inventario', pathMatch: 'full' },
   // Crear/editar producto ahora son paneles deslizantes dentro de /inventario
   { path: 'inventario/crear', redirectTo: 'inventario', pathMatch: 'full' },
   { path: 'inventario/editar/:id', redirectTo: 'inventario', pathMatch: 'full' },

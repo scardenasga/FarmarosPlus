@@ -17,6 +17,11 @@ export class InventoryService {
     return this.http.get<Product[]>(`${this.productsUrl}/activos`);
   }
 
+  /** Todos los productos sin importar el estado (para filtrar en el inventario). */
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.productsUrl}`);
+  }
+
   getProductById(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.productsUrl}/${id}`);
   }

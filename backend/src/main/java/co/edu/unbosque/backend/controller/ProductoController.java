@@ -241,6 +241,16 @@ public class ProductoController {
     }
 
     /**
+     * Lista todos los productos sin importar su estado. Usado por el
+     * inventario para filtrar por ACTIVO / INACTIVO / DESCONTINUADO.
+     */
+    @GetMapping
+    @Operation(summary = "Listar todos los productos (cualquier estado)")
+    public ResponseEntity<List<ProductoResponse>> listarTodos() {
+        return ResponseEntity.ok(productoService.listarTodos());
+    }
+
+    /**
      * Tendencia de ventas por producto: compara las unidades vendidas en los
      * ultimos {@code dias} dias contra el periodo anterior de igual duracion.
      * El tamanio del periodo es configurable para poder analizar ventanas

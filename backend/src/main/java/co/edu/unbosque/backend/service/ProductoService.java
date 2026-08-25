@@ -326,6 +326,17 @@ public class ProductoService {
     }
 
     /**
+     * Lista TODOS los productos sin importar su estado (activos, inactivos
+     * y descontinuados). Usado por el inventario para permitir filtros por estado.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarTodos() {
+        return productoRepository.findAll().stream()
+                .map(this::toProductoResponse)
+                .toList();
+    }
+
+    /**
      * Calcula la tendencia de ventas por producto: compara las unidades
      * vendidas en los ultimos {@code dias} dias contra el periodo inmediatamente
      * anterior de igual duracion. Solo se consideran ventas COMPLETADAS.

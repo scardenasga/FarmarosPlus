@@ -6,6 +6,8 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { ProductoFormularioPanelComponent } from '../../components/producto-formulario-panel/producto-formulario-panel.component';
+import { IngresoStockPanelComponent } from '../../components/ingreso-stock-panel/ingreso-stock-panel.component';
+import { CategoriasPanelComponent } from '../../components/categorias-panel/categorias-panel.component';
 import { InventoryService } from '../../services/inventory.service';
 import { CategoriaService } from '../../services/categoria.service';
 import {
@@ -23,7 +25,7 @@ const CLAVE_TENDENCIA_DIAS = 'inventario.tendenciaDias';
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, SearchBarComponent, ConfirmationDialogComponent, ProductoFormularioPanelComponent],
+  imports: [CommonModule, SearchBarComponent, ConfirmationDialogComponent, ProductoFormularioPanelComponent, IngresoStockPanelComponent, CategoriasPanelComponent],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css'
 })
@@ -40,6 +42,20 @@ export class InventoryComponent implements OnInit {
 
   categoriaSeleccionada = signal<number | null>(null);
   searchTerm = signal<string>('');
+
+  /** Filtro por estado: ACTIVO por defecto; TODOS muestra también inactivos/descontinuados. */
+  estadoFiltro = signal<'ACTIVO' | 'INACTIVO' | 'DESCONTINUADO' | 'TODOS'>('ACTIVO');
+  readonly opcionesEstado = [
+    { valor: 'ACTIVO', etiqueta: 'Activos' },
+    { valor: 'INACTIVO', etiqueta: 'Inactivos' },
+    { valor: 'DESCONTINUADO', etiqueta: 'Descont.' },
+    { valor: 'TODOS', etiqueta: 'Todos' }
+  ] as const;
+
+  seleccionarEstado(valor: 'ACTIVO' | 'INACTIVO' | 'DESCONTINUADO' | 'TODOS'): void {
+    this.estadoFiltro.set(valor);
+    this.pagina.set(1);
+  }
 
   vista = signal<VistaMode>(this.cargarVista());
   tendenciaDias = signal<number>(this.cargarTendenciaDias());
@@ -94,8 +110,10 @@ export class InventoryComponent implements OnInit {
   productosFiltrados = computed(() => {
     const termino = this.searchTerm().toLowerCase().trim();
     const catId = this.categoriaSeleccionada();
+    const estado = this.estadoFiltro();
 
     return this.productos().filter(p => {
+      if (estado !== 'TODOS' && String(p.estado).toUpperCase() !== estado) return false;
       if (catId !== null && p.categoria?.id !== catId) return false;
       if (termino) {
         const coincide =
@@ -115,7 +133,8 @@ export class InventoryComponent implements OnInit {
   }
 
   cargarProductos(): void {
-    this.inventoryService.getActiveProducts().subscribe({
+    // Carga TODOS los productos para permitir filtrar por estado en cliente.
+    this.inventoryService.getAllProducts().subscribe({
       next: (products) => {
         this.productos.set(products ?? []);
         this.cargando.set(false);
@@ -389,11 +408,34 @@ export class InventoryComponent implements OnInit {
   /* ---------- Navegación ---------- */
 
   irACategorias(): void {
-    this.router.navigate(['/inventario/categorias']);
+    this.panelCategoriasAbierto.set(true);
+  }
+
+  panelCategoriasAbierto = signal<boolean>(false);
+
+  cerrarPanelCategorias(): void {
+    this.panelCategoriasAbierto.set(false);
+  }
+
+  alCambiarCategorias(): void {
+    // Refresca las chips de filtrado sin recargar la página.
+    this.cargarCategorias();
   }
 
   irAIngresoStock(): void {
-    this.router.navigate(['/inventario/ingreso']);
+    this.panelIngresoAbierto.set(true);
+  }
+
+  panelIngresoAbierto = signal<boolean>(false);
+
+  cerrarPanelIngreso(): void {
+    this.panelIngresoAbierto.set(false);
+  }
+
+  alGuardarIngreso(): void {
+    this.panelIngresoAbierto.set(false);
+    this.cargarProductos();
+    this.cargarTendencias();
   }
 
   irAEditar(id: number): void {

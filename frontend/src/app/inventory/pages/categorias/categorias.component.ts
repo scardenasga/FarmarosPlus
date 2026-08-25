@@ -7,12 +7,11 @@ import { Categoria } from '../../../inventory/models/product.model';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
-import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormInputComponent, ConfirmationDialogComponent, FabButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormInputComponent, ConfirmationDialogComponent],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.css'
 })

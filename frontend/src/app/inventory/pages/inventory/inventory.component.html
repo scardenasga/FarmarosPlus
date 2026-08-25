@@ -37,21 +37,33 @@
       </app-search-bar>
     </div>
 
-    <div class="cat-chips">
-      <button
-        type="button"
-        class="chip"
-        [class.chip-active]="categoriaSeleccionada() === null"
-        (click)="seleccionarCategoria(null)">Todos</button>
-      @for (cat of categorias(); track cat.id) {
-        <button
-          type="button"
-          class="chip"
-          [class.chip-active]="categoriaSeleccionada() === cat.id"
-          (click)="seleccionarCategoria(categoriaSeleccionada() === cat.id ? null : cat.id)">
-          {{ cat.nombre }}
-        </button>
-      }
+    <div class="filtros-grupo">
+      <label class="filtro-campo-label">
+        Categoría
+        <select
+          class="filtro-select"
+          [value]="categoriaSeleccionada() ?? ''"
+          (change)="seleccionarCategoria($any($event.target).value === '' ? null : aNumero($any($event.target).value))">
+          <option [value]="''">Todas</option>
+          @for (cat of categorias(); track cat.id) {
+            <option [value]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <span class="filtros-separador"></span>
+
+      <div class="metodo-chips">
+        @for (op of opcionesEstado; track op.valor) {
+          <button
+            type="button"
+            class="chip"
+            [class.chip-active]="estadoFiltro() === op.valor"
+            (click)="seleccionarEstado(op.valor)">
+            {{ op.etiqueta }}
+          </button>
+        }
+      </div>
     </div>
   </section>
 
@@ -60,7 +72,9 @@
     <span class="conteo">{{ productosFiltrados().length }} productos disponibles</span>
 
     <div class="controles-derecha">
-      <label class="tendencia-selector">
+      <label
+        class="tendencia-selector"
+        title="Controla el badge de % que aparece en cada producto: compara sus ventas de los últimos N días contra los N días anteriores. Verde = vende más que antes, rojo = vende menos.">
         Tendencia:
         <select
           [value]="tendenciaDias()"
@@ -447,4 +461,18 @@
       (guardado)="alGuardarProducto()">
     </app-producto-formulario-panel>
   }
+
+  <!-- Panel deslizante de ingreso de stock -->
+  <app-ingreso-stock-panel
+    [abierto]="panelIngresoAbierto()"
+    (cerrado)="cerrarPanelIngreso()"
+    (guardado)="alGuardarIngreso()">
+  </app-ingreso-stock-panel>
+
+  <!-- Panel deslizante de gestión de categorías -->
+  <app-categorias-panel
+    [abierto]="panelCategoriasAbierto()"
+    (cerrado)="cerrarPanelCategorias()"
+    (cambios)="alCambiarCategorias()">
+  </app-categorias-panel>
 </div>
