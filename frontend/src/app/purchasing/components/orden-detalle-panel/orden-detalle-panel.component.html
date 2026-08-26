@@ -1,0 +1,85 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-detalle">
+    <header class="panel-header">
+      <div>
+        <span class="panel-ref">Orden de compra</span>
+        <h2>OC-{{ ordenId() }}</h2>
+      </div>
+      <button type="button" class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (cargando()) {
+      <div class="panel-estado"><div class="spinner"></div><p>Cargando detalle...</p></div>
+    } @else {
+      @if (orden(); as o) {
+
+        <div class="panel-cuerpo">
+          <div class="panel-badges">
+            <span class="pill pill-proveedor">{{ o.proveedor.nombre }}</span>
+            <span class="pill" [class]="'est-' + o.estado.toLowerCase()">{{ textoEstado(o.estado) }}</span>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-caja">
+              <span class="info-label">Fecha pedido</span>
+              <b>{{ o.fechaPedido | date:'dd/MM/yyyy' }}</b>
+            </div>
+            <div class="info-caja">
+              <span class="info-label">Entrega esperada</span>
+              <b>{{ o.fechaEsperada ? (o.fechaEsperada | date:'dd/MM/yyyy') : '-' }}</b>
+            </div>
+            <div class="info-caja">
+              <span class="info-label">Total</span>
+              <b>{{ o.totalEsperado | currency:'COP':'symbol-narrow':'1.0-0' }}</b>
+            </div>
+          </div>
+
+          @if (o.observaciones) {
+            <div class="obs"><span class="info-label">Observaciones</span><p>{{ o.observaciones }}</p></div>
+          }
+
+          <h4 class="subtitulo">Productos ({{ o.detalles.length }})</h4>
+          @for (d of o.detalles; track d.idDetalle) {
+            <div class="detalle-fila">
+              <span class="d-nombre">{{ d.nombreProducto || 'Producto' }}</span>
+              <span class="d-dato">{{ d.cantidadPedida }} x {{ d.precioUnitarioPactado | number:'1.0-0' }}</span>
+              <b class="d-sub">{{ d.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</b>
+            </div>
+          }
+
+          <h4 class="subtitulo">Recepciones y pagos</h4>
+          @if ((recepciones()).length) {
+            @for (r of recepciones(); track r.idRecepcion) {
+              <div class="rec-fila">
+                <div class="rec-info">
+                  <b>{{ r.fechaRecepcion | date:'dd/MM/yyyy' }}</b>
+                  <small>Total: {{ r.totalRecepcion | currency:'COP':'symbol-narrow':'1.0-0' }}</small>
+                </div>
+                @if (r.estadoPago === 'PAGADO') {
+                  <span class="pill est-cerrada">Pagada</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-pagar"
+                    [disabled]="pagando() === r.idRecepcion"
+                    (click)="pagar(r)">
+                    {{ pagando() === r.idRecepcion ? '...' : 'Pagar' }}
+                  </button>
+                }
+              </div>
+            }
+          } @else {
+            <p class="sin-rec">Sin recepciones registradas todavia.</p>
+          }
+        </div>
+
+      } @else {
+        <div class="panel-estado"><p>Sin datos de la orden.</p></div>
+      }
+    }
+  </aside>
+}

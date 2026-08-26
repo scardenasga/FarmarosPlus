@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   CompraResponse, 
@@ -14,7 +14,9 @@ import {
   ResumenSeguimiento,
   PrevisualizacionOrden,
   VentaResponse
-  ,OrdenCompraResumen, OrdenCompraResponse, RegistrarOrdenRequest, RegistrarRecepcionRequest, RecepcionCompraResumen
+  ,OrdenCompraResumen, OrdenCompraResponse, RegistrarOrdenRequest, RegistrarRecepcionRequest, RecepcionCompraResumen,
+  TopProductoComprado,
+  CumplimientoProveedor
 } from '../models/purchasing.model';
 
 @Injectable({
@@ -98,7 +100,7 @@ export class PurchasingService {
     });
   }
 
-  // --- Órdenes de Compra ---
+  // --- Ã“rdenes de Compra ---
 
   getResumenSeguimiento(): Observable<ResumenSeguimiento> {
     return this.http.get<ResumenSeguimiento>(`${this.apiOrdenes}/resumen-seguimiento`);
@@ -136,5 +138,20 @@ export class PurchasingService {
 
   obtenerVenta(id: number): Observable<VentaResponse> {
     return this.http.get<VentaResponse>(`${this.apiVentas}/${id}`);
+  }
+
+  // ==================== Analitica de compras ====================
+
+  /** Top productos con mayor gasto en compras del periodo. */
+  topProductosComprados(inicio?: string, fin?: string): Observable<TopProductoComprado[]> {
+    let params = new HttpParams();
+    if (inicio) params = params.set('inicio', inicio);
+    if (fin) params = params.set('fin', fin);
+    return this.http.get<TopProductoComprado[]>('/api/compras-analitica/top-productos', { params });
+  }
+
+  /** % de recepciones a tiempo por proveedor. */
+  cumplimientoProveedores(): Observable<CumplimientoProveedor[]> {
+    return this.http.get<CumplimientoProveedor[]>('/api/compras-analitica/cumplimiento-proveedores');
   }
 }

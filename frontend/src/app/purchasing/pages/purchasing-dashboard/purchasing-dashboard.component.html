@@ -1,67 +1,235 @@
 <div class="dashboard-page">
-  <div class="sticky-header">
-    <app-top-bar title="Gestión de Compras" [showAlert]="true" (back)="handleBack()" (alert)="handleAlerts()" />
-  </div>
-
-  <main class="content-area">
-    <section class="welcome-row">
-      <div>
-        <p class="eyebrow">Panel de abastecimiento</p>
-        <h2>Resumen de compras</h2>
-        <p class="muted">Consulta el comportamiento de tus compras y proveedores.</p>
+  <header class="page-header-pc">
+    <div class="header-left">
+      <div class="header-text">
+        <h1>Gestión de Compras</h1>
       </div>
-      <button class="refresh-button" type="button" (click)="loadStatistics()" [disabled]="loading()" aria-label="Actualizar estadísticas">↻ Actualizar</button>
+    </div>
+
+    <div class="header-actions">
+      <div class="campana-wrap">
+        <button
+          type="button"
+          class="btn-campana"
+          (click)="toggleCampana($event)"
+          title="Notificaciones de órdenes"
+          aria-label="Notificaciones de órdenes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          @if (notificacionesPendientes() > 0) {
+            <span class="campana-badge">{{ notificacionesPendientes() > 99 ? '99+' : notificacionesPendientes() }}</span>
+          }
+        </button>
+
+        @if (campanaAbierta()) {
+          <div class="campana-dropdown" (click)="$event.stopPropagation()">
+            <span class="dropdown-titulo">Órdenes pendientes</span>
+
+            @if (alertas().length) {
+              <div class="dropdown-lista">
+                @for (a of alertas(); track a.idOrden) {
+                  <button type="button" class="notif-fila" (click)="navigateTo('/purchasing/order-notifications')">
+                    <span
+                      class="notif-dot"
+                      [class.notif-atrasada]="a.estadoActual === 'NO_RECIBIDA'"></span>
+                    <span class="notif-texto">
+                      <strong>{{ a.codigoGenerado }}</strong>
+                      <small>{{ a.proveedorNombre }} · {{ a.diasTranscurridos }} días</small>
+                    </span>
+                    <span class="notif-estado">{{ a.estadoActual }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="notif-vacio">Sin órdenes pendientes por recibir o pagar.</p>
+            }
+
+            <button type="button" class="notif-ver-todas" (click)="navigateTo('/purchasing/order-notifications')">
+              Ver todas las notificaciones
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="estado-card">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+  } @else {
+
+    <!-- KPI strip compacta -->
+    <section class="kpi-strip">
+      <article class="kpi-item">
+        <div class="kpi-icon icon-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">Gasto promedio pagado</span>
+          <span class="kpi-valor">{{ formatCurrency(averagePurchase()) }}</span>
+        </div>
+        <span class="kpi-extra">por recepción</span>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">Compras del mes</span>
+          <span class="kpi-valor">{{ formatCurrency(totalMonth()) }}</span>
+        </div>
+        <span class="kpi-extra">{{ purchasesCount() }} recepciones</span>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">Proveedores activos</span>
+          <span class="kpi-valor">{{ activeSuppliers() }}</span>
+        </div>
+      </article>
+
+      <article class="kpi-item">
+        <div class="kpi-icon icon-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>
+          </svg>
+        </div>
+        <div class="kpi-texto">
+          <span class="kpi-etiqueta">Devoluciones del mes</span>
+          <span class="kpi-valor">{{ recentReturns() }}</span>
+        </div>
+      </article>
     </section>
 
-    @if (error()) { <div class="error-banner">{{ error() }}</div> }
-
-    @if (loading()) {
-      <div class="loading-card">Cargando estadísticas desde el backend…</div>
-    } @else {
-      <section class="kpi-grid" aria-label="Indicadores de compras">
-        <article class="kpi-card teal"><span class="kpi-icon">▣</span><div><p>Gasto promedio pagado</p><strong>{{ formatCurrency(averagePurchase()) }}</strong><small>por recepción pagada</small></div></article>
-        <article class="kpi-card blue"><span class="kpi-icon">🛒</span><div><p>Compras pagadas del mes</p><strong>{{ formatCurrency(totalMonth()) }}</strong><small>{{ purchasesCount() }} recepciones pagadas</small></div></article>
-        <article class="kpi-card green"><span class="kpi-icon">👥</span><div><p>Proveedores activos</p><strong>{{ activeSuppliers() }}</strong><small>disponibles para comprar</small></div></article>
-        <article class="kpi-card orange"><span class="kpi-icon">↔</span><div><p>Devoluciones recientes</p><strong>{{ recentReturns() }}</strong><small>registradas este mes</small></div></article>
-      </section>
-
-      <nav class="action-bar" aria-label="Acciones de compras">
+    <!-- Accesos rápidos: un solo componente segmentado -->
+    <nav class="acciones-wrap" aria-label="Acciones de compras">
+      <div class="segmento-control">
         @for (action of actions; track action.title) {
-          <button type="button" class="action-button" (click)="navigateTo(action.link)">
-            <span class="action-icon" [style.color]="action.accent">{{ action.icon }}</span>
-            <span><b>{{ action.title }}</b><small>{{ action.subtitle }}</small></span>
-            <span class="chevron">›</span>
+          <button type="button" class="segmento-btn" [class.segmento-activo]="esRutaActiva(action.link)" (click)="navigateTo(action.link)">
+            <span class="segmento-icono" [ngClass]="{'icon-verde': $index === 0, 'icon-azul': $index === 1, 'icon-naranja': $index === 2}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path [attr.d]="iconoDe(action.icon)"/><circle cx="9" cy="7" r="0"/></svg>
+            </span>
+            {{ action.title }}
           </button>
         }
-      </nav>
+      </div>
+    </nav>
 
-      <section class="analytics-grid">
-        <article class="panel trend-panel">
-          <div class="panel-heading"><div><p class="eyebrow">Estadística #25</p><h3>Gasto pagado por mes</h3></div><span class="panel-badge">Últimos 6 meses</span></div>
-          <div class="bar-chart" aria-label="Gasto total por mes">
-            @for (month of monthlyTotals(); track month.label) {
-              <div class="bar-column"><span class="bar-value">{{ formatCurrency(month.total) }}</span><div class="bar" [style.height.%]="barHeight(month.total)"></div><small>{{ month.label }}</small></div>
+    <!-- Contenido flexible: llena el alto restante -->
+    <div class="contenido-flex">
+
+    <!-- Cuadricula 2x2: graficas + ordenes pendientes -->
+    <section class="analytics-grid">
+      <!-- Posicion (1,1): Gasto pagado por mes -->
+      <article class="panel panel-mes">
+        <div class="panel-heading">
+          <h3>Gasto pagado por mes</h3>
+        </div>
+        <div class="chart-controles">
+          <label class="chart-periodo">
+            Período:
+            <select
+              [value]="mesesChart()"
+              (change)="cambiarPeriodo(aMeses($any($event.target).value))">
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+              <option value="12">12 meses</option>
+            </select>
+          </label>
+
+          <div class="tipo-toggle">
+            <button
+              type="button"
+              class="tipo-btn"
+              [class.tipo-activa]="tipoGrafica() === 'barras'"
+              (click)="cambiarTipoGrafica('barras')"
+              aria-label="Gráfica de barras">Barras</button>
+            <button
+              type="button"
+              class="tipo-btn"
+              [class.tipo-activa]="tipoGrafica() === 'linea'"
+              (click)="cambiarTipoGrafica('linea')"
+              aria-label="Gráfica de línea">Línea</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [type]="tipoGrafica() === 'linea' ? 'line' : 'bar'"
+            [data]="gastoChartData()"
+            [options]="gastoChartOptions()">
+          </canvas>
+        </div>      </article>
+
+      <!-- Posicion (1,2): Gasto pagado por proveedor -->
+      <article class="panel panel-prov">
+        <div class="panel-heading">
+          <h3>Gasto pagado por proveedor</h3>
+        </div>
+        @if (supplierTotals().length) {
+          <div class="supplier-list">
+            @for (supplier of supplierTotals(); track supplier.name) {
+              <div class="supplier-row">
+                <div class="supplier-label">
+                  <span>{{ supplier.name }}</span>
+                  <b>{{ formatCurrency(supplier.total) }}</b>
+                </div>
+                <div class="progress-track"><span [style.width.%]="supplier.percentage"></span></div>
+              </div>
             }
           </div>
-        </article>
+        } @else {
+          <p class="empty-state">Aún no hay compras registradas.</p>
+        }
+      </article>
 
-        <article class="panel supplier-panel">
-          <div class="panel-heading"><div><p class="eyebrow">Estadística #27</p><h3>Gasto pagado por proveedor</h3></div></div>
-          @if (supplierTotals().length) {
-            <div class="supplier-list">
-              @for (supplier of supplierTotals(); track supplier.name) {
-                <div class="supplier-row"><div class="supplier-label"><span>{{ supplier.name }}</span><b>{{ formatCurrency(supplier.total) }}</b></div><div class="progress-track"><span [style.width.%]="supplier.percentage"></span></div></div>
-              }
-            </div>
-          } @else { <p class="empty-state">Aún no hay compras registradas.</p> }
-        </article>
-      </section>
-
-      <section class="operational-card">
-        <div class="operational-icon">▣</div>
-        <div><p class="eyebrow">Resumen financiero</p><h3>Controla el flujo de abastecimiento</h3><p class="muted">El gasto mostrado corresponde únicamente a recepciones con estado de pago PAGADO. Las órdenes pendientes no se suman.</p></div>
-        <button type="button" class="text-button" (click)="navigateTo('/purchasing/purchase-history')">Ver historial <span>→</span></button>
-      </section>
-    }
-  </main>
+      <!-- Posicion (2, 1-2): Ordenes pendientes -->
+      <article class="panel panel-pendientes">
+        <div class="panel-heading">
+          <h3>Órdenes pendientes por recibir o pagar</h3>
+          <span class="panel-badge">{{ alertas().length }} pendientes</span>
+        </div>
+        @if (alertas().length) {
+          <div class="pend-lista">
+            @for (a of alertas(); track a.idOrden) {
+              <div class="pend-fila">
+                <span
+                  class="pend-dot"
+                  [class.pend-atrasada]="a.estadoActual === 'NO_RECIBIDA'"></span>
+                <div class="pend-info">
+                  <strong>{{ a.codigoGenerado }}</strong>
+                  <small>{{ a.proveedorNombre }} · {{ a.diasTranscurridos }} días</small>
+                </div>
+                <span
+                  class="estado-pill"
+                  [class.estado-atrasada]="a.estadoActual === 'NO_RECIBIDA'">
+                  {{ a.estadoActual }}
+                </span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">Sin órdenes pendientes por recibir o pagar.</p>
+        }
+      </article>
+    </section>
+    </div>
+  }
 </div>

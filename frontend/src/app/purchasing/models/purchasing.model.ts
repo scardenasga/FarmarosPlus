@@ -73,7 +73,7 @@ export interface OrdenCompraResponse {
   fechaEsperada: string | null; estado: string; totalEsperado: number; observaciones: string | null;
   detalles: DetalleOrdenCompra[];
 }
-export interface RegistrarOrdenRequest { proveedorId: number; items: { productoId: number; cantidad: number; precioUnitario: number }[]; observaciones?: string; }
+export interface RegistrarOrdenRequest { proveedorId: number; fechaEsperada?: string; items: { productoId: number; cantidad: number; precioUnitario: number }[]; observaciones?: string; }
 export interface RegistrarRecepcionRequest { ordenId: number; estado: 'PARCIAL' | 'COMPLETA' | 'RECHAZADA'; totalRecepcion: number; observaciones?: string; }
 export interface RecepcionCompraResumen {
   idRecepcion: number;
@@ -184,4 +184,19 @@ export interface PrevisualizacionOrden {
     precioUnitario: number;
     motivo: string;
   }[];
+}
+
+/** Top producto comprado en un periodo (backend: TopProductoCompradoResponse). */
+export interface TopProductoComprado {
+  nombre: string;
+  unidadesCompradas: number;
+  montoTotal: number;
+}
+
+/** Cumplimiento de entregas a tiempo de un proveedor. */
+export interface CumplimientoProveedor {
+  proveedor: string;
+  recepcionesTotales: number;
+  entregasATiempo: number;
+  porcentajeCumplimiento: number;
 }

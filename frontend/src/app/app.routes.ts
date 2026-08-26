@@ -22,6 +22,8 @@ import { ReporteVentasComponent } from './reportes/pages/reporte-ventas/reporte-
 import { ReturnHistoryComponent } from './purchasing/pages/return-history/return-history.component';
 import { RegisterReturnComponent } from './purchasing/pages/register-return/register-return.component';
 import { PurchaseHistoryComponent } from './purchasing/pages/purchase-history/purchase-history.component';
+import { PurchaseDetailComponent } from './purchasing/pages/purchase-detail/purchase-detail.component';
+import { PurchaseEditComponent } from './purchasing/pages/purchase-edit/purchase-edit.component';
 import { RegisterPurchaseComponent } from './purchasing/pages/register-purchase/register-purchase.component';
 import { OrderNotificationsComponent } from './purchasing/pages/order-notifications/order-notifications.component';
 import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-preview.component';
@@ -63,6 +65,8 @@ export const routes: Routes = [
   { path: 'purchasing/return-history', component: ReturnHistoryComponent },
   { path: 'purchasing/register-return', component: RegisterReturnComponent },
   { path: 'purchasing/purchase-history', component: PurchaseHistoryComponent },
+  { path: 'purchasing/purchase-detail/:id', component: PurchaseDetailComponent },
+  { path: 'purchasing/purchase-edit/:id', component: PurchaseEditComponent },
   { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent },
   { path: 'purchasing/order-notifications', component: OrderNotificationsComponent },
   { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent },

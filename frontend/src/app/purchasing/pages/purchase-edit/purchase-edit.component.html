@@ -1,0 +1,83 @@
+<div class="edit-page">
+  <header class="page-header-pc">
+    <div class="header-left">
+      <button type="button" class="btn-volver-pc" (click)="cancelar()" aria-label="Volver al detalle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="header-text">
+        <h1>Editar orden {{ orden() ? 'OC-' + orden()!.idOrden : '' }}</h1>
+      </div>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <div class="estado-card">
+      <div class="spinner"></div>
+      <p>Cargando orden...</p>
+    </div>
+  } @else {
+
+    @if (orden(); as o) {
+
+    <!-- Datos de sistema -->
+    <section class="readonly-card">
+      <div><span class="ro-label">Codigo de barras / Ref</span><span class="ro-value">OC-{{ o.idOrden }}</span></div>
+      <div><span class="ro-label">Fecha pedido</span><span class="ro-value">{{ o.fechaPedido | date:'dd/MM/yyyy' }}</span></div>
+      <div><span class="ro-label">Estado</span><span class="ro-value">{{ o.estado }}</span></div>
+      <div><span class="ro-label">Total esperado</span><span class="ro-value">{{ o.totalEsperado | currency:'COP':'symbol-narrow':'1.0-0' }}</span></div>
+    </section>
+
+    <form class="contenido-form" (ngSubmit)="guardar()">
+      <!-- Datos editables -->
+      <section class="form-card">
+        <h3 class="card-titulo">Proveedor y entrega</h3>
+
+        <label class="campo-label" for="prov">Proveedor *</label>
+        <select id="prov" [(ngModel)]="proveedorId" name="proveedorId" required>
+          <option [ngValue]="null" disabled>Seleccione un proveedor</option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <option [value]="p.idProveedor">{{ p.nombre }}</option>
+          }
+        </select>
+
+        <label class="campo-label" for="fecha">Fecha de entrega esperada</label>
+        <input id="fecha" type="date" [(ngModel)]="fechaEsperada" name="fechaEsperada" />
+
+        <label class="campo-label" for="obs">Observaciones</label>
+        <textarea id="obs" rows="3" [(ngModel)]="observaciones" name="observaciones"
+                  placeholder="Notas para el proveedor..."></textarea>
+      </section>
+
+      <!-- Detalles (solo lectura) -->
+      <section class="form-card">
+        <h3 class="card-titulo">Productos de la orden (no editables aqui)</h3>
+
+        @for (d of o.detalles; track d.idDetalle) {
+          <div class="detalle-fila">
+            <span class="detalle-nombre">{{ d.nombreProducto || 'Producto' }}</span>
+            <span class="detalle-dato">{{ d.cantidadPedida }} x {{ d.precioUnitarioPactado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            <span class="detalle-subtotal">{{ (d.cantidadPedida * d.precioUnitarioPactado) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        } @empty {
+          <p class="sin-detalles">Esta orden no tiene productos registrados.</p>
+        }
+
+        @if (o.detalles.length) {
+          <div class="detalles-total">
+            <span>Total</span>
+            <b>{{ o.totalEsperado | currency:'COP':'symbol-narrow':'1.0-2' }}</b>
+          </div>
+        }
+      </section>
+
+      <!-- Acciones -->
+      <div class="acciones-form">
+        <button type="button" class="btn-pc secundario" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn-pc primario" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+  }
+</div>

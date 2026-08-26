@@ -1,0 +1,92 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-compra">
+    <header class="panel-header">
+      <div>
+        <span class="panel-ref">{{ esEditar() ? 'Editar orden' : 'Nueva orden de compra' }}</span>
+        <h2>{{ esEditar() ? (orden() ? 'OC-' + orden()!.idOrden : '...') : 'Completa los datos' }}</h2>
+      </div>
+      <button type="button" class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <form [formGroup]="productForm" (ngSubmit)="solicitarGuardar()">
+      <div class="panel-cuerpo">
+
+        <span class="seccion-titulo">Proveedor</span>
+        <select class="input-plain" formControlName="proveedorId">
+          <option [ngValue]="null" disabled>Seleccione un proveedor</option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <option [value]="p.idProveedor">{{ p.nombre }}</option>
+          }
+        </select>
+
+        <span class="seccion-titulo">Entrega</span>
+        <label class="campo-mini">Fecha esperada de entrega *</label>
+        <input type="date" formControlName="fechaEsperada" />
+        @if (getControl('fechaEsperada').errors?.['fechaPasada'] && getControl('fechaEsperada').touched) {
+          <p class="campo-error">La fecha de entrega no puede ser anterior a hoy.</p>
+        }
+        <label class="campo-mini">Observaciones</label>
+        <textarea rows="2" formControlName="observaciones" placeholder="Opcional..."></textarea>
+
+        @if (!esEditar()) {
+          <span class="seccion-titulo">Productos</span>
+          <input
+            type="text"
+            placeholder="Buscar producto por nombre (min. 3 letras)..."
+            [value]="busquedaProducto()"
+            (input)="buscarProducto($event)" />
+
+          @if (resultadosBusqueda().length) {
+            <div class="resultados">
+              @for (p of resultadosBusqueda(); track p.id) {
+                <button type="button" class="resultado-item" (click)="agregarProducto(p)">
+                  {{ p.nombre }} · stock {{ p.stockActual }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (items().length) {
+            <div class="items-lista">
+              @for (it of items(); track it.productoId; let i = $index) {
+                <div class="item-fila">
+                  <span class="item-nombre">{{ it.nombre }}</span>
+                  <input type="number" min="1" [(ngModel)]="it.cantidad" [ngModelOptions]="{standalone: true}" title="Cantidad" />
+                  <input type="number" min="0" [(ngModel)]="it.precioUnitario" [ngModelOptions]="{standalone: true}" title="Precio unitario" />
+                  <b class="item-subtotal">{{ it.cantidad * it.precioUnitario | number:'1.0-0' }}</b>
+                  <button type="button" class="quitar" (click)="quitarItem(i)" aria-label="Quitar">x</button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="total-linea"><span>Total</span><b>{{ totalOrden() | currency:'COP':'symbol-narrow':'1.0-0' }}</b></div>
+        }
+      </div>
+    </form>
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-p secundario" (click)="cerrar()">Cancelar</button>
+      <button type="button" class="btn-p primario" [disabled]="guardando() || cargando()" (click)="solicitarGuardar()">
+        {{ guardando() ? 'Guardando...' : (esEditar() ? 'Guardar cambios' : 'Crear orden') }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        title="{{ esEditar() ? 'Guardar cambios?' : 'Crear orden?' }}"
+        content="{{ esEditar()
+          ? 'Se actualizaran proveedor, entrega y productos de la orden.'
+          : 'Se creara una nueva orden de compra con los productos listados.' }}"
+        cancelText="Revisar"
+        confirmText="{{ esEditar() ? 'Actualizar' : 'Crear' }}"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmarGuardado()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}
