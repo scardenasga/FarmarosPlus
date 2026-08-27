@@ -14,19 +14,54 @@
     </div>
   </header>
 
-  <!-- Filtros -->
+  <!-- Filtros PC -->
   <section class="toolbar">
     <div class="toolbar-search">
       <app-search-bar placeholder="Buscar por proveedor u OC..." [debounceMs]="250" (search)="termino.set($event)"></app-search-bar>
     </div>
-    <app-filter-button [activeCount]="filtrosActivos()" (clicked)="filtroVisible.set(true)"></app-filter-button>
 
-    @if (filtrosActivos() > 0) {
-      <div class="filtros-activos">
-        <span>{{ filtrosActivos() }} filtro(s) activo(s)</span>
-        <button type="button" (click)="limpiar()">Limpiar</button>
+    <div class="filtros-grupo">
+      <label class="filtro-campo-label">
+        Proveedor
+        <select class="filtro-select" [value]="filtroProveedor() ?? ''" (change)="filtroProveedor.set($any($event.target).value ? +$any($event.target).value : null); pagina.set(1)">
+          <option value="">Todos</option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <option [value]="p.idProveedor">{{ p.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <span class="filtros-separador"></span>
+
+      <div class="chip-group" role="group" aria-label="Estado de la orden">
+        @for (e of estados; track e) {
+          <button type="button" class="chip" [class.chip-active]="filtroEstado() === e" (click)="filtroEstado.set(e); pagina.set(1)">{{ e === 'TODOS' ? 'Todos' : textoEstado(e) }}</button>
+        }
       </div>
-    }
+
+      <span class="filtros-separador"></span>
+
+      <div class="chip-group" role="group" aria-label="Estado del pago">
+        @for (ep of estadosPago; track ep) {
+          <button type="button" class="chip" [class.chip-active]="filtroEstadoPago() === ep" (click)="filtroEstadoPago.set(ep); pagina.set(1)">{{ ep === 'TODOS' ? 'Todos' : textoEstadoPago(ep) }}</button>
+        }
+      </div>
+
+      <span class="filtros-separador"></span>
+
+      <div class="date-filtros">
+        <label class="filtro-campo-label">Desde
+          <input type="date" class="filtro-date" [value]="fechaDesde()" (change)="fechaDesde.set($any($event.target).value); pagina.set(1)">
+        </label>
+        <label class="filtro-campo-label">Hasta
+          <input type="date" class="filtro-date" [value]="fechaHasta()" (change)="fechaHasta.set($any($event.target).value); pagina.set(1)">
+        </label>
+      </div>
+
+      @if (filtrosActivos() > 0) {
+        <button type="button" class="chip chip-limpiar" (click)="limpiar()">Limpiar ({{ filtrosActivos() }})</button>
+      }
+    </div>
   </section>
 
   @if (error()) {
@@ -133,13 +168,6 @@
     (onConfirm)="cancelar()">
   </app-confirmation-dialog>
 }
-
-<app-purchase-filter
-  [isVisible]="filtroVisible()"
-  [proveedores]="proveedores()"
-  (close)="filtroVisible.set(false)"
-  (apply)="aplicarFiltros($event)">
-</app-purchase-filter>
 
     <!-- Panel deslizante de detalle de orden -->
     <app-orden-detalle-panel

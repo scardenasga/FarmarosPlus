@@ -72,25 +72,91 @@
 
 .toolbar-search { flex: 1; min-width: 220px; }
 
-.filtros-activos {
-  display: inline-flex;
+.filtros-grupo {
+  display: flex;
   align-items: center;
-  gap: var(--space-s);
-  padding: 5px 12px;
-  border-radius: var(--radius-full, 9999px);
-  background-color: var(--info-bg);
-  color: var(--info-text);
-  font-size: 0.7rem;
-  font-weight: 700;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 280px;
 }
 
-.filtros-activos button {
-  border: none;
-  background: none;
-  color: inherit;
-  text-decoration: underline;
-  cursor: pointer;
+.filtro-campo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.72rem;
   font-weight: 700;
+  color: var(--text-muted, var(--outline));
+  white-space: nowrap;
+}
+
+.filtro-select,
+.filtro-date {
+  height: 32px;
+  padding: 0 var(--space-s);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dark, var(--on-background));
+  background-color: var(--card-bg, #ffffff);
+}
+
+.filtro-select { max-width: 180px; }
+.filtro-date { max-width: 148px; }
+
+.filtros-separador {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color, var(--outline-variant));
+  flex-shrink: 0;
+}
+
+.chip-group {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip {
+  padding: 7px 13px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  background-color: var(--card-bg, var(--surface-container-low));
+  color: var(--text-dark, var(--on-background));
+  font-weight: 700;
+  font-size: 0.72rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.08));
+}
+
+.chip-active {
+  background-color: var(--accent-green-dark, var(--primary-container));
+  border-color: transparent;
+  color: var(--on-primary-container);
+}
+
+.chip-limpiar {
+  background-color: var(--danger-bg, #fbd5d5);
+  color: var(--danger-text, #8a2a2a);
+  border-color: transparent;
+}
+
+.chip-limpiar:hover {
+  filter: brightness(0.96);
+}
+
+.date-filtros {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 /* ==================== TABLA ==================== */

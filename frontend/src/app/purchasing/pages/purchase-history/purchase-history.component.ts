@@ -8,9 +8,7 @@ import { OrdenCompraResumen } from '../../models/purchasing.model';
 import { Supplier } from '../../../supplier/models/supplier.model';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
-import { FilterButtonComponent } from '../../../shared/components/filter-button/filter-button.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
-import { PurchaseFilterComponent, PurchaseFilterOptions } from '../../components/purchase-filter/purchase-filter.component';
 import { CompraFormularioPanelComponent } from '../../components/compra-formulario-panel/compra-formulario-panel.component';
 import { RecepcionPanelComponent } from '../../components/recepcion-panel/recepcion-panel.component';
 import { OrdenDetallePanelComponent } from '../../components/orden-detalle-panel/orden-detalle-panel.component';
@@ -18,7 +16,7 @@ import { OrdenDetallePanelComponent } from '../../components/orden-detalle-panel
 @Component({
   selector: 'app-purchase-history',
   standalone: true,
-  imports: [CommonModule, ConfirmationDialogComponent, SearchBarComponent, FilterButtonComponent, PurchaseFilterComponent, CompraFormularioPanelComponent, RecepcionPanelComponent, OrdenDetallePanelComponent],
+  imports: [CommonModule, ConfirmationDialogComponent, SearchBarComponent, CompraFormularioPanelComponent, RecepcionPanelComponent, OrdenDetallePanelComponent],
   templateUrl: './purchase-history.component.html',
   styleUrl: './purchase-history.component.css'
 })
@@ -40,9 +38,9 @@ export class PurchaseHistoryComponent implements OnInit {
   filtroEstadoPago = signal('TODOS');
   aCancelar = signal<OrdenCompraResumen | null>(null);
   cancelando = signal(false);
-  filtroVisible = signal(false);
 
   estados = ['TODOS', 'PENDIENTE', 'CERRADA', 'NO_RECIBIDA', 'CANCELADA'];
+  estadosPago = ['TODOS', 'PAGADA', 'PENDIENTE_PAGO', 'SIN_RECEPCION'];
 
   filtradas = computed(() =>
     this.compras().filter(c => {
@@ -170,25 +168,11 @@ export class PurchaseHistoryComponent implements OnInit {
     this.pagina.set(1);
   }
 
-  aplicarFiltros(options: PurchaseFilterOptions): void {
-    this.filtroProveedor.set(options.proveedorId);
-    this.filtroEstado.set(options.estado);
-    this.filtroEstadoPago.set(options.estadoPago);
-    this.fechaDesde.set(options.desde);
-    this.fechaHasta.set(options.hasta);
-    this.pagina.set(1);
-  }
-
-  nueva(): void { this.router.navigate(['/purchasing/register-purchase']); }
   volver(): void { this.router.navigate(['/compras-gestion']); }
 
   ver(c: OrdenCompraResumen): void {
     this.detalleOrdenId.set(c.idOrden);
     this.detalleAbierto.set(true);
-  }
-
-  editar(c: OrdenCompraResumen): void {
-    this.router.navigate(['/purchasing/purchase-edit', c.idOrden]);
   }
 
   solicitarCancelar(c: OrdenCompraResumen): void {
