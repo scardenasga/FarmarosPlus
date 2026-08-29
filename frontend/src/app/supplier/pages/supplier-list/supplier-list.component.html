@@ -1,57 +1,228 @@
-<div class="supplier-page">
-  <div class="sticky-header">
-    <app-top-bar
-      title="Proveedores"
-      [showActions]="false"
-      (back)="handleBack()">
-    </app-top-bar>
+<div class="proveedores-page">
+  <!-- Encabezado -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Proveedores</h1>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="handleBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Gestión de compras
+      </button>
+      <button type="button" class="btn-primary" (click)="irANuevo()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo proveedor
+      </button>
+    </div>
+  </header>
 
-    <app-supplier-search
-      [activeFilters]="activeFilterCount()"
-      (search)="handleSearch($event)"
-      (toggleFilter)="toggleFilter()"
-    ></app-supplier-search>
+  <!-- Búsqueda + filtros -->
+  <section class="toolbar">
+    <div class="toolbar-search">
+      <app-search-bar
+        placeholder="Buscar por nombre, NIT o contacto..."
+        [debounceMs]="250"
+        (search)="onBuscar($event)">
+      </app-search-bar>
+    </div>
 
-    <app-supplier-summary
-      [totalSuppliers]="filteredSuppliers().length"
-      (openSort)="toggleSort()"
-    ></app-supplier-summary>
+    <div class="filtros-grupo">
+      <span class="filtros-separador"></span>
+      <div class="metodo-chips">
+        @for (op of opcionesEstado; track op.valor) {
+          <button
+            type="button"
+            class="chip"
+            [class.chip-active]="estadoFiltro() === op.valor"
+            (click)="seleccionarEstado(op.valor)">
+            {{ op.etiqueta }}
+          </button>
+        }
+      </div>
+    </div>
+  </section>
 
-    <app-active-filters
-      [filters]="activeFilterChips()"
-      (remove)="handleRemoveFilter($event)"
-    ></app-active-filters>
-  </div>
+  <!-- Conteo + vista -->
+  <section class="subtoolbar">
+    <span class="conteo">{{ suppliersFiltrados().length }} proveedores encontrados</span>
 
-  <main class="content">
-    @for (supplier of filteredSuppliers(); track supplier.idProveedor) {
-      <app-supplier-card
-        [supplier]="supplier"
-        (clicked)="handleSupplierClick(supplier)">
-      </app-supplier-card>
-    } @empty {
-      <div class="empty-state">
-        <span class="empty-icon">🏢</span>
+    <div class="controles-derecha">
+      <span class="vista-label">Vista:</span>
+      <div class="vista-toggle">
+        <button
+          type="button"
+          class="vista-btn"
+          [class.vista-activa]="vista() === 'grid'"
+          (click)="cambiarVista('grid')"
+          aria-label="Vista de tarjetas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button
+          type="button"
+          class="vista-btn"
+          [class.vista-activa]="vista() === 'tabla'"
+          (click)="cambiarVista('tabla')"
+          aria-label="Vista de lista">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra de acciones masivas -->
+  @if (haySeleccion && vista() === 'tabla') {
+    <section class="acciones-barra">
+      <span class="seleccion-contador">{{ seleccionados().size }} seleccionado(s)</span>
+      <span class="barra-separador"></span>
+      <span class="accion-etiqueta">Cambiar estado:</span>
+      <button type="button" class="accion-btn estado-activo-btn" [disabled]="cambiandoEstado()" (click)="solicitarCambioEstado('ACTIVO')">Activar</button>
+      <button type="button" class="accion-btn estado-inactivo-btn" [disabled]="cambiandoEstado()" (click)="solicitarCambioEstado('INACTIVO')">Desactivar</button>
+      <button type="button" class="btn-limpiar-seleccion" (click)="limpiarSeleccion()" title="Quitar selección">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </section>
+  }
+
+  <!-- Contenido -->
+  <main class="contenido-card">
+    @if (cargando()) {
+      <div class="estado-tabla">
+        <div class="spinner"></div>
+        <p>Cargando proveedores...</p>
+      </div>
+    } @else if (suppliersFiltrados().length === 0) {
+      <div class="estado-vacio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-svg"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <p>No se encontraron proveedores.</p>
+        <span class="empty-hint">Intenta ajustar los filtros o crea un nuevo proveedor.</span>
+      </div>
+    } @else if (vista() === 'grid') {
+      <div class="proveedores-grid">
+        @for (s of suppliersPaginados(); track s.idProveedor) {
+          <article class="proveedor-card" (click)="abrirDetalle(s)">
+            <div class="card-imagen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V7a2 2 0 0 1 2-2h2"/><path d="M19 9V7a2 2 0 0 0-2-2h-2"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+              <span class="estado-pill card-estado" [class]="'estado-' + s.estado.toLowerCase()">{{ s.estado }}</span>
+            </div>
+            <div class="card-info">
+              <h4 class="card-nombre" [title]="s.nombre">{{ s.nombre }}</h4>
+              <span class="card-desc" [title]="s.nit || s.contacto || ''">{{ s.nit || s.contacto || 'Sin NIT' }}</span>
+            </div>
+            <div class="card-pie">
+              <span class="card-contacto" [title]="s.telefono || s.email || ''">{{ s.telefono || s.email || 'Sin contacto' }}</span>
+              <span class="condicion-pill" [class.con-definida]="!!s.condicionPago">{{ s.condicionPago || 'Por definir' }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="tabla-scroll">
+        <table class="proveedores-tabla">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input type="checkbox" [checked]="todosVisiblesSeleccionados" (change)="toggleTodos($event)" />
+              </th>
+              <th>Proveedor</th>
+              <th>NIT</th>
+              <th>Contacto</th>
+              <th class="col-centro">Estado</th>
+              <th>Condición de pago</th>
+              <th class="col-centro">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of suppliersPaginados(); track s.idProveedor) {
+              <tr class="fila-proveedor" (click)="abrirDetalle(s)">
+                <td class="col-check" (click)="$event.stopPropagation()">
+                  <input type="checkbox" [checked]="estaSeleccionado(s.idProveedor)" (change)="toggleSeleccion(s.idProveedor, $event)" />
+                </td>
+                <td class="celda-nombre">
+                  <span class="mini-imagen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+                  </span>
+                  <span class="nombre-texto" [title]="s.nombre">{{ s.nombre }}</span>
+                </td>
+                <td class="celda-nit">{{ s.nit || '—' }}</td>
+                <td class="celda-contacto">
+                  <span class="contacto-nombre">{{ s.contacto || '—' }}</span>
+                  <span class="contacto-sec">{{ s.telefono || s.email || '' }}</span>
+                </td>
+                <td class="col-centro">
+                  <span class="estado-pill" [class]="'estado-' + s.estado.toLowerCase()">{{ s.estado }}</span>
+                </td>
+                <td class="celda-pago">{{ s.condicionPago || 'Por definir' }}</td>
+                <td class="col-centro">
+                  <div class="fila-acciones">
+                    <button type="button" class="icono-accion" title="Editar" (click)="$event.stopPropagation(); irAEditar(s.idProveedor)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button type="button" class="icono-accion" title="Ver detalle" (click)="$event.stopPropagation(); abrirDetalle(s)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!cargando() && suppliersFiltrados().length > 0) {
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ rangoMostrado() }} proveedores</span>
+        <div class="paginacion-controles">
+          <button type="button" class="pag-btn" [disabled]="pagina() === 1" (click)="cambiarPagina(pagina() - 1)" aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          @for (pg of paginasVisibles(); track $index) {
+            @if (pg === '...') { <span class="pag-puntos">...</span> }
+            @else {
+              <button type="button" class="pag-btn pag-numero" [class.pag-actual]="pg === pagina()" (click)="cambiarPagina($any(pg))">{{ pg }}</button>
+            }
+          }
+          <button type="button" class="pag-btn" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(pagina() + 1)" aria-label="Página siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <select class="pag-tamano" (change)="cambiarTamanoPagina($any($event.target).value)" aria-label="Registros por página">
+            @for (t of TAMANOS_PAGINA; track t) {
+              <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option>
+            }
+          </select>
+        </div>
       </div>
     }
   </main>
 
-  <app-fab-button
-    (clicked)="handleAddSupplier()">
-  </app-fab-button>
+  <!-- Panel de detalle -->
+  <app-supplier-detail-panel
+    [abierto]="panelDetalleVisible()"
+    [supplierId]="detalleId()"
+    (cerrado)="cerrarDetalle()"
+    (editado)="alEditarDesdeDetalle($event)"
+    (actualizado)="alActualizarDetalle()">
+  </app-supplier-detail-panel>
 
-  <app-supplier-filter
-    [isVisible]="isFilterVisible()"
-    (close)="toggleFilter()"
-    (apply)="handleFilterApply($event)"
-  ></app-supplier-filter>
+  <!-- Panel formulario crear/editar -->
+  @if (panelFormulario(); as panel) {
+    <app-supplier-form-panel
+      [modo]="panel.modo"
+      [supplierId]="panel.supplierId ?? null"
+      [abierto]="formularioAbierto()"
+      (cerrado)="cerrarFormulario()"
+      (guardado)="alGuardar()">
+    </app-supplier-form-panel>
+  }
 
-  <app-supplier-sort
-    [isVisible]="isSortVisible()"
-    [currentField]="sortField()"
-    [currentOrder]="sortOrder()"
-    (close)="toggleSort()"
-    (sort)="handleSortApply($event)"
-  ></app-supplier-sort>
+  @if (estadoPendiente(); as pendiente) {
+    <app-confirmation-dialog
+      [title]="pendiente === 'ACTIVO' ? '¿Activar proveedores?' : '¿Desactivar proveedores?'"
+      [content]="'Se cambiará el estado a ' + pendiente + ' en ' + seleccionados().size + ' proveedor(es). ¿Desea continuar?'"
+      cancelText="Cancelar"
+      confirmText="Confirmar"
+      (onCancel)="cancelarCambioEstado()"
+      (onConfirm)="confirmarCambioEstado()">
+    </app-confirmation-dialog>
+  }
 </div>

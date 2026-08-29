@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
 import { ChartData, ChartOptions } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 
@@ -16,11 +15,10 @@ import { AlertaResponse, AlertaService } from '../../../services/alerta.service'
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy {
+export class AdminDashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   readonly alertaService = inject(AlertaService);
   private readonly router = inject(Router);
-  private refreshSub?: Subscription;
 
   readonly dashboard = signal<DashboardResponse | null>(null);
   readonly loading = signal(true);
@@ -41,14 +39,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     };
     this.cargarDashboard();
     this.cargarAlertas();
-    this.refreshSub = interval(60000).subscribe(() => {
-      this.cargarDashboard();
-      this.cargarAlertas();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.refreshSub?.unsubscribe();
   }
 
   cargarDashboard(): void {

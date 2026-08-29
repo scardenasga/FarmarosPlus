@@ -2,11 +2,11 @@ import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SupplierService } from '../../services/supplier.service';
+import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { CreateSupplierRequest } from '../../models/supplier.model';
 
 @Component({
@@ -15,7 +15,6 @@ import { CreateSupplierRequest } from '../../models/supplier.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TopBarComponent,
     FormInputComponent,
     ConfirmationDialogComponent
   ],
@@ -27,6 +26,7 @@ export class CreateSupplierComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private navService = inject(NavigationService);
   private supplierService = inject(SupplierService);
+  private notificacion = inject(NotificacionService);
 
   supplierForm!: FormGroup;
   showConfirmation = signal<boolean>(false);
@@ -68,13 +68,13 @@ export class CreateSupplierComponent implements OnInit, OnDestroy {
 
     this.supplierService.create(request).subscribe({
       next: () => {
+        this.notificacion.exito(`Proveedor "${request.nombre}" creado correctamente`);
         this.showConfirmation.set(false);
         this.router.navigate(['/proveedores']);
       },
       error: (err) => {
-        console.error('Error creating supplier', err);
+        this.notificacion.error(err.error?.message || 'No se pudo crear el proveedor.');
         this.showConfirmation.set(false);
-        // Here you could show an error toast/message
       }
     });
   }

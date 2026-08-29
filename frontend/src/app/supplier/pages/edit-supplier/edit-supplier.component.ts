@@ -2,11 +2,11 @@ import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SupplierService } from '../../services/supplier.service';
+import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { UpdateSupplierRequest, Supplier } from '../../models/supplier.model';
 
 @Component({
@@ -15,7 +15,6 @@ import { UpdateSupplierRequest, Supplier } from '../../models/supplier.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TopBarComponent,
     FormInputComponent,
     ConfirmationDialogComponent
   ],
@@ -28,6 +27,7 @@ export class EditSupplierComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private navService = inject(NavigationService);
   private supplierService = inject(SupplierService);
+  private notificacion = inject(NotificacionService);
 
   supplierForm!: FormGroup;
   showConfirmation = signal<boolean>(false);
@@ -100,11 +100,12 @@ export class EditSupplierComponent implements OnInit, OnDestroy {
 
     this.supplierService.update(id, request).subscribe({
       next: () => {
+        this.notificacion.exito(`Proveedor "${request.nombre}" actualizado correctamente`);
         this.showConfirmation.set(false);
         this.router.navigate(['/proveedores', id]);
       },
       error: (err) => {
-        console.error('Error updating supplier', err);
+        this.notificacion.error(err.error?.message || 'No se pudo actualizar el proveedor.');
         this.showConfirmation.set(false);
       }
     });
