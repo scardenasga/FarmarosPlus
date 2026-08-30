@@ -1,38 +1,69 @@
-<app-bottom-sheet
-  [isOpen]="isVisible()"
-  (close)="handleClose()"
-  title="Registrar reclamo u observación"
->
-  <div class="dialog-content">
-    <p class="step-desc">Documente un inconveniente o novedad con este proveedor para futuras negociaciones.</p>
+@if (isVisible()) {
+  <div class="panel-backdrop" (click)="handleClose()"></div>
 
-    <form [formGroup]="noteForm" class="note-form">
-      <app-form-input
-        label="Tipo"
-        type="select"
-        placeholder="Seleccione un tipo"
-        [control]="getControl('tipoNota')"
-        [options]="tipoOptions"
-      ></app-form-input>
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">Reclamos y observaciones</span>
+        <h2>Registrar nota del proveedor</h2>
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="handleClose()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
 
-      <app-form-input
-        label="Título"
-        placeholder="Ej. Retraso en la entrega de pedido #123"
-        [control]="getControl('titulo')"
-      ></app-form-input>
+    <form [formGroup]="noteForm" (ngSubmit)="solicitarRegistro()">
+      <div class="panel-cuerpo">
+        <span class="seccion-titulo">¿Qué deseas documentar?</span>
 
-      <app-form-input
-        label="Descripción"
-        type="textarea"
-        placeholder="Detalle lo ocurrido"
-        [control]="getControl('descripcion')"
-      ></app-form-input>
+        <p class="panel-desc">
+          Deja trazabilidad de inconvenientes, retrasos o acuerdos con el proveedor para futuras negociaciones.
+        </p>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-save" (click)="confirmNote()" [disabled]="noteForm.invalid">
-          Registrar
-        </button>
+        <app-form-input
+          label="Tipo *"
+          type="select"
+          placeholder="Seleccione un tipo"
+          [control]="getControl('tipoNota')"
+          [options]="tipoOptions">
+        </app-form-input>
+
+        <app-form-input
+          label="Título *"
+          placeholder="Ej. Retraso en la entrega de pedido #123"
+          [control]="getControl('titulo')">
+        </app-form-input>
+
+        <app-form-input
+          label="Descripción *"
+          type="textarea"
+          placeholder="Detalle lo ocurrido, fechas, cantidades y acuerdos..."
+          [control]="getControl('descripcion')">
+        </app-form-input>
+
+        <div class="ayuda-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <p>La nota quedará asociada al proveedor con fecha y usuario actuales. Podrás consultarla en el detalle.</p>
+        </div>
       </div>
     </form>
-  </div>
-</app-bottom-sheet>
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-panel secundario" (click)="handleClose()">Cancelar</button>
+      <button type="button" class="btn-panel primario" [disabled]="guardando()" (click)="solicitarRegistro()">
+        {{ guardando() ? 'Registrando...' : 'Registrar nota' }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        title="¿Registrar nota?"
+        content="Se guardará la observación para este proveedor. ¿Desea continuar?"
+        cancelText="Revisar"
+        confirmText="Registrar"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmNote()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

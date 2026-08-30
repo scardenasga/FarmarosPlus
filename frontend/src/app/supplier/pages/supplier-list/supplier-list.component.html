@@ -1,14 +1,15 @@
 <div class="proveedores-page">
   <!-- Encabezado -->
   <header class="page-header">
-    <div class="header-text">
-      <h1>Proveedores</h1>
+    <div class="header-left">
+      <button type="button" class="btn-volver" (click)="handleBack()" aria-label="Volver a gestión de compras" title="Volver a gestión de compras">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="header-text">
+        <h1>Proveedores</h1>
+      </div>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-secondary" (click)="handleBack()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        Gestión de compras
-      </button>
       <button type="button" class="btn-primary" (click)="irANuevo()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         Nuevo proveedor

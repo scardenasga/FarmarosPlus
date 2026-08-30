@@ -225,6 +225,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
+  /* permite que el contenido largo haga scroll dentro del acordeón sin romper el layout */
+  max-height: 48vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-width: thin;
+}
+
+.acordeon-cuerpo::-webkit-scrollbar {
+  width: 6px;
+}
+
+.acordeon-cuerpo::-webkit-scrollbar-thumb {
+  background-color: var(--outline-variant, rgba(0,0,0,0.15));
+  border-radius: 9999px;
 }
 
 .btn-add-producto {
