@@ -7,6 +7,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../services/usuario-admin.service';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
+import { PermisoService } from '../../../shared/services/permiso.service';
 
 @Component({
   selector: 'app-settings',
@@ -490,6 +491,44 @@ import { NotificacionService } from '../../../shared/services/notificacion.servi
       font-size: 0.84rem;
       text-align: center;
     }
+
+    /* Panel deslizante permisos (igual que producto-formulario-panel) */
+    .panel-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+      z-index: 1002;
+    }
+    .panel-formulario {
+      position: fixed; top: 0; right: 0; height: 100vh; width: 100%; max-width: 480px;
+      background: var(--bg-main, var(--background));
+      box-shadow: -8px 0 30px rgba(0,0,0,0.25);
+      z-index: 1003; display: flex; flex-direction: column;
+      animation: panel-entrada 0.25s ease-out;
+    }
+    @keyframes panel-entrada { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .panel-header {
+      flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between;
+      gap: var(--space-m); padding: var(--space-m) var(--space-l);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .panel-header-texto h2 { margin: 2px 0; font-size: 1rem; font-weight: 800; color: var(--text-dark); }
+    .panel-ref { font-size: 0.60rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--text-muted); }
+    .btn-cerrar-panel {
+      width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center;
+      color: var(--text-muted); background: var(--surface-container); flex-shrink: 0;
+    }
+    .btn-cerrar-panel:hover { background: var(--danger-bg); color: var(--danger-text); }
+    .btn-cerrar-panel svg { width: 15px; height: 15px; }
+    .panel-cuerpo { flex: 1; overflow-y: auto; padding: var(--space-l); display: flex; flex-direction: column; gap: var(--space-m); }
+    .panel-footer {
+      flex-shrink: 0; padding: var(--space-m) var(--space-l);
+      border-top: 1px solid var(--border-color); display: flex; gap: var(--space-m);
+      background: var(--card-bg);
+    }
+    .btn-panel { flex: 1; padding: var(--space-s) var(--space-m); border-radius: 8px; font-weight: 700; font-size: 0.82rem; }
+    .btn-panel.secundario { background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); }
+    .btn-panel.primario { background: var(--accent-green-dark, var(--primary-container)); color: var(--on-primary-container); border: none; }
+    .btn-panel.primario:disabled { opacity: 0.6; cursor: wait; }
   `]
 })
 export class SettingsComponent implements OnInit {
@@ -535,6 +574,15 @@ export class SettingsComponent implements OnInit {
   mostrarTodosTemas = signal(false);
   formUsuario: CrearUsuarioPayload = { username: '', passwordHash: '', nombreCompleto: '', rol: 'VENDEDOR', estado: 'ACTIVO' };
 
+  // Permisos auto-generados (panel deslizante como en Inventario)
+  permisoService = inject(PermisoService);
+  usuarioPermisoId = signal<number | null>(null);
+  permisosUsuario = signal<Set<string>>(new Set());
+  cargandoPermisosUsuario = signal(false);
+  guardandoPermisos = signal(false);
+  panelPermisosUsuario = signal<UsuarioAdmin | null>(null);
+  panelPermisosAbierto = computed(() => this.panelPermisosUsuario() !== null);
+
   // Diálogos de confirmación (reemplaza confirm() nativo)
   usuarioPendienteEstado = signal<{ usuario: UsuarioAdmin; nuevoEstado: string } | null>(null);
   usuarioPendienteEliminar = signal<UsuarioAdmin | null>(null);
@@ -561,7 +609,10 @@ export class SettingsComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    if (this.esAdmin()) this.cargarUsuarios();
+    if (this.esAdmin()) {
+      this.cargarUsuarios();
+      this.permisoService.cargarCatalogo();
+    }
   }
 
   changeTheme(theme: ThemeType) {
@@ -703,5 +754,68 @@ export class SettingsComponent implements OnInit {
   inicialDe(u: UsuarioAdmin): string {
     const base = u.nombreCompleto || u.username || '?';
     return base.trim().charAt(0).toUpperCase();
+  }
+
+  abrirPanelPermisos(u: UsuarioAdmin): void {
+    if (!this.esAdmin()) { this.notificacion.error('Solo ADMIN puede gestionar permisos'); return; }
+    this.panelPermisosUsuario.set(u);
+    this.usuarioPermisoId.set(u.id);
+    this.cargandoPermisosUsuario.set(true);
+    this.permisoService.obtenerPermisosUsuario(u.id).subscribe({
+      next: d => { this.permisosUsuario.set(new Set(d ?? [])); this.cargandoPermisosUsuario.set(false); },
+      error: () => { this.notificacion.error('No se pudieron cargar permisos'); this.cargandoPermisosUsuario.set(false); }
+    });
+  }
+
+  cerrarPanelPermisos(): void {
+    this.panelPermisosUsuario.set(null);
+  }
+
+  // --- Permisos automáticos por usuario (compatibilidad) ---
+  seleccionarUsuarioPermisos(id: number | null): void {
+    this.usuarioPermisoId.set(id);
+    if (id == null) { this.permisosUsuario.set(new Set()); return; }
+    this.cargandoPermisosUsuario.set(true);
+    this.permisoService.obtenerPermisosUsuario(id).subscribe({
+      next: d => { this.permisosUsuario.set(new Set(d ?? [])); this.cargandoPermisosUsuario.set(false); },
+      error: () => { this.notificacion.error('No se pudieron cargar permisos'); this.cargandoPermisosUsuario.set(false); }
+    });
+  }
+
+  tienePermisoUsuario(clave: string): boolean {
+    return this.permisosUsuario().has(clave);
+  }
+
+  togglePermisoUsuario(clave: string): void {
+    const next = new Set(this.permisosUsuario());
+    if (next.has(clave)) next.delete(clave);
+    else next.add(clave);
+    this.permisosUsuario.set(next);
+  }
+
+  guardarPermisosUsuario(): void {
+    const id = this.usuarioPermisoId() ?? this.panelPermisosUsuario()?.id ?? null;
+    if (id == null) { this.notificacion.error('Selecciona un usuario'); return; }
+    const map: Record<string, boolean> = {};
+    for (const p of this.permisoService.catalogo()) {
+      map[p.clave] = this.permisosUsuario().has(p.clave);
+    }
+    this.guardandoPermisos.set(true);
+    this.permisoService.guardarPermisosUsuario(id, map).subscribe({
+      next: d => {
+        this.permisosUsuario.set(new Set(d ?? []));
+        this.guardandoPermisos.set(false);
+        this.notificacion.exito('Permisos guardados');
+        if (id === this.usuario().idUsuario) {
+          this.permisoService.setDesdeLogin(d ?? []);
+          try { localStorage.setItem('farmaros.permisos', JSON.stringify(d ?? [])); } catch {}
+        }
+        this.cerrarPanelPermisos();
+      },
+      error: err => {
+        this.guardandoPermisos.set(false);
+        this.notificacion.error(err?.error?.message || 'No se pudieron guardar permisos');
+      }
+    });
   }
 }

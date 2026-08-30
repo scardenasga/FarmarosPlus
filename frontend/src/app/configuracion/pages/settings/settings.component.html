@@ -145,7 +145,7 @@
                 <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th style="text-align:center">Acción</th></tr></thead>
                 <tbody>
                   @for (u of usuariosFiltrados(); track u.id) {
-                    <tr>
+                    <tr (click)="abrirPanelPermisos(u)" style="cursor:pointer;">
                       <td>
                         <div class="user-cell">
                           <span class="mini-avatar">{{ inicialDe(u) }}</span>
@@ -157,8 +157,11 @@
                       </td>
                       <td><span class="rol-pill" [class.rol-admin]="u.rol==='ADMIN'" [class.rol-vendedor]="u.rol!=='ADMIN'">{{ u.rol }}</span></td>
                       <td><span class="estado-pill" [class.estado-activo]="u.estado==='ACTIVO'" [class.estado-inactivo]="u.estado!=='ACTIVO'">{{ u.estado }}</span></td>
-                      <td style="text-align:center">
+                      <td style="text-align:center" (click)="$event.stopPropagation()">
                         <span style="display:inline-flex; gap:4px;">
+                          <button type="button" class="icon-btn" title="Gestionar permisos" (click)="abrirPanelPermisos(u)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                          </button>
                           <button type="button" class="icon-btn" [class.danger]="u.estado==='ACTIVO'" title="{{ u.estado==='ACTIVO' ? 'Desactivar' : 'Activar' }}" (click)="solicitarCambioEstado(u)">
                             @if (u.estado === 'ACTIVO') {
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -197,6 +200,52 @@
       </div>
     </section>
   </main>
+
+  <!-- Panel deslizante permisos (izquierda/derecha como en Inventario) -->
+  @if (panelPermisosAbierto()) {
+    <div class="panel-backdrop" (click)="cerrarPanelPermisos()"></div>
+    <aside class="panel-formulario">
+      <header class="panel-header">
+        <div class="panel-header-texto">
+          <span class="panel-ref">Permisos · {{ panelPermisosUsuario()?.username }} · {{ panelPermisosUsuario()?.rol }}</span>
+          <h2>{{ panelPermisosUsuario()?.nombreCompleto }}</h2>
+          <span class="panel-ref">ID #{{ panelPermisosUsuario()?.id }} · {{ panelPermisosUsuario()?.estado }}</span>
+        </div>
+        <button type="button" class="btn-cerrar-panel" (click)="cerrarPanelPermisos()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+
+      <div class="panel-cuerpo">
+        @if (cargandoPermisosUsuario()) {
+          <div style="padding: var(--space-xl); text-align:center; color: var(--text-muted);">Cargando permisos...</div>
+        } @else {
+          <p style="font-size:0.74rem; color:var(--text-muted); font-weight:600; margin:0;">Activa las secciones que este empleado podrá ver. Cada permiso corresponde a una ruta del sidebar.</p>
+          <div style="display:flex; flex-direction:column; gap: var(--space-m);">
+            @for (entry of permisoService.agrupadoPorModulo().entries(); track entry[0]) {
+              <div style="border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); padding: var(--space-s) var(--space-m);">
+                <div style="font-size:0.68rem; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">{{ entry[0] }}</div>
+                @for (p of entry[1]; track p.clave) {
+                  <label style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:0.78rem; font-weight:600; color:var(--text-dark); cursor:pointer;">
+                    <input type="checkbox" [checked]="tienePermisoUsuario(p.clave)" (change)="togglePermisoUsuario(p.clave)" style="accent-color: var(--primary);" />
+                    <span>{{ p.descripcion }}</span>
+                    <span style="margin-left:auto; font-size:0.62rem; color:var(--text-muted); font-family:monospace;">{{ p.clave }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <footer class="panel-footer">
+        <button type="button" class="btn-panel secundario" (click)="cerrarPanelPermisos()">Cancelar</button>
+        <button type="button" class="btn-panel primario" [disabled]="guardandoPermisos()" (click)="guardarPermisosUsuario()">
+          {{ guardandoPermisos() ? 'Guardando...' : 'Guardar permisos' }}
+        </button>
+      </footer>
+    </aside>
+  }
 
   <!-- Diálogos de confirmación - usan el mismo componente que Inventario/Compras (ConfirmationDialogComponent) -->
   @if (confirmarCerrarSesion()) {

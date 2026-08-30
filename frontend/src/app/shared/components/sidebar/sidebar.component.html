@@ -19,9 +19,9 @@
     }
   </div>
 
-  <!-- Navigation Items -->
+  <!-- Navigation Items - filtrados automáticamente por permisoService.tiene() -->
   <nav class="sidebar-nav">
-    <!-- 1. Resumen / Home -->
+    @if (tienePermiso('DASHBOARD_VER')) {
     <a
       [routerLink]="'/dashboard'"
       class="nav-btn"
@@ -38,8 +38,10 @@
         <span class="nav-label">Resumen</span>
       }
     </a>
+    }
 
-    <!-- 2. Ventas con submenu desplegable -->
+    <!-- Ventas con submenu desplegable -->
+    @if (ventasVisible()) {
     <div class="nav-group">
       <div
         class="nav-btn nav-fila"
@@ -77,7 +79,7 @@
 
       @if (navService.isSidebarExpanded() && ventasSubmenuAbierto()) {
         <ul class="submenu">
-          @for (item of ventasSubmenu; track item.link) {
+          @for (item of ventasSubmenu(); track item.link) {
             <li>
               <a
                 [routerLink]="item.link"
@@ -89,8 +91,8 @@
         </ul>
       }
     </div>
-
-    <!-- 3. Inventario y Medicamentos -->
+    }
+    @if (tienePermiso('INVENTARIO_VER')) {
     <a
       [routerLink]="'/inventario'"
       class="nav-btn"
@@ -106,8 +108,8 @@
         <span class="nav-label">Inventario</span>
       }
     </a>
-
-    <!-- 4. Compras a Proveedores -->
+    }
+    @if (tienePermiso('COMPRAS_VER')) {
     <a
       [routerLink]="'/compras-gestion'"
       class="nav-btn"
@@ -126,8 +128,8 @@
         <span class="nav-label">Compras</span>
       }
     </a>
-
-    <!-- 5. Analítica Avanzada -->
+    }
+    @if (tienePermiso('ANALITICA_VER')) {
     <a
       [routerLink]="'/analitica'"
       class="nav-btn"
@@ -145,9 +147,11 @@
         <span class="nav-label">Analítica</span>
       }
     </a>
+    }
   </nav>
 
   <!-- Bottom Section: Configuración -->
+  @if (tienePermiso('CONFIG_VER')) {
   <div class="sidebar-bottom">
     <a
       [routerLink]="'/configuracion'"
@@ -166,4 +170,5 @@
       }
     </a>
   </div>
+  }
 </aside>

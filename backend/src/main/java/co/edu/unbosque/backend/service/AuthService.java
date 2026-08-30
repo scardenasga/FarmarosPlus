@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 /**
  * Servicio de autenticación simple para login por username/password.
@@ -22,10 +23,12 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PermisoService permisoService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, PermisoService permisoService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.permisoService = permisoService;
     }
 
     /**
@@ -58,13 +61,15 @@ public class AuthService {
         usuario.setUltimoAcceso(LocalDateTime.now());
         usuarioRepository.save(usuario);
 
+        Set<String> permisos = permisoService.permisosEfectivos(usuario.getIdUsuario());
         return new LoginResponse(
                 usuario.getIdUsuario(),
                 usuario.getUsername(),
                 usuario.getNombreCompleto(),
                 usuario.getRol(),
                 usuario.getEstado(),
-                usuario.getUltimoAcceso()
+                usuario.getUltimoAcceso(),
+                permisos
         );
     }
 }

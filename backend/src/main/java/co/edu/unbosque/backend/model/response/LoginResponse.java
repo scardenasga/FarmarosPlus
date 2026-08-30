@@ -18,6 +18,7 @@ public record LoginResponse(
         String nombreCompleto,
         String rol,
         String estado,
-        LocalDateTime ultimoAcceso
+        LocalDateTime ultimoAcceso,
+        java.util.Set<String> permisos
 ) {
 }

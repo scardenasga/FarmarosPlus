@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationService } from '../../services/navigation.service';
+import { PermisoService } from '../../services/permiso.service';
 import { SesionService } from '../../services/sesion.service';
 
 interface SidebarItem {
@@ -12,6 +13,7 @@ interface SidebarItem {
   title: string;
   iconPath: string;
   isBottom?: boolean;
+  permiso?: string;
 }
 
 interface SidebarSubmenu {
@@ -30,46 +32,53 @@ export class SidebarComponent {
   readonly navService = inject(NavigationService);
   private readonly router = inject(Router);
   private readonly sesion = inject(SesionService);
+  private readonly permisoService = inject(PermisoService);
 
   readonly mainNavItems: SidebarItem[] = [
     {
       label: 'Resumen',
       title: 'Resumen del Negocio',
       link: '/dashboard',
-      iconPath: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'
+      iconPath: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      permiso: 'DASHBOARD_VER'
     },
     {
       label: 'Inventario',
       title: 'Inventario y Medicamentos',
       link: '/inventario',
-      iconPath: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'
+      iconPath: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z',
+      permiso: 'INVENTARIO_VER'
     },
     {
       label: 'Compras',
       title: 'Compras a Proveedores',
       link: '/compras-gestion',
-      iconPath: 'M1 3h15v13H1z'
+      iconPath: 'M1 3h15v13H1z',
+      permiso: 'COMPRAS_VER'
     },
     {
       label: 'Analítica',
       title: 'Analítica Avanzada',
       link: '/analitica',
-      iconPath: 'M18 20V10M12 20V4M6 20v-6'
+      iconPath: 'M18 20V10M12 20V4M6 20v-6',
+      permiso: 'ANALITICA_VER'
     }
   ];
 
-  /** Subsecciones del módulo de ventas accesibles desde el menú desplegable.
-   *  VENDEDOR solo ve historial + POS; reporte es solo ADMIN (validado también por roleGuard en rutas).
-   */
-  get ventasSubmenu(): SidebarSubmenu[] {
-    const esAdmin = this.sesion.esAdmin();
-    const base: SidebarSubmenu[] = [
-      { label: 'Historial de ventas', link: '/ventas' },
-      { label: 'Nueva venta (POS)', link: '/ventas/pos' }
-    ];
-    if (esAdmin) base.push({ label: 'Reporte de ventas', link: '/reportes/ventas' });
+  // Computed para no recalcular en cada CD y no bloquear main thread
+  mainNavFiltrados = computed(() => this.mainNavItems.filter(i => !i.permiso || this.permisoService.tiene(i.permiso)));
+
+  tienePermiso = (clave: string | undefined): boolean => !clave || this.permisoService.tiene(clave);
+
+  ventasSubmenu = computed(() => {
+    const base: SidebarSubmenu[] = [];
+    if (this.permisoService.tiene('VENTAS_VER')) base.push({ label: 'Historial de ventas', link: '/ventas' });
+    if (this.permisoService.tiene('VENTAS_CREAR')) base.push({ label: 'Nueva venta (POS)', link: '/ventas/pos' });
+    if (this.permisoService.tiene('VENTAS_REPORTES_VER')) base.push({ label: 'Reporte de ventas', link: '/reportes/ventas' });
     return base;
-  }
+  });
+
+  ventasVisible = computed(() => this.permisoService.tiene('VENTAS_VER') || this.permisoService.tiene('VENTAS_CREAR'));
 
   readonly bottomItem: SidebarItem = {
     label: 'Configuración',

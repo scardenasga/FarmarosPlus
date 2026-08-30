@@ -7,7 +7,7 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
 import { EstadoVentaComponent } from '../../../shared/components/estado-venta/estado-venta.component';
 import { VentaDetallePanelComponent } from '../../components/venta-detalle-panel/venta-detalle-panel.component';
 import { VentaService } from '../../services/venta.service';
-import { SesionService } from '../../../shared/services/sesion.service';
+import { PermisoService } from '../../../shared/services/permiso.service';
 import {
   Venta,
   metodoPagoPrincipal,
@@ -40,8 +40,8 @@ export class HistorialVentasComponent implements OnInit {
   private ventaService = inject(VentaService);
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
-  private sesion = inject(SesionService);
-  esAdmin = this.sesion.esAdmin;
+  private permisoService = inject(PermisoService);
+  tieneReportes = () => this.permisoService.tiene('VENTAS_REPORTES_VER');
 
   ventas = signal<Venta[]>([]);
   isLoading = signal<boolean>(true);
