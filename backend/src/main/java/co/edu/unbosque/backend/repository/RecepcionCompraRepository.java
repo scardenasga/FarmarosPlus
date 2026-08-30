@@ -15,6 +15,7 @@ import java.util.List;
 public interface RecepcionCompraRepository extends JpaRepository<RecepcionCompra, Long> {
     List<RecepcionCompra> findByEstadoPagoOrderByFechaRecepcionDesc(String estadoPago);
     List<RecepcionCompra> findByOrden_IdOrdenOrderByFechaRecepcionDesc(Long ordenId);
+    boolean existsByUsuario_IdUsuario(Long idUsuario);
 
     /**
      * Cumplimiento de entregas a tiempo por proveedor: cuenta recepciones y

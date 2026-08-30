@@ -5,11 +5,13 @@ import { ThemeService, ThemeType } from '../../../services/theme.service';
 import { SesionService } from '../../../shared/services/sesion.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../services/usuario-admin.service';
+import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { NotificacionService } from '../../../shared/services/notificacion.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   templateUrl: './settings.component.html',
   styles: [`
     .settings-page {
@@ -128,32 +130,32 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
       padding: var(--space-l);
     }
 
-    /* Sesión */
+    /* Sesión compacta - sin duplicados */
     .sesion-main {
       display: flex;
       align-items: center;
-      gap: var(--space-l);
-      flex-wrap: wrap;
+      gap: var(--space-m);
+      flex-wrap: nowrap;
     }
 
     .avatar {
-      width: 52px;
-      height: 52px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: var(--accent-green-dark, var(--primary-container));
       color: var(--on-primary-container);
       display: grid;
       place-items: center;
       font-weight: 800;
-      font-size: 18px;
+      font-size: 15px;
       flex-shrink: 0;
       box-shadow: var(--shadow-1);
     }
 
-    .sesion-meta { flex: 1; min-width: 180px; }
+    .sesion-meta { flex: 1; min-width: 0; }
 
     .sesion-nombre {
-      font-size: 0.95rem;
+      font-size: 0.84rem;
       font-weight: 800;
       color: var(--text-dark, var(--on-background));
       margin: 0;
@@ -163,60 +165,27 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
     }
 
     .sesion-username {
-      font-size: 0.76rem;
+      font-size: 0.68rem;
       color: var(--text-muted, var(--outline));
-      margin: 2px 0 0 0;
+      margin: 0;
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .badge-rol {
-      font-size: 0.62rem;
+      font-size: 0.60rem;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       font-weight: 800;
-      padding: 6px 12px;
+      padding: 3px 8px;
       border-radius: 9999px;
       flex-shrink: 0;
     }
 
     .badge-rol.admin { background: var(--primary-container); color: var(--on-primary-container); }
     .badge-rol.vendor { background: var(--secondary-container); color: var(--on-secondary-container); }
-
-    .sesion-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: var(--space-m);
-      margin-top: var(--space-l);
-      background: var(--bg-main, var(--surface-container));
-      border: 1px solid var(--border-color, var(--outline-variant));
-      border-radius: 12px;
-      padding: var(--space-m);
-    }
-
-    .detail-item { display: flex; flex-direction: column; gap: 4px; }
-
-    .detail-label {
-      font-size: 0.62rem;
-      font-weight: 800;
-      color: var(--text-muted, var(--outline));
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-    }
-
-    .detail-value {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text-dark, var(--on-background));
-    }
-
-    .detail-value.mono { font-family: monospace; font-size: 0.76rem; font-weight: 600; }
-
-    .sesion-actions {
-      margin-top: var(--space-l);
-      display: flex;
-      gap: var(--space-s);
-      flex-wrap: wrap;
-    }
 
     .btn-primary {
       display: inline-flex;
@@ -248,30 +217,30 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
 
     .btn-primary:hover, .btn-danger:hover, .btn-ghost:hover { filter: brightness(1.06); }
 
-    /* Temas - grid como tarjetas de producto */
+    /* Temas - compacto y escalable */
     .theme-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: var(--space-m);
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: var(--space-s);
     }
 
     .theme-card {
       background-color: var(--bg-main, var(--surface-container-low));
       border: 1px solid var(--border-color, var(--outline-variant));
-      border-radius: 12px;
-      padding: var(--space-m);
+      border-radius: 10px;
+      padding: var(--space-s);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--space-m);
+      gap: var(--space-s);
       transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
     }
 
     .theme-card:hover {
       border-color: var(--primary);
       box-shadow: var(--shadow-card);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .theme-card.active {
@@ -283,24 +252,38 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
 
     .theme-preview {
       width: 100%;
-      height: 56px;
-      border-radius: 10px;
+      height: 36px;
+      border-radius: 8px;
       display: flex;
       overflow: hidden;
       border: 1px solid var(--border-color, var(--outline-variant));
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
     }
 
     .preview-color { flex: 1; }
 
     .theme-name {
-      font-size: 0.74rem;
+      font-size: 0.66rem;
       font-weight: 800;
       text-align: center;
       line-height: 1.2;
     }
 
     .theme-card.active .theme-name { color: var(--on-primary-container); }
+
+    .theme-toggle {
+      margin-top: var(--space-m);
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-link {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: underline;
+      padding: 4px 8px;
+    }
 
     .info-row {
       display: flex;
@@ -367,7 +350,7 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
       border-radius: 12px;
       overflow: hidden;
       background: var(--bg-main);
-      max-height: 260px;
+      max-height: 180px;
       overflow-y: auto;
     }
 
@@ -381,10 +364,10 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
     }
 
     .usuarios-tabla thead th {
-      padding: 10px var(--space-m);
-      font-size: 0.62rem;
+      padding: 7px var(--space-s);
+      font-size: 0.60rem;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.7px;
       font-weight: 800;
       color: var(--text-muted);
       border-bottom: 1px solid var(--border-color);
@@ -394,9 +377,9 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
     }
 
     .usuarios-tabla tbody td {
-      padding: 11px var(--space-m);
+      padding: 7px var(--space-s);
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.82rem;
+      font-size: 0.76rem;
       color: var(--text-dark);
     }
 
@@ -438,20 +421,20 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
     .icon-btn svg { width: 14px; height: 14px; }
 
     .form-card {
-      margin-top: var(--space-m);
+      margin-top: var(--space-s);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       background: var(--bg-main);
-      padding: var(--space-l);
+      padding: var(--space-m);
       display: flex;
       flex-direction: column;
-      gap: var(--space-m);
+      gap: var(--space-s);
     }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: var(--space-m);
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-s);
     }
 
     .form-field { display: flex; flex-direction: column; gap: 6px; }
@@ -515,6 +498,7 @@ export class SettingsComponent implements OnInit {
   sesion = inject(SesionService);
   private auth = inject(AuthService);
   private usuariosService = inject(UsuarioAdminService);
+  private notificacion = inject(NotificacionService);
 
   usuario = this.sesion.usuario;
   inicial = computed(() => {
@@ -523,22 +507,38 @@ export class SettingsComponent implements OnInit {
     return base.trim().charAt(0).toUpperCase();
   });
   esAdmin = computed(() => this.sesion.esAdmin());
+  rolReal = computed(() => this.sesion.usuario().rol?.toUpperCase() || '');
+  previewActivo = this.sesion.previewVendedor;
+  puedePreview = computed(() => this.sesion.puedePreview());
   rolLabel = computed(() => {
-    const r = this.usuario().rol?.toUpperCase();
+    const r = this.sesion.rolEfectivo();
     if (r === 'ADMIN') return 'Administrador';
     if (r === 'VENDEDOR' || r === 'EMPLEADO') return 'Vendedor';
     return r || '—';
   });
 
+  togglePreview(): void {
+    this.sesion.togglePreview();
+    if (this.sesion.esPreviewActivo()) {
+      this.notificacion.info('Vista previa VENDEDOR activa — navega como vendedor');
+    } else {
+      this.notificacion.exito('Vista ADMIN restaurada');
+    }
+  }
+
   // Gestión usuarios (solo ADMIN)
   usuarios = signal<UsuarioAdmin[]>([]);
   cargandoUsuarios = signal(false);
-  errorUsuarios = signal<string | null>(null);
   filtroUsuarios = signal('');
   mostrarFormUsuario = signal(false);
   guardandoUsuario = signal(false);
-  errorFormUsuario = signal<string | null>(null);
+  mostrarTodosTemas = signal(false);
   formUsuario: CrearUsuarioPayload = { username: '', passwordHash: '', nombreCompleto: '', rol: 'VENDEDOR', estado: 'ACTIVO' };
+
+  // Diálogos de confirmación (reemplaza confirm() nativo)
+  usuarioPendienteEstado = signal<{ usuario: UsuarioAdmin; nuevoEstado: string } | null>(null);
+  usuarioPendienteEliminar = signal<UsuarioAdmin | null>(null);
+  confirmarCerrarSesion = signal(false);
 
   usuariosFiltrados = computed(() => {
     const q = this.filtroUsuarios().toLowerCase().trim();
@@ -546,6 +546,8 @@ export class SettingsComponent implements OnInit {
     if (!q) return lista;
     return lista.filter(u => u.username.toLowerCase().includes(q) || u.nombreCompleto.toLowerCase().includes(q) || u.rol.toLowerCase().includes(q));
   });
+
+  themesVisibles = computed(() => this.mostrarTodosTemas() ? this.themes : this.themes.slice(0, 4));
 
   themes: { id: ThemeType; name: string; colors: string[] }[] = [
     { id: 'light-theme', name: 'Claro Clásico', colors: ['#006a60', '#f4fbf7', '#ffffff'] },
@@ -570,16 +572,32 @@ export class SettingsComponent implements OnInit {
     window.history.back();
   }
 
-  cerrarSesion() {
+  solicitarCerrarSesion(): void {
+    this.confirmarCerrarSesion.set(true);
+  }
+
+  cancelarCerrarSesion(): void {
+    this.confirmarCerrarSesion.set(false);
+  }
+
+  confirmarCerrarSesionAccion(): void {
+    this.confirmarCerrarSesion.set(false);
     this.auth.logout();
+    this.notificacion.info('Sesión cerrada');
+  }
+
+  cerrarSesion() {
+    this.solicitarCerrarSesion();
   }
 
   cargarUsuarios(): void {
     this.cargandoUsuarios.set(true);
-    this.errorUsuarios.set(null);
     this.usuariosService.listar().subscribe({
       next: (data) => { this.usuarios.set(data); this.cargandoUsuarios.set(false); },
-      error: (err) => { this.errorUsuarios.set(err?.error?.message || 'No se pudieron cargar los usuarios'); this.cargandoUsuarios.set(false); }
+      error: (err) => {
+        this.notificacion.error(err?.error?.message || 'No se pudieron cargar los usuarios');
+        this.cargandoUsuarios.set(false);
+      }
     });
   }
 
@@ -589,7 +607,6 @@ export class SettingsComponent implements OnInit {
 
   toggleFormUsuario(): void {
     this.mostrarFormUsuario.update(v => !v);
-    this.errorFormUsuario.set(null);
     if (!this.mostrarFormUsuario()) {
       this.formUsuario = { username: '', passwordHash: '', nombreCompleto: '', rol: 'VENDEDOR', estado: 'ACTIVO' };
     }
@@ -598,35 +615,89 @@ export class SettingsComponent implements OnInit {
   crearUsuario(): void {
     const p = this.formUsuario;
     if (!p.username.trim() || !p.passwordHash.trim() || !p.nombreCompleto.trim() || !p.rol.trim()) {
-      this.errorFormUsuario.set('Completa username, contraseña, nombre completo y rol');
+      this.notificacion.error('Completa username, contraseña, nombre completo y rol');
       return;
     }
     this.guardandoUsuario.set(true);
-    this.errorFormUsuario.set(null);
     this.usuariosService.crear({ ...p, username: p.username.trim(), passwordHash: p.passwordHash.trim(), nombreCompleto: p.nombreCompleto.trim(), rol: p.rol.trim().toUpperCase() }).subscribe({
       next: () => {
         this.guardandoUsuario.set(false);
         this.mostrarFormUsuario.set(false);
         this.formUsuario = { username: '', passwordHash: '', nombreCompleto: '', rol: 'VENDEDOR', estado: 'ACTIVO' };
+        this.notificacion.exito(`Usuario "${p.username.trim()}" creado correctamente`);
         this.cargarUsuarios();
       },
       error: (err) => {
         this.guardandoUsuario.set(false);
-        this.errorFormUsuario.set(err?.error?.message || 'No se pudo crear el usuario');
+        this.notificacion.error(err?.error?.message || 'No se pudo crear el usuario');
       }
     });
   }
 
-  cambiarEstadoUsuario(u: UsuarioAdmin): void {
+  // Flujo con ConfirmationDialog (igual que inventario)
+  solicitarCambioEstado(u: UsuarioAdmin): void {
     const nuevo = u.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
     if (u.id === this.usuario().idUsuario) {
-      this.errorUsuarios.set('No puedes cambiar tu propio estado');
+      this.notificacion.error('No puedes cambiar tu propio estado');
       return;
     }
-    this.usuariosService.actualizarEstado(u.id, nuevo).subscribe({
-      next: () => this.cargarUsuarios(),
-      error: (err) => this.errorUsuarios.set(err?.error?.message || 'No se pudo actualizar el estado')
+    this.usuarioPendienteEstado.set({ usuario: u, nuevoEstado: nuevo });
+  }
+
+  cancelarCambioEstado(): void {
+    this.usuarioPendienteEstado.set(null);
+  }
+
+  confirmarCambioEstado(): void {
+    const pendiente = this.usuarioPendienteEstado();
+    if (!pendiente) return;
+    const { usuario, nuevoEstado } = pendiente;
+    this.usuarioPendienteEstado.set(null);
+    this.usuariosService.actualizarEstado(usuario.id, nuevoEstado).subscribe({
+      next: () => {
+        this.notificacion.exito(`Usuario "${usuario.username}" ahora ${nuevoEstado}`);
+        this.cargarUsuarios();
+      },
+      error: (err) => this.notificacion.error(err?.error?.message || 'No se pudo actualizar el estado')
     });
+  }
+
+  // Mantener alias para template existente
+  cambiarEstadoUsuario(u: UsuarioAdmin): void {
+    this.solicitarCambioEstado(u);
+  }
+
+  solicitarEliminarUsuario(u: UsuarioAdmin): void {
+    if (u.id === this.usuario().idUsuario) {
+      this.notificacion.error('No puedes eliminar tu propia cuenta');
+      return;
+    }
+    if (u.username.toLowerCase() === 'sistema') {
+      this.notificacion.error('No se puede eliminar el usuario SISTEMA');
+      return;
+    }
+    this.usuarioPendienteEliminar.set(u);
+  }
+
+  cancelarEliminarUsuario(): void {
+    this.usuarioPendienteEliminar.set(null);
+  }
+
+  confirmarEliminarUsuario(): void {
+    const u = this.usuarioPendienteEliminar();
+    if (!u) return;
+    this.usuarioPendienteEliminar.set(null);
+    this.usuariosService.eliminar(u.id).subscribe({
+      next: () => {
+        this.notificacion.exito(`Usuario "${u.username}" eliminado`);
+        this.cargarUsuarios();
+      },
+      error: (err) => this.notificacion.error(err?.error?.message || 'No se pudo eliminar. Si tiene historial, inactívalo en su lugar.')
+    });
+  }
+
+  eliminarUsuario(u: UsuarioAdmin): void {
+    this.solicitarEliminarUsuario(u);
   }
 
   inicialDe(u: UsuarioAdmin): string {

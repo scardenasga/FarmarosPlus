@@ -39,6 +39,8 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
      */
     List<Venta> findByUsuario_IdUsuarioOrderByFechaDesc(Long idUsuario);
 
+    boolean existsByUsuario_IdUsuario(Long idUsuario);
+
     /**
      * Lista ventas dentro de un rango temporal.
      *

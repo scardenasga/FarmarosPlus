@@ -35,6 +35,7 @@ import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin
 import { AnalyticsComponent } from './dashboard/pages/analytics/analytics.component';
 import { LoginComponent } from './auth/pages/login/login.component';
 import { authGuard, loginGuard } from './auth/guards/auth.guard';
+import { roleGuard } from './auth/guards/role.guard';
 
 export const routes: Routes = [
   // Auth - primera pantalla
@@ -54,15 +55,16 @@ export const routes: Routes = [
   { path: 'health', component: HealthComponent },
 
   // --- VENTAS ---
+  // VENDEDOR: solo historial (resumen diario) y POS; reportes y anulación solo ADMIN
   { path: 'ventas', component: HistorialVentasComponent, canActivate: [authGuard] },
   { path: 'ventas/pos', component: PosVentaComponent, canActivate: [authGuard] },
   // Flujo antiguo (buscar -> registrar) reemplazado por la vista POS única
   { path: 'ventas/crear', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/registrar', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent, canActivate: [authGuard] },
-  { path: 'reportes/ventas', component: ReporteVentasComponent, canActivate: [authGuard] },
+  { path: 'reportes/ventas', component: ReporteVentasComponent, canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] } },
   { path: 'ventas/:id', component: DetalleVentaComponent, canActivate: [authGuard] },
-  { path: 'ventas/:id/anular', component: AnularVentaComponent, canActivate: [authGuard] },
+  { path: 'ventas/:id/anular', component: AnularVentaComponent, canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] } },
 
   // --- ALERTAS ---
   { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },

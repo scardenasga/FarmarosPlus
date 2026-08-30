@@ -8,46 +8,39 @@
   <main class="settings-content">
     <!-- Sesión -->
     <section class="section-card">
-      <div class="section-card-header">
-        <div class="section-icon icon-teal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="section-card-header" style="padding: var(--space-m) var(--space-l);">
+        <div class="section-icon icon-teal" style="width: 30px; height: 30px; border-radius: 8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div>
-          <h2>Sesión actual</h2>
-          <p class="section-desc">Usuario conectado · localStorage</p>
+          <h2 style="font-size: 0.84rem;">Sesión</h2>
         </div>
       </div>
-      <div class="section-body">
-        <div class="sesion-main">
-          <div class="avatar">{{ inicial() }}</div>
-          <div class="sesion-meta">
-            <p class="sesion-nombre">{{ usuario().nombreCompleto || usuario().username }}</p>
-            <p class="sesion-username">{{ '@' + usuario().username }} · ID {{ usuario().idUsuario }}</p>
+      <div class="section-body" style="padding: var(--space-m) var(--space-l);">
+        <div class="sesion-main" style="gap: var(--space-m);">
+          <div class="avatar" style="width: 40px; height: 40px; font-size: 15px;">{{ inicial() }}</div>
+          <div class="sesion-meta" style="line-height: 1.2;">
+            <p class="sesion-nombre" style="font-size: 0.84rem;">{{ usuario().nombreCompleto || usuario().username }} <span style="font-weight:600; color: var(--text-muted); font-size: 0.72rem;">· {{ '@' + usuario().username }}</span></p>
+            <p class="sesion-username" style="margin:0; font-size: 0.68rem;"><span class="badge-rol" [class.admin]="esAdmin()" [class.vendor]="!esAdmin()" style="padding: 2px 8px; font-size: 0.60rem; vertical-align: middle;">{{ rolLabel() }}</span> · ID {{ usuario().idUsuario }}</p>
           </div>
-          <span class="badge-rol" [class.admin]="esAdmin()" [class.vendor]="!esAdmin()">{{ rolLabel() }}</span>
+          <span style="display:inline-flex; gap:6px; margin-left:auto; align-items:center;">
+            @if (puedePreview()) {
+              <button type="button" (click)="togglePreview()" [title]="previewActivo() ? 'Volver a ADMIN' : 'Ver como vendedor'" style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:999px; border:1px solid var(--border-color); background: var(--bg-main); color: var(--text-muted); font-size:0.66rem; font-weight:700;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                {{ previewActivo() ? 'ADMIN' : 'Vendedor' }}
+              </button>
+            }
+            <button type="button" class="btn-danger" style="padding: 7px 12px; font-size: 0.72rem;" (click)="solicitarCerrarSesion()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Salir
+            </button>
+          </span>
         </div>
-
-        <div class="sesion-grid">
-          <div class="detail-item">
-            <span class="detail-label">Usuario</span>
-            <span class="detail-value mono">{{ usuario().username }}</span>
+        @if (previewActivo()) {
+          <div style="margin-top: var(--space-s); background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-text); border-radius: 8px; padding: 6px 10px; font-size: 0.72rem; font-weight: 700; text-align: center;">
+            Modo vista previa: viendo como <strong>VENDEDOR</strong> · <button type="button" (click)="togglePreview()" style="text-decoration:underline; font-weight:800;">Salir</button>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Rol</span>
-            <span class="detail-value">{{ usuario().rol }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Persistencia</span>
-            <span class="detail-value mono">farmaros.sesion</span>
-          </div>
-        </div>
-
-        <div class="sesion-actions">
-          <button type="button" class="btn-danger" (click)="cerrarSesion()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Cerrar sesión
-          </button>
-        </div>
+        }
       </div>
     </section>
 
@@ -64,7 +57,7 @@
       </div>
       <div class="section-body">
         <div class="theme-grid">
-          @for (theme of themes; track theme.id) {
+          @for (theme of themesVisibles(); track theme.id) {
             <div
               class="theme-card"
               [class.active]="currentTheme() === theme.id"
@@ -81,6 +74,11 @@
               <span class="theme-name">{{ theme.name }}</span>
             </div>
           }
+        </div>
+        <div class="theme-toggle">
+          <button type="button" class="btn-link" (click)="mostrarTodosTemas.set(!mostrarTodosTemas())">
+            {{ mostrarTodosTemas() ? 'Ver menos' : 'Ver todos (' + themes.length + ')' }}
+          </button>
         </div>
       </div>
     </section>
@@ -111,14 +109,9 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input type="text" placeholder="Buscar por username, nombre o rol..." [ngModel]="filtroUsuarios()" (ngModelChange)="buscarUsuarios($event)" />
             </div>
-            <button type="button" class="btn-secondary" (click)="cargarUsuarios()">Recargar</button>
           </div>
 
           <div class="usuarios-conteo">{{ usuariosFiltrados().length }} usuario(s)</div>
-
-          @if (errorUsuarios()) {
-            <div class="error-banner" style="margin-bottom: var(--space-m)">{{ errorUsuarios() }}</div>
-          }
 
           @if (mostrarFormUsuario()) {
             <div class="form-card">
@@ -133,7 +126,6 @@
                   </select>
                 </label>
               </div>
-              @if (errorFormUsuario()) { <div class="error-banner">{{ errorFormUsuario() }}</div> }
               <div class="form-actions">
                 <button type="button" class="btn-secondary" (click)="toggleFormUsuario()">Cancelar</button>
                 <button type="button" class="btn-primary" [disabled]="guardandoUsuario()" (click)="crearUsuario()">
@@ -166,13 +158,18 @@
                       <td><span class="rol-pill" [class.rol-admin]="u.rol==='ADMIN'" [class.rol-vendedor]="u.rol!=='ADMIN'">{{ u.rol }}</span></td>
                       <td><span class="estado-pill" [class.estado-activo]="u.estado==='ACTIVO'" [class.estado-inactivo]="u.estado!=='ACTIVO'">{{ u.estado }}</span></td>
                       <td style="text-align:center">
-                        <button type="button" class="icon-btn" [class.danger]="u.estado==='ACTIVO'" title="{{ u.estado==='ACTIVO' ? 'Desactivar' : 'Activar' }}" (click)="cambiarEstadoUsuario(u)">
-                          @if (u.estado === 'ACTIVO') {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                          } @else {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                          }
-                        </button>
+                        <span style="display:inline-flex; gap:4px;">
+                          <button type="button" class="icon-btn" [class.danger]="u.estado==='ACTIVO'" title="{{ u.estado==='ACTIVO' ? 'Desactivar' : 'Activar' }}" (click)="solicitarCambioEstado(u)">
+                            @if (u.estado === 'ACTIVO') {
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            } @else {
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            }
+                          </button>
+                          <button type="button" class="icon-btn danger" title="Eliminar definitivamente (solo sin historial)" (click)="solicitarEliminarUsuario(u)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </span>
                       </td>
                     </tr>
                   }
@@ -200,4 +197,15 @@
       </div>
     </section>
   </main>
+
+  <!-- Diálogos de confirmación - usan el mismo componente que Inventario/Compras (ConfirmationDialogComponent) -->
+  @if (confirmarCerrarSesion()) {
+    <app-confirmation-dialog title="¿Cerrar sesión?" content="Se cerrará tu sesión actual y volverás al login." confirmText="Cerrar sesión" cancelText="Cancelar" (onCancel)="cancelarCerrarSesion()" (onConfirm)="confirmarCerrarSesionAccion()"></app-confirmation-dialog>
+  }
+  @if (usuarioPendienteEstado(); as pending) {
+    <app-confirmation-dialog [title]="pending.nuevoEstado === 'INACTIVO' ? '¿Desactivar usuario?' : '¿Activar usuario?'" [content]="'El usuario ' + pending.usuario.username + ' pasará a estado ' + pending.nuevoEstado + '.'" [confirmText]="pending.nuevoEstado === 'INACTIVO' ? 'Desactivar' : 'Activar'" cancelText="Cancelar" (onCancel)="cancelarCambioEstado()" (onConfirm)="confirmarCambioEstado()"></app-confirmation-dialog>
+  }
+  @if (usuarioPendienteEliminar(); as delUser) {
+    <app-confirmation-dialog title="¿Eliminar usuario?" [content]="'Se eliminará definitivamente a ' + delUser.username + '. Solo es posible si no tiene historial (ventas/compras/devoluciones). Si tiene historial, inactívalo.'" confirmText="Eliminar" cancelText="Cancelar" (onCancel)="cancelarEliminarUsuario()" (onConfirm)="confirmarEliminarUsuario()"></app-confirmation-dialog>
+  }
 </div>

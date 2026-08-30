@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationService } from '../../services/navigation.service';
+import { SesionService } from '../../services/sesion.service';
 
 interface SidebarItem {
   label: string;
@@ -28,6 +29,7 @@ interface SidebarSubmenu {
 export class SidebarComponent {
   readonly navService = inject(NavigationService);
   private readonly router = inject(Router);
+  private readonly sesion = inject(SesionService);
 
   readonly mainNavItems: SidebarItem[] = [
     {
@@ -56,12 +58,18 @@ export class SidebarComponent {
     }
   ];
 
-  /** Subsecciones del módulo de ventas accesibles desde el menú desplegable. */
-  readonly ventasSubmenu: SidebarSubmenu[] = [
-    { label: 'Historial de ventas', link: '/ventas' },
-    { label: 'Nueva venta (POS)', link: '/ventas/pos' },
-    { label: 'Reporte de ventas', link: '/reportes/ventas' }
-  ];
+  /** Subsecciones del módulo de ventas accesibles desde el menú desplegable.
+   *  VENDEDOR solo ve historial + POS; reporte es solo ADMIN (validado también por roleGuard en rutas).
+   */
+  get ventasSubmenu(): SidebarSubmenu[] {
+    const esAdmin = this.sesion.esAdmin();
+    const base: SidebarSubmenu[] = [
+      { label: 'Historial de ventas', link: '/ventas' },
+      { label: 'Nueva venta (POS)', link: '/ventas/pos' }
+    ];
+    if (esAdmin) base.push({ label: 'Reporte de ventas', link: '/reportes/ventas' });
+    return base;
+  }
 
   readonly bottomItem: SidebarItem = {
     label: 'Configuración',

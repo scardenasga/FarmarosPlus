@@ -36,4 +36,8 @@ export class UsuarioAdminService {
   actualizarEstado(id: number, estado: string): Observable<UsuarioAdmin> {
     return this.http.patch<UsuarioAdmin>(`/api/usuarios/${id}/estado`, { estado });
   }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/usuarios/${id}`);
+  }
 }
