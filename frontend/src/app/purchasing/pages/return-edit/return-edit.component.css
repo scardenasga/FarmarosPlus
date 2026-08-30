@@ -2,15 +2,30 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  background-color: var(--background);
+  background-color: var(--bg-main, var(--background));
 }
 
-.sticky-header {
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-l) var(--space-xl) var(--space-s);
   position: sticky;
   top: 0;
-  z-index: 100;
-  background-color: var(--background);
+  z-index: 10;
+  background-color: var(--bg-main, var(--background));
 }
+.btn-volver {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+}
+.btn-volver svg { width: 18px; height: 18px; }
+.btn-volver:hover { background-color: var(--surface-container-high, rgba(128,128,128,0.08)); }
+.panel-ref { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--text-muted, var(--outline)); }
+.header-text h1 { margin: 2px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--text-dark, var(--on-background)); }
 
 .content-area {
   flex: 1;

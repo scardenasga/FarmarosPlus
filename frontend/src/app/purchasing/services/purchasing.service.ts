@@ -68,8 +68,16 @@ export class PurchasingService {
     return this.http.get<DevolucionResponse>(`${this.apiDevoluciones}/${id}`);
   }
 
-  actualizarDevolucion(id: number, request: ActualizarDevolucionRequest): Observable<DevolucionResponse> {
-    return this.http.patch<DevolucionResponse>(`${this.apiDevoluciones}/${id}`, request);
+  actualizarDevolucion(id: number, request: ActualizarDevolucionRequest, usuarioResponsable?: string): Observable<DevolucionResponse> {
+    let params = new HttpParams();
+    if (usuarioResponsable) params = params.set('usuarioResponsable', usuarioResponsable);
+    return this.http.patch<DevolucionResponse>(`${this.apiDevoluciones}/${id}`, request, { params });
+  }
+
+  cambiarEstadoDevolucion(id: number, estado: string, usuarioResponsable?: string): Observable<DevolucionResponse> {
+    let params = new HttpParams();
+    if (usuarioResponsable) params = params.set('usuarioResponsable', usuarioResponsable);
+    return this.http.patch<DevolucionResponse>(`${this.apiDevoluciones}/${id}/estado`, { estado }, { params });
   }
 
   eliminarDevolucion(id: number, usuarioResponsable: string): Observable<void> {

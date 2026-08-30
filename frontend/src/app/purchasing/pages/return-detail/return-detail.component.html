@@ -1,11 +1,13 @@
 <div class="detail-page">
-  <div class="sticky-header">
-    <app-top-bar
-      [title]="esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente'"
-      [showAlert]="false"
-      (back)="volver()">
-    </app-top-bar>
-  </div>
+  <header class="page-header">
+    <button type="button" class="btn-volver" (click)="volver()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="header-text">
+      <span class="panel-ref">Devolución #{{ devolucion()?.id ?? id }}</span>
+      <h1>{{ esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente' }}</h1>
+    </div>
+  </header>
 
   <main class="content-area">
     @if (error()) {
@@ -55,6 +57,24 @@
               <div class="info-item full">
                 <span class="item-label">Motivo</span>
                 <span class="item-value">{{ dev.motivo }}</span>
+              </div>
+            }
+            @if ($any(dev).observaciones) {
+              <div class="info-item full">
+                <span class="item-label">Observaciones</span>
+                <span class="item-value">{{ $any(dev).observaciones }}</span>
+              </div>
+            }
+            @if ($any(dev).estado) {
+              <div class="info-item">
+                <span class="item-label">Estado</span>
+                <span class="estado-pill" [class]="'estado-' + $any(dev).estado.toLowerCase()">{{ $any(dev).estado }}</span>
+              </div>
+            }
+            @if ($any(dev).tipoDevolucion) {
+              <div class="info-item">
+                <span class="item-label">Tipo</span>
+                <span class="item-value">{{ $any(dev).tipoDevolucion }}</span>
               </div>
             }
           </div>

@@ -6,9 +6,11 @@ package co.edu.unbosque.backend.model.request;
  *
  * @param motivo        razón de la devolución (opcional)
  * @param observaciones notas adicionales (opcional)
+ * @param estado        nuevo estado (opcional): PENDIENTE | ENVIADA | ACEPTADA | RECHAZADA | CERRADA
  */
 public record ActualizarDevolucionRequest(
         String motivo,
-        String observaciones
+        String observaciones,
+        String estado
 ) {
 }

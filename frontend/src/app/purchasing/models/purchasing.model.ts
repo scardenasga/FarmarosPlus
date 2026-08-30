@@ -13,6 +13,9 @@ export interface DevolucionResponse {
   motivo: string | null;
   fecha: string;
   detalles: DetalleDevolucionResponse[];
+  observaciones?: string | null;
+  estado?: string | null;
+  tipoDevolucion?: string | null;
 }
 
 export interface DetalleDevolucionClienteResponse {
@@ -123,6 +126,7 @@ export interface RegistrarDevolucionClienteRequest {
 export interface ActualizarDevolucionRequest {
   motivo?: string;
   observaciones?: string;
+  estado?: string;
 }
 
 export interface ActualizarDevolucionClienteRequest {

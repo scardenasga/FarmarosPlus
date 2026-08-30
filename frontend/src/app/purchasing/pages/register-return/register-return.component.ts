@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { PurchasingService } from '../../services/purchasing.service';
+import { SesionService } from '../../../shared/services/sesion.service';
 import { Supplier, SupplierDetalleResponse, SupplierProductRel } from '../../../supplier/models/supplier.model';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { VentaResponse } from '../../models/purchasing.model';
 
 type TipoDevolucion = 'proveedor' | 'cliente';
@@ -30,13 +30,14 @@ interface LoteProveedorResult {
 @Component({
   selector: 'app-register-return',
   standalone: true,
-  imports: [CommonModule, FormsModule, TopBarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './register-return.component.html',
   styleUrl: './register-return.component.css'
 })
 export class RegisterReturnComponent implements OnInit {
   private purchasingService = inject(PurchasingService);
   private supplierService = inject(SupplierService);
+  private sesion = inject(SesionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -322,7 +323,7 @@ export class RegisterReturnComponent implements OnInit {
     if (this.esProveedor()) {
       this.purchasingService.registrarDevolucion({
         idProveedor: this.idProveedorSeleccionado()!,
-        usuarioResponsable: 'admin',
+        usuarioResponsable: this.sesion.username(),
         motivo: this.motivo(),
         detalles: this.items().map(i => ({
           idProducto: i.idProducto,
@@ -350,7 +351,7 @@ export class RegisterReturnComponent implements OnInit {
 
     this.purchasingService.registrarDevolucionCliente({
       idVenta: Number(this.idVenta()),
-      usuarioResponsable: 'admin',
+      usuarioResponsable: this.sesion.username(),
       nombreCliente: this.nombreCliente().trim() || undefined,
       documentoCliente: this.documentoCliente().trim() || undefined,
       motivo: this.motivo().trim() || undefined,

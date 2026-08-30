@@ -227,7 +227,7 @@ class DevolucionServiceTest {
         when(devolucionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         DevolucionResponse response = devolucionService.actualizar(10L,
-                new ActualizarDevolucionRequest("Motivo nuevo", "Observación nueva"));
+                new ActualizarDevolucionRequest("Motivo nuevo", "Observación nueva", null));
 
         assertEquals("Motivo nuevo", response.motivo());
         assertEquals("Motivo nuevo", devolucion.getMotivo());
@@ -239,7 +239,7 @@ class DevolucionServiceTest {
         when(devolucionRepository.findWithDetallesById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> devolucionService.actualizar(99L, new ActualizarDevolucionRequest("x", null)));
+                () -> devolucionService.actualizar(99L, new ActualizarDevolucionRequest("x", null, null)));
         verify(devolucionRepository, never()).save(any());
     }
 }

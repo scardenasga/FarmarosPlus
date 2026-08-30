@@ -2,22 +2,37 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  background-color: var(--background);
+  background-color: var(--bg-main, var(--background));
 }
 
-.sticky-header {
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-l) var(--space-xl) var(--space-s);
   position: sticky;
   top: 0;
-  z-index: 100;
-  background-color: var(--background);
+  z-index: 10;
+  background-color: var(--bg-main, var(--background));
 }
+.btn-volver {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+}
+.btn-volver svg { width: 18px; height: 18px; }
+.btn-volver:hover { background-color: var(--surface-container-high, rgba(128,128,128,0.08)); }
+.panel-ref { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--text-muted, var(--outline)); }
+.header-text h1 { margin: 2px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--text-dark, var(--on-background)); }
 
 .content-area {
   flex: 1;
-  padding: var(--space-l);
+  padding: var(--space-l) var(--space-xl);
   display: flex;
   flex-direction: column;
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
   width: 100%;
 }
@@ -57,16 +72,16 @@
 
 /* Receipt Card Design */
 .receipt-card {
-  background-color: var(--surface-container-low);
-  border-radius: var(--radius-l);
+  background-color: var(--card-bg, var(--surface-container-low));
+  border-radius: 16px;
   padding: var(--space-l);
   display: flex;
   flex-direction: column;
   gap: var(--space-m);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-card, var(--shadow-2));
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--outline-variant);
+  border: 1px solid var(--border-color, var(--outline-variant));
 }
 
 .receipt-card::before {
@@ -191,6 +206,17 @@
 .item-value.highlight {
   color: var(--primary);
 }
+
+.estado-pill {
+  display: inline-block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px;
+  font-weight: 800; padding: 3px 10px; border-radius: 9999px; white-space: nowrap;
+}
+.estado-pendiente { background-color: var(--warning-bg); color: var(--warning-text); }
+.estado-enviada { background-color: var(--info-bg); color: var(--info-text); }
+.estado-aceptada, .estado-cerrada { background-color: var(--success-bg); color: var(--success-text); }
+.estado-rechazada { background-color: var(--danger-bg); color: var(--danger-text); }
+.estado-posterior { background-color: var(--secondary-container); color: var(--on-secondary-container); }
+.estado-inmediata_recepcion { background-color: var(--purple-bg); color: var(--purple-text); }
 
 /* Productos */
 .product-list {

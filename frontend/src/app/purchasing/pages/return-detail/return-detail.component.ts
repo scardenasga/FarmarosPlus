@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PurchasingService } from '../../services/purchasing.service';
 import { DevolucionClienteResponse, DevolucionResponse } from '../../models/purchasing.model';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
+import { SesionService } from '../../../shared/services/sesion.service';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 
@@ -12,7 +12,7 @@ type TipoDevolucion = 'proveedor' | 'cliente';
 @Component({
   selector: 'app-return-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, TopBarComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, RouterModule, ConfirmationDialogComponent],
   templateUrl: './return-detail.component.html',
   styleUrl: './return-detail.component.css'
 })
@@ -21,6 +21,7 @@ export class ReturnDetailComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private navService = inject(NavigationService);
   private purchasingService = inject(PurchasingService);
+  private sesion = inject(SesionService);
 
   devolucion = signal<DevolucionResponse | DevolucionClienteResponse | null>(null);
   tipoDevolucion = signal<TipoDevolucion>('proveedor');
@@ -122,8 +123,8 @@ export class ReturnDetailComponent implements OnInit, OnDestroy {
     this.error.set('');
 
     const obs = this.esProveedor()
-      ? this.purchasingService.eliminarDevolucion(this.id, 'admin')
-      : this.purchasingService.eliminarDevolucionCliente(this.id, 'admin');
+      ? this.purchasingService.eliminarDevolucion(this.id, this.sesion.username())
+      : this.purchasingService.eliminarDevolucionCliente(this.id, this.sesion.username());
 
     obs.subscribe({
       next: () => {

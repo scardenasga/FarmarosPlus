@@ -34,5 +34,23 @@ public class DataInitializer implements CommandLineRunner {
             sistema.setEstado("ACTIVO");
             usuarioRepository.save(sistema);
         }
+        if (!usuarioRepository.existsByUsernameIgnoreCase("admin")) {
+            Usuario admin = new Usuario();
+            admin.setUsername("admin");
+            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            admin.setNombreCompleto("Administrador Principal");
+            admin.setRol("ADMIN");
+            admin.setEstado("ACTIVO");
+            usuarioRepository.save(admin);
+        }
+        if (!usuarioRepository.existsByUsernameIgnoreCase("vendedor")) {
+            Usuario vendedor = new Usuario();
+            vendedor.setUsername("vendedor");
+            vendedor.setPasswordHash(passwordEncoder.encode("vendedor123"));
+            vendedor.setNombreCompleto("Vendedor Farmaros");
+            vendedor.setRol("VENDEDOR");
+            vendedor.setEstado("ACTIVO");
+            usuarioRepository.save(vendedor);
+        }
     }
 }

@@ -149,7 +149,7 @@ public class DevolucionService {
     }
 
     @Transactional
-    public DevolucionResponse actualizar(Long id, ActualizarDevolucionRequest request) {
+    public DevolucionResponse actualizar(Long id, ActualizarDevolucionRequest request, String usernameSolicitante) {
         DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
 
@@ -157,8 +157,70 @@ public class DevolucionService {
             dev.setMotivo(request.motivo().trim());
         }
         dev.setObservaciones(request.observaciones());
+        if (request.estado() != null && !request.estado().isBlank()) {
+            String nuevo = request.estado().trim().toUpperCase();
+            validarEstado(nuevo);
+            validarTransicionConRol(dev.getEstado(), nuevo, usernameSolicitante);
+            dev.setEstado(nuevo);
+        }
 
         return toResponse(devolucionRepository.save(dev));
+    }
+
+    // Compatibilidad: sin usuario (tests/unitarios)
+    @Transactional
+    public DevolucionResponse actualizar(Long id, ActualizarDevolucionRequest request) {
+        return actualizar(id, request, null);
+    }
+
+    @Transactional
+    public DevolucionResponse cambiarEstado(Long id, String estado, String usernameSolicitante) {
+        if (estado == null || estado.isBlank()) {
+            throw new BusinessException("El estado es obligatorio.");
+        }
+        String nuevo = estado.trim().toUpperCase();
+        validarEstado(nuevo);
+        DevolucionProveedor dev = devolucionRepository.findWithDetallesById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la devolución con id " + id));
+        validarTransicionConRol(dev.getEstado(), nuevo, usernameSolicitante);
+        dev.setEstado(nuevo);
+        return toResponse(devolucionRepository.save(dev));
+    }
+
+    @Transactional
+    public DevolucionResponse cambiarEstado(Long id, String estado) {
+        return cambiarEstado(id, estado, null);
+    }
+
+    private void validarTransicionConRol(String actual, String nuevo, String usernameSolicitante) {
+        if (actual != null && actual.equals(nuevo)) return;
+        java.util.Set<String> permitidos = java.util.Set.of("PENDIENTE", "ENVIADA", "ACEPTADA", "RECHAZADA", "CERRADA");
+        if (!permitidos.contains(nuevo)) {
+            throw new BusinessException("Estado inválido. Valores válidos: PENDIENTE, ENVIADA, ACEPTADA, RECHAZADA, CERRADA");
+        }
+        // Sin usuario (SYSTEM/tests) -> permitir como admin
+        if (usernameSolicitante == null || usernameSolicitante.isBlank()) return;
+        var usuarioOpt = usuarioRepository.findByUsername(usernameSolicitante.trim());
+        if (usuarioOpt.isEmpty()) return; // fallback SISTEMA ya permite
+        String rol = usuarioOpt.get().getRol() != null ? usuarioOpt.get().getRol().toUpperCase() : "";
+        boolean esAdmin = rol.equals("ADMIN") || rol.equals("REGENTE");
+        if (esAdmin) return;
+        // Empleado (VENDEDOR/ALMACENISTA): flujo controlado
+        // Permitido: PENDIENTE -> ENVIADA (enviar), ENVIADA -> PENDIENTE (retirar), PENDIENTE -> CERRADA (cancelar)
+        String a = actual != null ? actual.toUpperCase() : "PENDIENTE";
+        boolean permitidoEmpleado = (a.equals("PENDIENTE") && nuevo.equals("ENVIADA"))
+                || (a.equals("ENVIADA") && nuevo.equals("PENDIENTE"))
+                || (a.equals("PENDIENTE") && nuevo.equals("CERRADA"));
+        if (!permitidoEmpleado) {
+            throw new BusinessException("Transición no permitida para tu rol (" + rol + "): " + a + " → " + nuevo + ". Solicita aprobación de un administrador (ADMIN/REGENTE) para estados ACEPTADA/RECHAZADA/CERRADA desde ENVIADA.");
+        }
+    }
+
+    private void validarEstado(String estado) {
+        java.util.Set<String> permitidos = java.util.Set.of("PENDIENTE", "ENVIADA", "ACEPTADA", "RECHAZADA", "CERRADA");
+        if (!permitidos.contains(estado)) {
+            throw new BusinessException("Estado inválido. Valores válidos: PENDIENTE, ENVIADA, ACEPTADA, RECHAZADA, CERRADA");
+        }
     }
 
     @Transactional
@@ -223,7 +285,10 @@ public class DevolucionService {
                 d.getUsuarioResponsable(),
                 d.getMotivo(),
                 d.getFecha(),
-                detallesResp);
+                detallesResp,
+                d.getObservaciones(),
+                d.getEstado(),
+                d.getTipoDevolucion());
     }
 
     private co.edu.unbosque.backend.model.entity.Usuario resolverUsuarioResponsable(String usernameSolicitud) {

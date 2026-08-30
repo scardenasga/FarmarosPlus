@@ -47,6 +47,28 @@ export class SesionService {
     return rol === 'ADMIN' || rol === 'REGENTE';
   }
 
+  esAdmin(): boolean {
+    return this._usuario().rol?.toUpperCase() === 'ADMIN';
+  }
+
+  esVendedor(): boolean {
+    const rol = this._usuario().rol?.toUpperCase();
+    return rol === 'VENDEDOR' || rol === 'EMPLEADO';
+  }
+
+  isAuthenticated(): boolean {
+    const u = this._usuario();
+    // Si sigue siendo el fallback SISTEMA sin haber hecho login, lo consideramos no autenticado si no hay clave en storage
+    try {
+      const raw = localStorage.getItem(CLAVE_SESION);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as SesionUsuario;
+      return !!parsed?.username && !!parsed?.idUsuario;
+    } catch {
+      return false;
+    }
+  }
+
   setUsuario(usuario: SesionUsuario): void {
     this._usuario.set(usuario);
     localStorage.setItem(CLAVE_SESION, JSON.stringify(usuario));

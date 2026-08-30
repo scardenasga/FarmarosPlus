@@ -21,6 +21,8 @@ import { ReporteVentasComponent } from './reportes/pages/reporte-ventas/reporte-
 // --- NUEVOS COMPONENTES DE COMPRAS Y DEVOLUCIONES ---
 import { ReturnHistoryComponent } from './purchasing/pages/return-history/return-history.component';
 import { RegisterReturnComponent } from './purchasing/pages/register-return/register-return.component';
+import { ReturnDetailComponent } from './purchasing/pages/return-detail/return-detail.component';
+import { ReturnEditComponent } from './purchasing/pages/return-edit/return-edit.component';
 import { PurchaseHistoryComponent } from './purchasing/pages/purchase-history/purchase-history.component';
 import { PurchaseDetailComponent } from './purchasing/pages/purchase-detail/purchase-detail.component';
 import { PurchaseEditComponent } from './purchasing/pages/purchase-edit/purchase-edit.component';
@@ -31,16 +33,20 @@ import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-pr
 // --- COMPONENTES DE DASHBOARD ---
 import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin-dashboard.component';
 import { AnalyticsComponent } from './dashboard/pages/analytics/analytics.component';
+import { LoginComponent } from './auth/pages/login/login.component';
+import { authGuard, loginGuard } from './auth/guards/auth.guard';
 
 export const routes: Routes = [
-  // Redirige raíz al dashboard
+  // Auth - primera pantalla
+  { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
+  // Redirige raíz al dashboard (guard redirige a login si no hay sesión)
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
   // --- DASHBOARD ADMINISTRATIVO (Home principal) ---
-  { path: 'dashboard', component: AdminDashboardComponent },
+  { path: 'dashboard', component: AdminDashboardComponent, canActivate: [authGuard] },
 
   // --- MÓDULO DE ANALÍTICA AVANZADA ---
-  { path: 'analitica', component: AnalyticsComponent },
+  { path: 'analitica', component: AnalyticsComponent, canActivate: [authGuard] },
   { path: 'dashboard/analitica', redirectTo: 'analitica', pathMatch: 'full' },
   { path: 'reportes/analitica', redirectTo: 'analitica', pathMatch: 'full' },
 
@@ -48,28 +54,30 @@ export const routes: Routes = [
   { path: 'health', component: HealthComponent },
 
   // --- VENTAS ---
-  { path: 'ventas', component: HistorialVentasComponent },
-  { path: 'ventas/pos', component: PosVentaComponent },
+  { path: 'ventas', component: HistorialVentasComponent, canActivate: [authGuard] },
+  { path: 'ventas/pos', component: PosVentaComponent, canActivate: [authGuard] },
   // Flujo antiguo (buscar -> registrar) reemplazado por la vista POS única
   { path: 'ventas/crear', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/registrar', redirectTo: 'ventas/pos', pathMatch: 'full' },
-  { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
-  { path: 'reportes/ventas', component: ReporteVentasComponent },
-  { path: 'ventas/:id', component: DetalleVentaComponent },
-  { path: 'ventas/:id/anular', component: AnularVentaComponent },
+  { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent, canActivate: [authGuard] },
+  { path: 'reportes/ventas', component: ReporteVentasComponent, canActivate: [authGuard] },
+  { path: 'ventas/:id', component: DetalleVentaComponent, canActivate: [authGuard] },
+  { path: 'ventas/:id/anular', component: AnularVentaComponent, canActivate: [authGuard] },
 
   // --- ALERTAS ---
-  { path: 'alertas', component: AlertasComponent },
+  { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },
 
   // --- COMPRAS Y DEVOLUCIONES ---
-  { path: 'purchasing/return-history', component: ReturnHistoryComponent },
-  { path: 'purchasing/register-return', component: RegisterReturnComponent },
-  { path: 'purchasing/purchase-history', component: PurchaseHistoryComponent },
-  { path: 'purchasing/purchase-detail/:id', component: PurchaseDetailComponent },
-  { path: 'purchasing/purchase-edit/:id', component: PurchaseEditComponent },
-  { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent },
-  { path: 'purchasing/order-notifications', component: OrderNotificationsComponent },
-  { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent },
+  { path: 'purchasing/return-history', component: ReturnHistoryComponent, canActivate: [authGuard] },
+  { path: 'purchasing/register-return', component: RegisterReturnComponent, canActivate: [authGuard] },
+  { path: 'purchasing/return-detail/:id', component: ReturnDetailComponent, canActivate: [authGuard] },
+  { path: 'purchasing/return-edit/:id', component: ReturnEditComponent, canActivate: [authGuard] },
+  { path: 'purchasing/purchase-history', component: PurchaseHistoryComponent, canActivate: [authGuard] },
+  { path: 'purchasing/purchase-detail/:id', component: PurchaseDetailComponent, canActivate: [authGuard] },
+  { path: 'purchasing/purchase-edit/:id', component: PurchaseEditComponent, canActivate: [authGuard] },
+  { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent, canActivate: [authGuard] },
+  { path: 'purchasing/order-notifications', component: OrderNotificationsComponent, canActivate: [authGuard] },
+  { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent, canActivate: [authGuard] },
 
   // Redirecciones para compatibilidad con rutas antiguas
   { path: 'entregas', redirectTo: 'purchasing/return-history', pathMatch: 'full' },
@@ -83,24 +91,24 @@ export const routes: Routes = [
   // --- INVENTARIO ---
   // Categorias ahora es un panel deslizante dentro de /inventario
   { path: 'inventario/categorias', redirectTo: 'inventario', pathMatch: 'full' },
-  { path: 'inventario', component: InventoryComponent },
+  { path: 'inventario', component: InventoryComponent, canActivate: [authGuard] },
   // Ingreso de stock ahora es un panel deslizante dentro de /inventario
   { path: 'inventario/ingreso', redirectTo: 'inventario', pathMatch: 'full' },
   // Crear/editar producto ahora son paneles deslizantes dentro de /inventario
   { path: 'inventario/crear', redirectTo: 'inventario', pathMatch: 'full' },
   { path: 'inventario/editar/:id', redirectTo: 'inventario', pathMatch: 'full' },
-  { path: 'inventario/:id', component: ProductDetailComponent },
+  { path: 'inventario/:id', component: ProductDetailComponent, canActivate: [authGuard] },
 
   // --- PROVEEDORES ---
-  { path: 'proveedores', component: SupplierListComponent },
-  { path: 'proveedores/nuevo', component: CreateSupplierComponent },
-  { path: 'proveedores/:id', component: SupplierDetailComponent },
-  { path: 'proveedores/:id/editar', component: EditSupplierComponent },
+  { path: 'proveedores', component: SupplierListComponent, canActivate: [authGuard] },
+  { path: 'proveedores/nuevo', component: CreateSupplierComponent, canActivate: [authGuard] },
+  { path: 'proveedores/:id', component: SupplierDetailComponent, canActivate: [authGuard] },
+  { path: 'proveedores/:id/editar', component: EditSupplierComponent, canActivate: [authGuard] },
 
   // --- GESTIÓN DE COMPRAS ---
-  { path: 'compras-gestion', component: PurchasingDashboardComponent },
+  { path: 'compras-gestion', component: PurchasingDashboardComponent, canActivate: [authGuard] },
 
   // --- CONFIGURACIÓN ---
   { path: 'health', component: HealthComponent },
-  { path: 'configuracion', component: SettingsComponent },
+  { path: 'configuracion', component: SettingsComponent, canActivate: [authGuard] },
 ];

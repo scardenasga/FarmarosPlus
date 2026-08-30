@@ -1,11 +1,13 @@
 <div class="edit-page">
-  <div class="sticky-header">
-    <app-top-bar
-      [title]="esProveedor() ? 'Editar devolución a proveedor' : 'Editar devolución a cliente'"
-      [showAlert]="false"
-      (back)="volver()">
-    </app-top-bar>
-  </div>
+  <header class="page-header">
+    <button type="button" class="btn-volver" (click)="volver()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="header-text">
+      <span class="panel-ref">Editar devolución</span>
+      <h1>{{ esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente' }}</h1>
+    </div>
+  </header>
 
   <main class="content-area">
     @if (error()) {

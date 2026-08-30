@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PurchasingService } from '../../services/purchasing.service';
 import { DevolucionClienteResponse, DevolucionResponse } from '../../models/purchasing.model';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 
@@ -13,7 +12,7 @@ type TipoDevolucion = 'proveedor' | 'cliente';
 @Component({
   selector: 'app-return-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, TopBarComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   templateUrl: './return-edit.component.html',
   styleUrl: './return-edit.component.css'
 })
@@ -75,7 +74,7 @@ export class ReturnEditComponent implements OnInit, OnDestroy {
         next: data => {
           this.devolucion.set(data);
           this.motivo.set(data.motivo ?? '');
-          this.observaciones.set((data as any).observaciones ?? '');
+          this.observaciones.set(data.observaciones ?? '');
           this.cargando.set(false);
         },
         error: () => {
