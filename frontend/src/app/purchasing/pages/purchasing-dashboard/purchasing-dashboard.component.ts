@@ -9,6 +9,7 @@ import { OrdenCompraResumen, RecepcionCompraResumen, DevolucionResponse, AlertaD
 import { SupplierService } from '../../../supplier/services/supplier.service';
 import { Supplier } from '../../../supplier/models/supplier.model';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
+import { PermisoService } from '../../../shared/services/permiso.service';
 
 interface DashboardAction {
   title: string;
@@ -42,6 +43,7 @@ export class PurchasingDashboardComponent implements OnInit {
   private readonly purchasingService = inject(PurchasingService);
   private readonly supplierService = inject(SupplierService);
   private readonly notificacion = inject(NotificacionService);
+  private readonly permisoService = inject(PermisoService);
 
   readonly accionesIconos = {
     proveedores: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 .01M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
@@ -93,10 +95,17 @@ export class PurchasingDashboardComponent implements OnInit {
   }
 
   readonly actions: DashboardAction[] = [
-    { title: 'Proveedores', subtitle: 'Directorio y catÃ¡logos', icon: 'proveedores', link: '/proveedores', accent: '#83d5c5' },
+    { title: 'Proveedores', subtitle: 'Directorio y catálogos', icon: 'proveedores', link: '/proveedores', accent: '#83d5c5' },
     { title: 'Compras', subtitle: 'Ordenes y recepciones', icon: 'historial', link: '/purchasing/purchase-history', accent: '#accae5' },
     { title: 'Devoluciones', subtitle: 'Gestionar retornos', icon: 'devoluciones', link: '/purchasing/return-history', accent: '#f0b37e' }
   ];
+
+  accionesFiltradas = computed(() => this.actions.filter(a => {
+    if (a.link === '/proveedores') return this.permisoService.tiene('PROVEEDORES_VER');
+    if (a.link === '/purchasing/purchase-history') return this.permisoService.tiene('COMPRAS_VER');
+    if (a.link === '/purchasing/return-history') return this.permisoService.tiene('DEVOLUCIONES_VER');
+    return true;
+  }));
 
   /** Cierra la ventana flotante al hacer clic fuera. */
   @HostListener('document:click')

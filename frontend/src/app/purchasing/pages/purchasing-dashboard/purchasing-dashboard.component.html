@@ -118,16 +118,18 @@
       </article>
     </section>
 
-    <!-- Accesos rápidos: un solo componente segmentado -->
+    <!-- Accesos rápidos: filtrados por permisoService.tiene() -->
     <nav class="acciones-wrap" aria-label="Acciones de compras">
       <div class="segmento-control">
-        @for (action of actions; track action.title) {
+        @for (action of accionesFiltradas(); track action.title) {
           <button type="button" class="segmento-btn" [class.segmento-activo]="esRutaActiva(action.link)" (click)="navigateTo(action.link)">
             <span class="segmento-icono" [ngClass]="{'icon-verde': $index === 0, 'icon-azul': $index === 1, 'icon-naranja': $index === 2}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path [attr.d]="iconoDe(action.icon)"/><circle cx="9" cy="7" r="0"/></svg>
             </span>
             {{ action.title }}
           </button>
+        } @empty {
+          <span style="font-size:0.78rem; color:var(--text-muted); padding:6px;">Sin permisos para acciones de compras</span>
         }
       </div>
     </nav>

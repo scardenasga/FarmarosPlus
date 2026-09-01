@@ -28,19 +28,38 @@ export class PermisoService {
   catalogo = this._catalogo.asReadonly();
   permisos = this._permisos.asReadonly();
 
-  // Para preview vendedor, se filtra a solo los que un vendedor vería (no ADMIN)
+  private _previewBackup: Set<string> | null = null;
   private readonly VENDEDOR_BASE = new Set(['DASHBOARD_VER','VENTAS_VER','VENTAS_CREAR','INVENTARIO_VER','PROVEEDORES_VER','CONFIG_VER']);
 
   tiene(clave: string): boolean {
-    // TEMP DEBUG: always true to test responsiveness
     try {
-      if (this.sesion.esPreviewActivo() && this.sesion.usuario().rol?.toUpperCase() === 'ADMIN') {
-        return this.VENDEDOR_BASE.has(clave);
-      }
-      // if no permisos loaded yet, allow all to avoid blank sidebar
+      // si no hay permisos cargados aún, permitir para no dejar sidebar vacío en primer render
       if (this._permisos().size === 0) return true;
       return this._permisos().has(clave);
     } catch { return true; }
+  }
+
+  iniciarPreview(permisosPreview: string[]): void {
+    if (!this._previewBackup) this._previewBackup = new Set(this._permisos());
+    this._permisos.set(new Set(permisosPreview));
+    this.sesion.activarPreview();
+  }
+
+  iniciarPreviewVendedorBase(): void {
+    this.iniciarPreview(Array.from(this.VENDEDOR_BASE));
+  }
+
+  salirPreview(): void {
+    if (this._previewBackup) {
+      this._permisos.set(this._previewBackup);
+      this._previewBackup = null;
+    } else {
+      try {
+        const raw = localStorage.getItem('farmaros.permisos');
+        if (raw) this._permisos.set(new Set(JSON.parse(raw) as string[]));
+      } catch {}
+    }
+    this.sesion.desactivarPreview();
   }
 
   tieneAlguno(claves: string[]): boolean {

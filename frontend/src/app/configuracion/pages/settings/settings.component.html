@@ -162,6 +162,9 @@
                           <button type="button" class="icon-btn" title="Gestionar permisos" (click)="abrirPanelPermisos(u)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
                           </button>
+                          <button type="button" class="icon-btn" title="Ver como este usuario" (click)="previsualizarComo(u)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                          </button>
                           <button type="button" class="icon-btn" [class.danger]="u.estado==='ACTIVO'" title="{{ u.estado==='ACTIVO' ? 'Desactivar' : 'Activar' }}" (click)="solicitarCambioEstado(u)">
                             @if (u.estado === 'ACTIVO') {
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>

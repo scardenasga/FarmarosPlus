@@ -557,12 +557,29 @@ export class SettingsComponent implements OnInit {
   });
 
   togglePreview(): void {
-    this.sesion.togglePreview();
     if (this.sesion.esPreviewActivo()) {
-      this.notificacion.info('Vista previa VENDEDOR activa — navega como vendedor');
-    } else {
+      this.permisoService.salirPreview();
       this.notificacion.exito('Vista ADMIN restaurada');
+    } else {
+      this.permisoService.iniciarPreviewVendedorBase();
+      this.notificacion.info('Vista previa VENDEDOR activa — navega como vendedor');
     }
+  }
+
+  previsualizarComo(usuario: UsuarioAdmin): void {
+    if (!this.esAdmin()) return;
+    this.cargandoPermisosUsuario.set(true);
+    this.permisoService.obtenerPermisosUsuario(usuario.id).subscribe({
+      next: perms => {
+        this.cargandoPermisosUsuario.set(false);
+        this.permisoService.iniciarPreview(perms ?? []);
+        this.notificacion.info(`Viendo como ${usuario.username} (${usuario.rol})`);
+      },
+      error: () => {
+        this.cargandoPermisosUsuario.set(false);
+        this.notificacion.error('No se pudieron cargar permisos de ese usuario');
+      }
+    });
   }
 
   // Gestión usuarios (solo ADMIN)
