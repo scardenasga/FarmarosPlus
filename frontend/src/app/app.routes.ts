@@ -21,7 +21,11 @@ import { ReporteVentasComponent } from './reportes/pages/reporte-ventas/reporte-
 // --- NUEVOS COMPONENTES DE COMPRAS Y DEVOLUCIONES ---
 import { ReturnHistoryComponent } from './purchasing/pages/return-history/return-history.component';
 import { RegisterReturnComponent } from './purchasing/pages/register-return/register-return.component';
+import { ReturnDetailComponent } from './purchasing/pages/return-detail/return-detail.component';
+import { ReturnEditComponent } from './purchasing/pages/return-edit/return-edit.component';
 import { PurchaseHistoryComponent } from './purchasing/pages/purchase-history/purchase-history.component';
+import { PurchaseDetailComponent } from './purchasing/pages/purchase-detail/purchase-detail.component';
+import { PurchaseEditComponent } from './purchasing/pages/purchase-edit/purchase-edit.component';
 import { RegisterPurchaseComponent } from './purchasing/pages/register-purchase/register-purchase.component';
 import { OrderNotificationsComponent } from './purchasing/pages/order-notifications/order-notifications.component';
 import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-preview.component';
@@ -29,16 +33,22 @@ import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-pr
 // --- COMPONENTES DE DASHBOARD ---
 import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin-dashboard.component';
 import { AnalyticsComponent } from './dashboard/pages/analytics/analytics.component';
+import { LoginComponent } from './auth/pages/login/login.component';
+import { authGuard, loginGuard } from './auth/guards/auth.guard';
+import { roleGuard } from './auth/guards/role.guard';
+import { permisoGuard } from './auth/guards/permiso.guard';
 
 export const routes: Routes = [
-  // Redirige raíz al dashboard
+  // Auth - primera pantalla
+  { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
+  // Redirige raíz al dashboard (guard redirige a login si no hay sesión)
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
   // --- DASHBOARD ADMINISTRATIVO (Home principal) ---
-  { path: 'dashboard', component: AdminDashboardComponent },
+  { path: 'dashboard', component: AdminDashboardComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['DASHBOARD_VER'] } },
 
   // --- MÓDULO DE ANALÍTICA AVANZADA ---
-  { path: 'analitica', component: AnalyticsComponent },
+  { path: 'analitica', component: AnalyticsComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['ANALITICA_VER'] } },
   { path: 'dashboard/analitica', redirectTo: 'analitica', pathMatch: 'full' },
   { path: 'reportes/analitica', redirectTo: 'analitica', pathMatch: 'full' },
 
@@ -46,26 +56,30 @@ export const routes: Routes = [
   { path: 'health', component: HealthComponent },
 
   // --- VENTAS ---
-  { path: 'ventas', component: HistorialVentasComponent },
-  { path: 'ventas/pos', component: PosVentaComponent },
+  { path: 'ventas', component: HistorialVentasComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_VER'] } },
+  { path: 'ventas/pos', component: PosVentaComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_CREAR'] } },
   // Flujo antiguo (buscar -> registrar) reemplazado por la vista POS única
   { path: 'ventas/crear', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/registrar', redirectTo: 'ventas/pos', pathMatch: 'full' },
-  { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent },
-  { path: 'reportes/ventas', component: ReporteVentasComponent },
-  { path: 'ventas/:id', component: DetalleVentaComponent },
-  { path: 'ventas/:id/anular', component: AnularVentaComponent },
+  { path: 'ventas/historial/filtrar', component: FiltrarHistorialComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_VER'] } },
+  { path: 'reportes/ventas', component: ReporteVentasComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_REPORTES_VER'] } },
+  { path: 'ventas/:id', component: DetalleVentaComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_VER'] } },
+  { path: 'ventas/:id/anular', component: AnularVentaComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_ANULAR'] } },
 
   // --- ALERTAS ---
-  { path: 'alertas', component: AlertasComponent },
+  { path: 'alertas', component: AlertasComponent, canActivate: [authGuard] },
 
   // --- COMPRAS Y DEVOLUCIONES ---
-  { path: 'purchasing/return-history', component: ReturnHistoryComponent },
-  { path: 'purchasing/register-return', component: RegisterReturnComponent },
-  { path: 'purchasing/purchase-history', component: PurchaseHistoryComponent },
-  { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent },
-  { path: 'purchasing/order-notifications', component: OrderNotificationsComponent },
-  { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent },
+  { path: 'purchasing/return-history', component: ReturnHistoryComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['DEVOLUCIONES_VER'] } },
+  { path: 'purchasing/register-return', component: RegisterReturnComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['DEVOLUCIONES_GESTIONAR'] } },
+  { path: 'purchasing/return-detail/:id', component: ReturnDetailComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['DEVOLUCIONES_VER'] } },
+  { path: 'purchasing/return-edit/:id', component: ReturnEditComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['DEVOLUCIONES_GESTIONAR'] } },
+  { path: 'purchasing/purchase-history', component: PurchaseHistoryComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
+  { path: 'purchasing/purchase-detail/:id', component: PurchaseDetailComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
+  { path: 'purchasing/purchase-edit/:id', component: PurchaseEditComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_GESTIONAR'] } },
+  { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_GESTIONAR'] } },
+  { path: 'purchasing/order-notifications', component: OrderNotificationsComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
+  { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
 
   // Redirecciones para compatibilidad con rutas antiguas
   { path: 'entregas', redirectTo: 'purchasing/return-history', pathMatch: 'full' },
@@ -79,24 +93,24 @@ export const routes: Routes = [
   // --- INVENTARIO ---
   // Categorias ahora es un panel deslizante dentro de /inventario
   { path: 'inventario/categorias', redirectTo: 'inventario', pathMatch: 'full' },
-  { path: 'inventario', component: InventoryComponent },
+  { path: 'inventario', component: InventoryComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['INVENTARIO_VER'] } },
   // Ingreso de stock ahora es un panel deslizante dentro de /inventario
   { path: 'inventario/ingreso', redirectTo: 'inventario', pathMatch: 'full' },
   // Crear/editar producto ahora son paneles deslizantes dentro de /inventario
   { path: 'inventario/crear', redirectTo: 'inventario', pathMatch: 'full' },
   { path: 'inventario/editar/:id', redirectTo: 'inventario', pathMatch: 'full' },
-  { path: 'inventario/:id', component: ProductDetailComponent },
+  { path: 'inventario/:id', component: ProductDetailComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['INVENTARIO_VER'] } },
 
   // --- PROVEEDORES ---
-  { path: 'proveedores', component: SupplierListComponent },
-  { path: 'proveedores/nuevo', component: CreateSupplierComponent },
-  { path: 'proveedores/:id', component: SupplierDetailComponent },
-  { path: 'proveedores/:id/editar', component: EditSupplierComponent },
+  { path: 'proveedores', component: SupplierListComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['PROVEEDORES_VER'] } },
+  { path: 'proveedores/nuevo', component: CreateSupplierComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['PROVEEDORES_GESTIONAR'] } },
+  { path: 'proveedores/:id', component: SupplierDetailComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['PROVEEDORES_VER'] } },
+  { path: 'proveedores/:id/editar', component: EditSupplierComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['PROVEEDORES_GESTIONAR'] } },
 
   // --- GESTIÓN DE COMPRAS ---
-  { path: 'compras-gestion', component: PurchasingDashboardComponent },
+  { path: 'compras-gestion', component: PurchasingDashboardComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
 
   // --- CONFIGURACIÓN ---
   { path: 'health', component: HealthComponent },
-  { path: 'configuracion', component: SettingsComponent },
+  { path: 'configuracion', component: SettingsComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['CONFIG_VER'] } },
 ];

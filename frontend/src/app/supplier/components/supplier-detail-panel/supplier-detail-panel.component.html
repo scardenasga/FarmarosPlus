@@ -1,0 +1,192 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-detalle">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">REF #{{ detalle()?.idProveedor ?? '—' }}</span>
+        <h2>{{ detalle()?.nombre || 'Proveedor' }}</h2>
+        <span class="panel-desc">
+          @if (detalle()?.nit) { NIT {{ detalle()?.nit }} · }
+          {{ detalle()?.contacto || 'Sin contacto asignado' }}
+        </span>
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="cerrar()" aria-label="Cerrar panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (cargando()) {
+      <div class="panel-estado">
+        <div class="spinner"></div>
+        <p>Cargando detalle...</p>
+      </div>
+    } @else {
+      @if (detalle(); as d) {
+        <div class="panel-cuerpo">
+          <div class="panel-badges">
+            <span class="estado-pill" [class]="'estado-' + d.estado.toLowerCase()">{{ d.estado }}</span>
+            @if (d.nit) {
+              <span class="badge-nit">NIT {{ d.nit }}</span>
+            }
+            @if (d.condicionPago) {
+              <span class="badge-pago">{{ d.condicionPago }}</span>
+            }
+          </div>
+
+          <div class="panel-grid">
+            <div class="panel-mini-card">
+              <span class="mini-label">Productos asociados</span>
+              <div class="mini-valor-linea">
+                <span class="mini-valor">{{ d.productos.length }}</span>
+                <span class="mini-unidad">productos</span>
+              </div>
+              <span class="mini-extra">{{ productosActivos() }} activos · {{ productosInactivos() }} inactivos</span>
+            </div>
+            <div class="panel-mini-card">
+              <span class="mini-label">Contacto</span>
+              <div class="mini-fila"><span>Persona:</span><strong>{{ d.contacto || '—' }}</strong></div>
+              <div class="mini-fila"><span>Tel:</span><strong>{{ d.telefono || '—' }}</strong></div>
+              <div class="mini-fila"><span>Email:</span><strong class="mini-email">{{ d.email || '—' }}</strong></div>
+            </div>
+          </div>
+
+          <!-- Datos comerciales -->
+          <div class="info-card">
+            <div class="info-fila">
+              <span class="info-label">Condición de pago</span>
+              <span class="info-valor highlight">{{ d.condicionPago || 'Por definir' }}</span>
+            </div>
+          </div>
+
+          <!-- Código / NIT barcode decorativo -->
+          <div class="barcode-card">
+            <div class="barcode-barras">
+              @for (ancho of patronBarras(d.nit || d.nombre); track $index) {
+                <span class="barra" [style.width.px]="ancho"></span>
+              }
+            </div>
+            <span class="barcode-codigo">{{ d.nit || ('PROV-' + d.idProveedor) }}</span>
+          </div>
+
+          <!-- Productos asociados -->
+          <details class="panel-acordeon" open>
+            <summary>
+              <span>Productos asociados ({{ d.productos.length }})</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="acordeon-cuerpo">
+              <button type="button" class="btn-add-producto" (click)="openAssociate()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                Asociar producto
+              </button>
+
+              @for (prod of d.productos; track prod.id) {
+                <div class="producto-fila" [class.inactivo]="prod.estadoRelacion === 'INACTIVO'">
+                  <div class="producto-info">
+                    <div class="producto-nombre-linea">
+                      <span class="producto-nombre">{{ prod.nombre }}</span>
+                      <span class="estado-dot" [class.activo]="prod.estadoRelacion === 'ACTIVO'"></span>
+                    </div>
+                    <span class="producto-detalle">Cod: {{ prod.codigoBarras }}</span>
+                    @if (prod.codigoProductoProveedor) {
+                      <span class="producto-detalle">Ref. prov: {{ prod.codigoProductoProveedor }}</span>
+                    }
+                    @if (prod.precioReferencia != null) {
+                      <div class="precio-linea">
+                        <span class="precio-label">Precio ref.</span>
+                        <span class="precio-valor">${{ prod.precioReferencia | number:'1.0-2' }}</span>
+                      </div>
+                    }
+                    <span class="rel-estado" [class]="'rel-' + prod.estadoRelacion.toLowerCase()">{{ prod.estadoRelacion }}</span>
+                  </div>
+                  <div class="producto-acciones">
+                    <button type="button" class="accion-btn" title="Cambiar estado" (click)="handleToggleProductStatus(prod)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M4.93 4.93l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M18 12h3M4.93 19.07l2.12-2.12M17.66 6.34l2.12-2.12"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    <button type="button" class="accion-btn peligro" title="Eliminar relación" (click)="handleRemoveProduct(prod)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              } @empty {
+                <p class="sin-datos">Este proveedor no tiene productos asociados.</p>
+              }
+            </div>
+          </details>
+
+          <!-- Notas / reclamos -->
+          <details class="panel-acordeon">
+            <summary>
+              <span>Reclamos y observaciones ({{ notes().length }})</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="acordeon-cuerpo">
+              <button type="button" class="btn-add-producto secundario" (click)="openAddNote()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                Registrar nota
+              </button>
+
+              @for (note of notes(); track note.idNota) {
+                <div class="nota-item">
+                  <div class="nota-header">
+                    <span class="nota-tipo">{{ tipoLabel(note.tipoNota) }}</span>
+                    <span class="nota-fecha">{{ note.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <span class="nota-titulo">{{ note.titulo }}</span>
+                  <p class="nota-desc">{{ note.descripcion }}</p>
+                  <span class="nota-usuario">Por {{ note.usuarioCreacion || 'Sistema' }}</span>
+                </div>
+              } @empty {
+                <p class="sin-datos">No hay reclamos ni observaciones registradas.</p>
+              }
+            </div>
+          </details>
+        </div>
+
+        <footer class="panel-footer">
+          <button type="button" class="btn-panel secundario" (click)="toggleStatus()">
+            {{ d.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
+          </button>
+          <button type="button" class="btn-panel primario" (click)="solicitarEditar()">Editar</button>
+        </footer>
+      }
+    }
+
+    @if (showStatusConfirmation()) {
+      <app-confirmation-dialog
+        [title]="detalle()?.estado === 'ACTIVO' ? '¿Desactivar Proveedor?' : '¿Activar Proveedor?'"
+        [content]="'¿Está seguro que desea cambiar el estado del proveedor ' + detalle()?.nombre + '?'"
+        cancelText="Cancelar"
+        confirmText="Confirmar"
+        (onCancel)="showStatusConfirmation.set(false)"
+        (onConfirm)="confirmarCambioEstado()">
+      </app-confirmation-dialog>
+    }
+
+    @if (showDeleteRelationConfirmation()) {
+      <app-confirmation-dialog
+        title="¿Eliminar Relación?"
+        [content]="'¿Desea eliminar la relación con el producto ' + selectedProduct()?.nombre + '? Esta acción no se puede deshacer.'"
+        cancelText="Volver"
+        confirmText="Eliminar"
+        (onCancel)="showDeleteRelationConfirmation.set(false)"
+        (onConfirm)="confirmRemoveRelation()">
+      </app-confirmation-dialog>
+    }
+
+    <app-associate-product-dialog
+      [isVisible]="showAssociateDialog()"
+      [supplierId]="detalle()?.idProveedor || 0"
+      (close)="showAssociateDialog.set(false)"
+      (associated)="handleAssociated()">
+    </app-associate-product-dialog>
+
+    <app-add-note-dialog
+      [isVisible]="showAddNoteDialog()"
+      [supplierId]="detalle()?.idProveedor || 0"
+      (close)="showAddNoteDialog.set(false)"
+      (added)="handleNoteAdded()">
+    </app-add-note-dialog>
+  </aside>
+}

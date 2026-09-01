@@ -1,0 +1,64 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrado.emit()"></div>
+
+  <aside class="panel-recepcion">
+    <header class="panel-header">
+      <div>
+        <span class="panel-ref">Confirmar recepcion</span>
+        <h2>OC-{{ orden().idOrden }}</h2>
+      </div>
+      <button type="button" class="btn-cerrar" (click)="cerrado.emit()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <div class="panel-cuerpo">
+      <span class="seccion-titulo">Recepcion de la orden</span>
+
+      <label class="campo-label">Estado de la recepcion *</label>
+      <select [(ngModel)]="estadoRecepcion">
+        @for (e of estados; track e) {
+          <option [value]="e">{{ e }}</option>
+        }
+      </select>
+
+      <label class="campo-label">Total recibido * (COP)</label>
+      <input type="number" min="0" [(ngModel)]="totalRecepcion" />
+
+      <label class="campo-label">Observaciones</label>
+      <textarea rows="2" [(ngModel)]="observaciones" placeholder="Opcional..."></textarea>
+
+      <span class="seccion-titulo">Pago</span>
+
+      <label class="toggle-linea">
+        <span>Pagar al recibir</span>
+        <input type="checkbox" [(ngModel)]="pagarAlRecibir" />
+      </label>
+
+      @if (pagarAlRecibir) {
+        <label class="campo-label">Monto pagado (COP) *</label>
+        <input type="number" min="0" [(ngModel)]="montoPago" />
+      }
+
+      <p class="nota">La orden pasara a CERRADA si la recepcion es COMPLETA, o quedara PENDIENTE si es PARCIAL.</p>
+    </div>
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-p secundario" (click)="cerrado.emit()">Cancelar</button>
+      <button type="button" class="btn-p primario" [disabled]="registrando()" (click)="solicitarRegistrar()">
+        {{ registrando() ? 'Registrando...' : 'Confirmar recepcion' }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        title="Registrar recepcion"
+        content="Se registrara la recepcion{{ pagarAlRecibir ? ' y su pago' : '' }} de la orden OC-{{ orden().idOrden }}. Deseas continuar?"
+        cancelText="Revisar"
+        confirmText="Confirmar"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmarRegistro()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

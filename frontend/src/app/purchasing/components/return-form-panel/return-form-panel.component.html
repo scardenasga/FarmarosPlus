@@ -1,0 +1,175 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div>
+        <span class="panel-ref">{{ esEditar() ? 'Editar devolución' : 'Nueva devolución' }} · {{ esProveedor() ? 'Proveedor' : 'Cliente' }}</span>
+        <h2>{{ esEditar() ? 'Actualiza los datos' : 'Completa los datos' }}</h2>
+      </div>
+      <button type="button" class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <form (ngSubmit)="solicitarGuardar()">
+      <div class="panel-cuerpo">
+        @if (!esEditar()) {
+          <div class="tipo-switch">
+            <button type="button" class="chip" [class.chip-active]="tipoDevolucion() === 'proveedor'" (click)="onTipoChange('proveedor')">Proveedor</button>
+            <button type="button" class="chip" [class.chip-active]="tipoDevolucion() === 'cliente'" (click)="onTipoChange('cliente')">Cliente</button>
+          </div>
+        }
+
+        @if (esProveedor()) {
+          @if (!esEditar()) {
+            <span class="seccion-titulo">Proveedor</span>
+            <select class="input-plain" [value]="idProveedorSeleccionado() ?? ''" (change)="onProveedorChange($any($event.target).value)">
+              <option value="" disabled>Seleccione un proveedor</option>
+              @for (p of proveedores(); track p.idProveedor) {
+                <option [value]="p.idProveedor">{{ p.nombre }}</option>
+              }
+            </select>
+            @if (cargandoProveedores()) {
+              <p class="msg-info">Cargando proveedores...</p>
+            }
+
+            <span class="seccion-titulo">Producto y lote</span>
+            @if (!idProveedorSeleccionado()) {
+              <div class="lista-vacia">Selecciona proveedor primero.</div>
+            } @else if (cargandoDetalleProveedor()) {
+              <p class="msg-info">Cargando productos...</p>
+            } @else {
+              <input type="text" class="input-plain" [value]="busquedaProductoProveedor()" (input)="busquedaProductoProveedor.set($any($event.target).value)" placeholder="Filtrar producto por nombre/código..." />
+              <div class="productos-grid">
+                @for (prod of productosProveedorFiltrados(); track prod.id) {
+                  <button type="button" class="producto-card-mini" [class.activo]="productoSeleccionado()?.id === prod.id" (click)="seleccionarProducto(prod)">
+                    <strong>{{ prod.nombre }}</strong>
+                    <small>{{ prod.codigoBarras }} · {{ prod.estadoRelacion }}</small>
+                  </button>
+                } @empty {
+                  <div class="lista-vacia">Sin productos para ese filtro.</div>
+                }
+              </div>
+              @if (productoSeleccionado()) {
+                <div class="lote-box">
+                  @if (cargandoLotes()) {
+                    <p class="msg-info">Cargando lotes...</p>
+                  } @else {
+                    <label class="campo-mini">Lote *</label>
+                    <div class="lotes-scroll">
+                      @for (l of lotes(); track l.id) {
+                        <button type="button" class="lote-item" [class.lote-activo]="idLoteSeleccionado() === l.id" (click)="idLoteSeleccionado.set(l.id)">
+                          <span><strong>{{ l.numeroLote || 'SIN LOTE' }}</strong><small>Stock {{ l.cantidad }}</small></span>
+                          <small>{{ l.fechaVencimiento ? (l.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin venc.' }}</small>
+                        </button>
+                      } @empty {
+                        <div class="lista-vacia">Sin lotes disponibles.</div>
+                      }
+                    </div>
+                    <div class="inline-fields">
+                      <label class="campo-mini">Cantidad *<input type="number" class="input-plain" [value]="cantidadNueva()" (input)="cantidadNueva.set(+$any($event.target).value)" min="1" /></label>
+                      <button type="button" class="btn-add" (click)="agregarItemProveedor()">Agregar</button>
+                    </div>
+                  }
+                  @if (errorProducto()) { <p class="campo-error">{{ errorProducto() }}</p> }
+                </div>
+              }
+            }
+
+            <label class="campo-mini">Motivo *</label>
+            <input type="text" class="input-plain" [value]="motivo()" (input)="motivo.set($any($event.target).value)" placeholder="Ej: VENCIMIENTO, DANADO..." />
+            @if (!esEditar()) {
+              <label class="campo-mini">Observaciones</label>
+              <textarea class="input-plain" rows="2" [value]="observaciones()" (input)="observaciones.set($any($event.target).value)" placeholder="Opcional..."></textarea>
+            }
+
+            @if (items().length) {
+              <span class="seccion-titulo">Productos agregados ({{ items().length }})</span>
+              <div class="items-lista">
+                @for (it of items(); track it.idLote; let i = $index) {
+                  <div class="item-fila">
+                    <span class="item-nombre">{{ it.nombreProducto }} <small>Lote {{ it.numeroLote || 'SIN' }}</small></span>
+                    <input type="number" [value]="it.cantidad" (input)="actualizarCantidad(i, +$any($event.target).value)" min="1" />
+                    <button type="button" class="quitar" (click)="quitarItem(i)">x</button>
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <!-- Editar proveedor: motivo/observaciones + estado -->
+            <span class="seccion-titulo">Datos editables @if (!isAdmin()) { <em>(empleado)</em> }</span>
+            <label class="campo-mini">Estado @if (!isAdmin()) { <small>— flujo empleado: PENDIENTE ↔ ENVIADA / PENDIENTE→CERRADA</small> }</label>
+            <select class="input-plain" [value]="estado()" (change)="estado.set($any($event.target).value)">
+              @for (est of estadosVisiblesForm(); track est) {
+                <option [value]="est">{{ est }}</option>
+              }
+            </select>
+            <label class="campo-mini">Motivo *</label>
+            <input type="text" class="input-plain" [value]="motivo()" (input)="motivo.set($any($event.target).value)" />
+            <label class="campo-mini">Observaciones</label>
+            <textarea rows="3" class="input-plain" [value]="observaciones()" (input)="observaciones.set($any($event.target).value)"></textarea>
+            <p class="hint">Estado controla el flujo (PENDIENTE→ENVIADA→...). Cantidades e inventario no se modifican.</p>
+          }
+        } @else {
+          <!-- Cliente -->
+          @if (!esEditar()) {
+            <span class="seccion-titulo">Venta origen</span>
+            <div class="inline-fields">
+              <input type="number" class="input-plain" [value]="idVenta()" (input)="idVenta.set($any($event.target).value)" placeholder="ID venta" />
+              <button type="button" class="btn-add" (click)="cargarVenta()" [disabled]="cargandoVenta()">{{ cargandoVenta() ? 'Cargando...' : 'Cargar' }}</button>
+            </div>
+            @if (errorVenta()) { <p class="campo-error">{{ errorVenta() }}</p> }
+            @if (ventaCargada()) {
+              <div class="venta-summary">
+                <span>Venta #{{ ventaCargada()?.id }} · {{ ventaCargada()?.total | currency:'COP':'symbol-narrow' }} · {{ ventaCargada()?.estado }}</span>
+              </div>
+            }
+            <label class="campo-mini">Nombre cliente</label>
+            <input type="text" class="input-plain" [value]="nombreCliente()" (input)="nombreCliente.set($any($event.target).value)" placeholder="Opcional" />
+            <label class="campo-mini">Documento cliente</label>
+            <input type="text" class="input-plain" [value]="documentoCliente()" (input)="documentoCliente.set($any($event.target).value)" placeholder="Opcional" />
+            <label class="campo-mini">Motivo</label>
+            <input type="text" class="input-plain" [value]="motivo()" (input)="motivo.set($any($event.target).value)" placeholder="Opcional" />
+            @if (items().length) {
+              <span class="seccion-titulo">Productos a devolver</span>
+              @for (it of items(); track it.idDetalleVenta; let i = $index) {
+                <div class="item-fila">
+                  <span class="item-nombre">{{ it.nombreProducto }}<small>Lote {{ it.numeroLote || 'SIN' }} · Vendido {{ it.cantidadDisponible }}</small></span>
+                  <input type="number" [value]="it.cantidad" (input)="actualizarCantidad(i, +$any($event.target).value)" min="0" [max]="it.cantidadDisponible" />
+                </div>
+              }
+            }
+          } @else {
+            <span class="seccion-titulo">Datos cliente</span>
+            <label class="campo-mini">Nombre cliente</label>
+            <input type="text" class="input-plain" [value]="nombreCliente()" (input)="nombreCliente.set($any($event.target).value)" />
+            <label class="campo-mini">Documento</label>
+            <input type="text" class="input-plain" [value]="documentoCliente()" (input)="documentoCliente.set($any($event.target).value)" />
+            <label class="campo-mini">Motivo</label>
+            <input type="text" class="input-plain" [value]="motivo()" (input)="motivo.set($any($event.target).value)" />
+          }
+        }
+
+        @if (error()) { <p class="campo-error">{{ error() }}</p> }
+      </div>
+    </form>
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-p secundario" (click)="cerrar()">Cancelar</button>
+      <button type="button" class="btn-p primario" [disabled]="!puedeEnviar() || cargandoDevolucion()" (click)="solicitarGuardar()">
+        {{ esEditar() ? 'Guardar cambios' : 'Registrar devolución' }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        [title]="esEditar() ? '¿Guardar cambios?' : '¿Registrar devolución?'"
+        [content]="esEditar() ? 'Se actualizarán los datos informativos.' : 'Se registrará la devolución y se ajustará inventario.'"
+        cancelText="Revisar"
+        [confirmText]="esEditar() ? 'Guardar' : 'Registrar'"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmarGuardado()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

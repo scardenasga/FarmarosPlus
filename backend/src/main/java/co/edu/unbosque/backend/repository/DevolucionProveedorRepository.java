@@ -23,4 +23,6 @@ public interface DevolucionProveedorRepository extends JpaRepository<DevolucionP
 
     @Query("SELECT d FROM DevolucionProveedor d LEFT JOIN FETCH d.detalles WHERE d.idDevolucion = :id")
     Optional<DevolucionProveedor> findWithDetallesById(@Param("id") Long id);
+
+    boolean existsByUsuario_IdUsuario(Long idUsuario);
 }

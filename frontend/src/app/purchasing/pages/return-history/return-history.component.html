@@ -1,92 +1,179 @@
 <div class="page">
-  <app-top-bar
-    [title]="esProveedor() ? 'Devoluciones a proveedor' : 'Devoluciones a cliente'"
-    [showAlert]="false"
-    (back)="volver()">
-  </app-top-bar>
-
-  <main class="content">
-    <div class="mode-switch">
-      <button class="mode-pill" [class.active]="esProveedor()" (click)="onTipoChange('proveedor')">
-        Proveedor
+  <header class="page-header">
+    <div class="header-left">
+      <button type="button" class="btn-volver" (click)="volver()" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <button class="mode-pill" [class.active]="esCliente()" (click)="onTipoChange('cliente')">
-        Cliente
+      <div class="header-text">
+        <h1>Devoluciones</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-primary" (click)="nueva()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva devolución
       </button>
     </div>
+  </header>
 
-    @if (error()) {
-      <div class="msg-error">{{ error() }}</div>
-    }
+  <section class="toolbar">
+    <div class="toolbar-search">
+      <app-search-bar placeholder="Buscar por proveedor, cliente, motivo o estado..." [debounceMs]="250" (search)="onBuscar($event)"></app-search-bar>
+    </div>
+    <div class="filtros-grupo">
+      <div class="chip-group" role="group">
+        <button type="button" class="chip" [class.chip-active]="tipoDevolucion() === 'proveedor'" (click)="onTipoChange('proveedor')">Proveedor</button>
+        <button type="button" class="chip" [class.chip-active]="tipoDevolucion() === 'cliente'" (click)="onTipoChange('cliente')">Cliente</button>
+      </div>
+    </div>
+  </section>
 
-    @if (cargando() && !error()) {
-      <div class="msg-info">Cargando historial...</div>
-    }
+  <section class="subtoolbar">
+    <span class="conteo">{{ devolucionesFiltradas().length }} devoluciones</span>
+    <div class="controles-derecha">
+      <span class="vista-label">Vista:</span>
+      <div class="vista-toggle">
+        <button type="button" class="vista-btn" [class.vista-activa]="vista() === 'grid'" (click)="cambiarVista('grid')" aria-label="Grid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button type="button" class="vista-btn" [class.vista-activa]="vista() === 'tabla'" (click)="cambiarVista('tabla')" aria-label="Tabla">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
 
-    <div class="contenido-scroll">
-      @for (dev of devoluciones(); track dev.id) {
-        <article class="dev-card"
-          (click)="verDetalle(dev)"
-          role="button"
-          tabindex="0"
-          (keydown.enter)="verDetalle(dev)">
-          <div class="dev-top">
-            <h3 class="dev-proveedor">{{ nombrePrincipal(dev) }}</h3>
-            <span class="dev-fecha">{{ dev.fecha | date:'dd/MM/yyyy' }}</span>
-          </div>
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
 
-          <div class="dev-mid">
-            <span class="dev-usuario">Responsable: {{ dev.usuarioResponsable }}</span>
-            <span class="dev-items">{{ totalProductos(dev) }} unid. devueltas</span>
-          </div>
-
-          @if (detalleSecundario(dev)) {
-            <p class="dev-meta">{{ detalleSecundario(dev) }}</p>
-          }
-
-          @if (dev.motivo) {
-            <p class="dev-motivo">{{ dev.motivo }}</p>
-          }
-
-          <div class="dev-detalles">
-            @for (d of dev.detalles; track d.idProducto) {
-              <span class="chip-producto">
-                {{ d.nombreProducto }} × {{ d.cantidad }}
-              </span>
+  <main class="contenido-card">
+    @if (cargando()) {
+      <div class="estado-tabla"><div class="spinner"></div><p>Cargando historial...</p></div>
+    } @else if (devolucionesFiltradas().length === 0) {
+      <div class="estado-vacio">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p>Sin devoluciones registradas</p>
+        <span class="empty-hint">Cambia el filtro proveedor/cliente o crea una nueva.</span>
+      </div>
+    } @else if (vista() === 'grid') {
+      <div class="devoluciones-grid">
+        @for (dev of devolucionesPaginadas(); track dev.id) {
+          <article class="dev-card" (click)="verDetalle(dev)" role="button" tabindex="0" (keydown.enter)="verDetalle(dev)">
+            <div class="card-imagen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
+              @if ($any(dev).estado) {
+                <span class="estado-pill card-estado" [class]="'estado-' + $any(dev).estado.toLowerCase()">{{ $any(dev).estado }}</span>
+              } @else {
+                <span class="estado-pill card-estado estado-pendiente">{{ esProveedor() ? 'Proveedor' : 'Cliente' }}</span>
+              }
+            </div>
+            <div class="card-info">
+              <h4 class="card-nombre" [title]="nombrePrincipal(dev)">{{ nombrePrincipal(dev) }}</h4>
+              <span class="card-desc" [title]="dev.motivo || ''">{{ dev.motivo || ($any(dev).observaciones || 'Sin motivo') }}</span>
+              <span class="card-meta">{{ dev.fecha | date:'dd/MM/yyyy' }} · {{ totalProductos(dev) }} unid.</span>
+            </div>
+            @if (esProveedor()) {
+              <select class="estado-select grid-select" [value]="$any(dev).estado || 'PENDIENTE'" (change)="cambiarEstadoRapido(dev, $any($event.target).value)" (click)="$event.stopPropagation()">
+                @for (est of estadosVisiblesPara(dev); track est) { <option [value]="est">{{ est }}</option> }
+              </select>
+              @if (!isAdmin()) {
+                <span class="rol-hint">{{ $any(dev).estado === 'PENDIENTE' ? 'Envía o cancela' : $any(dev).estado === 'ENVIADA' ? 'En espera de admin' : 'Solo lectura' }}</span>
+              }
             }
-          </div>
-
-          <div class="dev-actions" (click)="$event.stopPropagation()">
-            <button class="dev-action-btn" type="button" (click)="editar(dev)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-              </svg>
-              Editar
-            </button>
-            <button class="dev-action-btn danger" type="button" (click)="solicitarEliminar(dev)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-              Eliminar
-            </button>
-          </div>
-        </article>
-      } @empty {
-        @if (!cargando() && !error()) {
-          <div class="msg-vacio">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-            </svg>
-            <p>Sin devoluciones registradas</p>
-          </div>
+            <div class="card-pie">
+              <span class="card-usuario">{{ dev.usuarioResponsable }}</span>
+              <span class="card-accion">Ver detalle</span>
+            </div>
+            <div class="card-actions" (click)="$event.stopPropagation()">
+              <button type="button" class="icono-accion" title="Editar" (click)="editar(dev)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              </button>
+              <button type="button" class="icono-accion peligro" title="Eliminar" (click)="solicitarEliminar(dev)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </article>
         }
-      }
-    </div>
-  </main>
+      </div>
+    } @else {
+      <div class="tabla-scroll">
+        <table class="devoluciones-tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ esProveedor() ? 'Proveedor' : 'Cliente' }}</th>
+              <th>Fecha</th>
+              <th>Responsable</th>
+              <th>Motivo</th>
+              <th class="col-centro">Estado</th>
+              <th class="col-centro">Unid.</th>
+              <th class="col-centro">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (dev of devolucionesPaginadas(); track dev.id) {
+              <tr class="fila-dev" (click)="verDetalle(dev)">
+                <td class="celda-id">#{{ dev.id }}</td>
+                <td class="celda-nombre" [title]="nombrePrincipal(dev)">
+                  <span class="nombre-texto">{{ nombrePrincipal(dev) }}</span>
+                  @if (detalleSecundario(dev)) {
+                    <span class="detalle-sec">{{ detalleSecundario(dev) }}</span>
+                  }
+                </td>
+                <td>{{ dev.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ dev.usuarioResponsable }}</td>
+                <td class="celda-motivo" [title]="dev.motivo || $any(dev).observaciones || ''">{{ dev.motivo || $any(dev).observaciones || '—' }}</td>
+                <td class="col-centro" (click)="$event.stopPropagation()">
+                  @if (esProveedor()) {
+                    <select class="estado-select" [value]="$any(dev).estado || 'PENDIENTE'" (change)="cambiarEstadoRapido(dev, $any($event.target).value)" (click)="$event.stopPropagation()">
+                      @for (est of estadosVisiblesPara(dev); track est) {
+                        <option [value]="est">{{ est }}</option>
+                      }
+                    </select>
+                  } @else {
+                    @if ($any(dev).estado) {
+                      <span class="estado-pill" [class]="'estado-' + $any(dev).estado.toLowerCase()">{{ $any(dev).estado }}</span>
+                    } @else {
+                      <span class="estado-pill estado-proveedor">{{ esProveedor() ? 'Proveedor' : 'Cliente' }}</span>
+                    }
+                  }
+                </td>
+                <td class="col-centro celda-cant">{{ totalProductos(dev) }}</td>
+                <td class="col-centro">
+                  <div class="fila-acciones">
+                    <button type="button" class="icono-accion" title="Editar" (click)="$event.stopPropagation(); editar(dev)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                    </button>
+                    <button type="button" class="icono-accion peligro" title="Eliminar" (click)="$event.stopPropagation(); solicitarEliminar(dev)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-  <app-fab-button (clicked)="nueva()"></app-fab-button>
+    @if (!cargando() && devolucionesFiltradas().length > 0) {
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ rangoMostrado() }} devoluciones</span>
+        <div class="paginacion-controles">
+          <button type="button" class="pag-btn" [disabled]="pagina() === 1" (click)="cambiarPagina(pagina() - 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+          @for (pg of paginasVisibles(); track $index) {
+            @if (pg === '...') { <span class="pag-puntos">...</span> }
+            @else { <button type="button" class="pag-btn pag-numero" [class.pag-actual]="pg === pagina()" (click)="cambiarPagina($any(pg))">{{ pg }}</button> }
+          }
+          <button type="button" class="pag-btn" [disabled]="pagina() >= totalPaginas()" (click)="cambiarPagina(pagina() + 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></button>
+          <select class="pag-tamano" (change)="cambiarTamanoPagina($any($event.target).value)">
+            @for (t of TAMANOS_PAGINA; track t) { <option [value]="t" [selected]="t === tamanoPagina()">{{ t }} / pág.</option> }
+          </select>
+        </div>
+      </div>
+    }
+  </main>
 </div>
 
 @if (devolucionAEliminar(); as dev) {
@@ -99,3 +186,21 @@
     (onConfirm)="confirmarEliminar()">
   </app-confirmation-dialog>
 }
+
+<app-return-detail-panel
+  [abierto]="detalleAbierto()"
+  [devolucionId]="detalleId()"
+  [tipo]="detalleTipo()"
+  (cerrado)="cerrarDetalle()"
+  (editado)="editarDesdePanel($event)"
+  (eliminado)="alEliminarDesdePanel()">
+</app-return-detail-panel>
+
+<app-return-form-panel
+  [abierto]="formAbierto()"
+  [modo]="formModo()"
+  [devolucionId]="formId()"
+  [tipoInicial]="formTipo()"
+  (cerrado)="cerrarForm()"
+  (guardado)="alGuardarForm()">
+</app-return-form-panel>

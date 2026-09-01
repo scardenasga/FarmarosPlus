@@ -16,4 +16,6 @@ public interface CompraProveedorRepository extends JpaRepository<CompraProveedor
 
     @Query("SELECT c FROM CompraProveedor c LEFT JOIN FETCH c.detalles WHERE c.idCompra = :id")
     Optional<CompraProveedor> findWithDetallesById(@Param("id") Long id);
+
+    boolean existsByUsuarioResponsableIgnoreCase(String usuarioResponsable);
 }

@@ -95,7 +95,12 @@ public class OrdenCompraService {
             }
             return i.cantidad() * i.precioUnitario();
         }).sum();
-        OrdenCompra orden = crearOrdenCompra(new CrearOrdenCompraRequest(request.proveedorId(), null, total, request.observaciones()));
+        // La entrega esperada se guarda al final del dia indicado para que
+        // las recepciones de esa fecha cuenten como entregadas a tiempo.
+        java.time.LocalDateTime esperada = request.fechaEsperada() != null
+                ? request.fechaEsperada().withHour(23).withMinute(59).withSecond(59)
+                : null;
+        OrdenCompra orden = crearOrdenCompra(new CrearOrdenCompraRequest(request.proveedorId(), esperada, total, request.observaciones()));
         agregarDetallesConfirmados(orden, request);
         return ordenCompraRepository.save(orden);
     }
@@ -112,6 +117,9 @@ public class OrdenCompraService {
         Proveedor proveedor = proveedorRepository.findById(request.proveedorId())
                 .orElseThrow(() -> new ResourceNotFoundException("No existe proveedor con id " + request.proveedorId()));
         orden.setProveedor(proveedor);
+        if (request.fechaEsperada() != null) {
+            orden.setFechaEsperada(request.fechaEsperada().withHour(23).withMinute(59).withSecond(59));
+        }
         orden.setObservaciones(request.observaciones());
         orden.getDetalles().clear();
         agregarDetallesConfirmados(orden, request);

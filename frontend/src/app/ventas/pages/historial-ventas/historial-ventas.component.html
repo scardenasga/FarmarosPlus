@@ -5,12 +5,14 @@
       <h1>Ventas</h1>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-secondary" (click)="irAReportes()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/>
-        </svg>
-        Reportes
-      </button>
+      @if (tieneReportes()) {
+        <button type="button" class="btn-secondary" (click)="irAReportes()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/>
+          </svg>
+          Reportes
+        </button>
+      }
       <button type="button" class="btn-primary" (click)="handleAddSale()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M12 5v14M5 12h14"/>

@@ -98,6 +98,12 @@ public class RecepcionCompraService {
         }
         // Si es PARCIAL, la orden permanece PENDIENTE para permitir más recepciones
 
+        // Si la orden no tenia fecha esperada, se toma la fecha de la recepcion:
+        // es el dia en que realmente se aprobo/recibio la compra.
+        if (orden.getFechaEsperada() == null) {
+            orden.setFechaEsperada(recepcion.getFechaRecepcion());
+        }
+
         ordenCompraRepository.save(orden);
         return recepcionCompraRepository.save(recepcion);
     }

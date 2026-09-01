@@ -20,4 +20,6 @@ public interface DevolucionClienteRepository extends JpaRepository<DevolucionCli
 
     @EntityGraph(attributePaths = {"detalles", "detalles.detalleVenta", "detalles.producto", "detalles.lote", "venta", "usuario"})
     Optional<DevolucionCliente> findWithDetallesByIdDevolucionCliente(Long idDevolucionCliente);
+
+    boolean existsByUsuario_IdUsuario(Long idUsuario);
 }

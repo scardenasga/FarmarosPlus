@@ -1,9 +1,28 @@
 .page {
-  background-color: var(--background);
+  background-color: var(--bg-main, var(--background));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-l) var(--space-xl) var(--space-s);
+}
+.header-left { display: flex; align-items: center; gap: var(--space-m); }
+.btn-volver {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+}
+.btn-volver svg { width: 18px; height: 18px; }
+.btn-volver:hover { background-color: var(--surface-container-high, rgba(128,128,128,0.08)); }
+.panel-ref { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--text-muted, var(--outline)); }
+.header-text h1 { margin: 2px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--text-dark, var(--on-background)); }
 
 .content {
   flex: 1;
@@ -11,31 +30,22 @@
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
 }
 
-.mode-switch {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: var(--space-m);
+.tipo-switch { margin-bottom: var(--space-s); }
+.filtros-grupo { display: flex; gap: var(--space-xs); }
+.chip {
+  padding: 7px 13px; border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  background-color: var(--card-bg, var(--surface-container-low));
+  color: var(--text-dark, var(--on-background)); font-weight: 700; font-size: 0.72rem;
+  transition: background-color 0.2s, color 0.2s;
 }
-
-.mode-pill {
-  border: 1px solid var(--outline-variant);
-  background-color: var(--surface-container);
-  color: var(--on-surface-variant);
-  border-radius: var(--radius-full);
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mode-pill.active {
-  background-color: var(--primary);
-  color: var(--on-primary);
-  border-color: var(--primary);
-}
+.chip:hover { background-color: var(--surface-container-high, rgba(128,128,128,0.08)); }
+.chip-active { background-color: var(--accent-green-dark, var(--primary-container)); border-color: transparent; color: var(--on-primary-container); }
 
 .form-scroll {
   display: flex;
@@ -44,15 +54,17 @@
 }
 
 .seccion-card {
-  background-color: var(--surface-container-low);
+  background-color: var(--card-bg, var(--surface-container-low));
   padding: var(--space-l);
   border-radius: var(--radius-l);
   display: flex;
   flex-direction: column;
   gap: var(--space-m);
-  border: 1px solid var(--outline-variant);
+  border: 1px solid var(--border-color, var(--outline-variant));
   box-shadow: var(--shadow-1);
 }
+.seccion-card .label-campo { font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted, var(--outline)); }
+.seccion-card .section-hint { font-size: 0.72rem; color: var(--text-muted, var(--outline)); }
 
 .product-picker-card {
   gap: 12px;

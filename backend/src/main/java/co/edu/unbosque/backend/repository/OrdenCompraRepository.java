@@ -14,4 +14,5 @@ import java.util.List;
 public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> {
     List<OrdenCompra> findByEstadoOrderByFechaPedidoDesc(String estado);
     List<OrdenCompra> findByProveedor_IdProveedorOrderByFechaPedidoDesc(Long proveedorId);
+    boolean existsByUsuario_IdUsuario(Long idUsuario);
 }

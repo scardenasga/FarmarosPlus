@@ -1,69 +1,140 @@
-<app-bottom-sheet 
-  [isOpen]="isVisible()" 
-  (close)="close.emit()"
-  title="Asociar Producto"
->
-  <div class="dialog-content">
-    @if (!selectedProduct()) {
-      <div class="search-step">
-        <p class="step-desc">Busque el producto que desea asociar a este proveedor.</p>
-        <app-search-bar
-          placeholder="Nombre o código de barras"
-          (search)="handleSearch($event)"
-        ></app-search-bar>
+@if (isVisible()) {
+  <div class="panel-backdrop" (click)="handleClose()"></div>
 
-        <div class="results-container">
-          @for (product of searchResults(); track product.id) {
-            <button class="result-item" (click)="selectProduct(product)">
-              <div class="product-info">
-                <span class="product-name">{{ product.nombre }}</span>
-                <span class="product-barcode">{{ product.codigoBarras }}</span>
-              </div>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-          } @empty {
-            @if (searchResults().length === 0) {
-              <div class="empty-results">
-                <p>No hay resultados. Empiece a escribir para buscar.</p>
-              </div>
-            }
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">Asociar producto</span>
+        <h2>Vincula un producto al proveedor</h2>
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="handleClose()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (!selectedProduct()) {
+      <div class="panel-cuerpo">
+        <span class="seccion-titulo">1 · Elige un producto</span>
+
+        <app-search-bar
+          placeholder="Buscar por nombre, código o categoría..."
+          [debounceMs]="250"
+          (search)="handleSearch($event)">
+        </app-search-bar>
+
+        <div class="conteo-linea">
+          <span class="conteo">{{ productosFiltrados().length }} productos disponibles</span>
+          @if (searchTerm()) {
+            <button type="button" class="btn-limpiar" (click)="handleSearch('')">Limpiar búsqueda</button>
           }
         </div>
-      </div>
-    } @else {
-      <div class="detail-step">
-        <div class="selected-product-card">
-          <div class="card-header">
-            <span class="step-label">Producto Seleccionado</span>
-            <button class="btn-change" (click)="clearSelection()">Cambiar</button>
+
+        @if (buscando()) {
+          <div class="estado-busqueda">
+            <div class="mini-spinner"></div>
+            Cargando productos...
           </div>
-          <div class="product-summary">
-            <span class="name">{{ selectedProduct()?.nombre }}</span>
-            <span class="barcode">{{ selectedProduct()?.codigoBarras }}</span>
+        } @else {
+          @if (productosFiltrados().length > 0) {
+            <div class="productos-grid">
+              @for (product of productosFiltrados(); track product.id) {
+                <article class="producto-card" (click)="selectProduct(product)">
+                  <div class="card-imagen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                      <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+                    </svg>
+                    <span class="stock-pill" [class]="claseStock(product)">{{ etiquetaStock(product) }}</span>
+                  </div>
+                  <div class="card-info">
+                    <h4 class="card-nombre" [title]="product.nombre">{{ product.nombre }}</h4>
+                    <span class="card-desc" [title]="product.categoria?.nombre || product.descripcion || ''">{{ product.categoria?.nombre || product.descripcion || 'Sin categoría' }}</span>
+                    <span class="card-codigo">{{ product.codigoBarras }}</span>
+                  </div>
+                  <div class="card-pie">
+                    <span class="card-precio">${{ product.precioVenta | number:'1.0-0' }}</span>
+                    <span class="card-accion">Asociar</span>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="estado-vacio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <p>No se encontraron productos con ese criterio.</p>
+              <span>Prueba con otro nombre o código de barras.</span>
+            </div>
+          }
+        }
+
+        <div class="ayuda-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <p>Solo se listan productos <strong>ACTIVOS</strong>. Si el vínculo ya existe en estado inactivo, se reactivará automáticamente.</p>
+        </div>
+      </div>
+
+      <footer class="panel-footer">
+        <button type="button" class="btn-panel secundario" (click)="handleClose()">Cerrar</button>
+      </footer>
+    } @else {
+      <form [formGroup]="assocForm" (ngSubmit)="solicitarAsociacion()">
+        <div class="panel-cuerpo">
+          <span class="seccion-titulo">Producto seleccionado</span>
+
+          <div class="producto-seleccionado">
+            <span class="seleccion-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+            </span>
+            <div class="seleccion-info">
+              <span class="seleccion-nombre">{{ selectedProduct()?.nombre }}</span>
+              <span class="seleccion-meta">{{ selectedProduct()?.codigoBarras }} · {{ selectedProduct()?.categoria?.nombre || 'Sin categoría' }}</span>
+              <span class="seleccion-stock" [class]="claseStock(selectedProduct()!)">{{ etiquetaStock(selectedProduct()!) }} · ${{ selectedProduct()?.precioVenta | number:'1.0-0' }}</span>
+            </div>
+            <button type="button" class="btn-cambiar" (click)="clearSelection()">Cambiar</button>
+          </div>
+
+          <span class="seccion-titulo">2 · Datos del vínculo <small>(opcional)</small></span>
+
+          <div class="campos-grid">
+            <app-form-input
+              label="Código del proveedor para este producto"
+              placeholder="Ej. REF-XYZ-123"
+              [control]="getControl('codigoProductoProveedor')">
+            </app-form-input>
+
+            <app-form-input
+              label="Precio de referencia"
+              type="number"
+              suffix="COP"
+              placeholder="0.00"
+              [control]="getControl('precioReferencia')">
+            </app-form-input>
+          </div>
+
+          <div class="ayuda-box success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            <p>El vínculo quedará en estado <strong>ACTIVO</strong>. Podrás inactivarlo o eliminarlo desde el detalle.</p>
           </div>
         </div>
+      </form>
 
-        <form [formGroup]="assocForm" class="assoc-form">
-          <app-form-input
-            label="Código de Producto del Proveedor (Opcional)"
-            placeholder="Ej. REF-XYZ-123"
-            [control]="getControl('codigoProductoProveedor')"
-          ></app-form-input>
-
-          <app-form-input
-            label="Precio de Referencia (Opcional)"
-            type="number"
-            placeholder="0.00"
-            [control]="getControl('precioReferencia')"
-          ></app-form-input>
-
-          <div class="form-actions">
-            <button type="button" class="btn btn-save" (click)="confirmAssociation()" [disabled]="assocForm.invalid">
-              Confirmar Asociación
-            </button>
-          </div>
-        </form>
-      </div>
+      <footer class="panel-footer">
+        <button type="button" class="btn-panel secundario" (click)="clearSelection()">Volver</button>
+        <button type="button" class="btn-panel primario" [disabled]="guardando()" (click)="solicitarAsociacion()">
+          {{ guardando() ? 'Asociando...' : 'Confirmar asociación' }}
+        </button>
+      </footer>
     }
-  </div>
-</app-bottom-sheet>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        title="¿Asociar producto?"
+        [content]="'Se vinculará ' + (selectedProduct()?.nombre || 'este producto') + ' al proveedor. ¿Desea continuar?'"
+        cancelText="Revisar"
+        confirmText="Asociar"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmAssociation()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

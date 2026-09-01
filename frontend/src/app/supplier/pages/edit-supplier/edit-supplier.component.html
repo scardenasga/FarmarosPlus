@@ -1,74 +1,45 @@
-<div class="edit-page">
-  <div class="sticky-header">
-    <app-top-bar title="Editar Proveedor" [showAlert]="false" (back)="onCancel()"></app-top-bar>
-  </div>
+<div class="page-fondo">
+  <header class="page-header">
+    <button type="button" class="btn-volver" (click)="onCancel()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    </button>
+    <div class="header-text">
+      <span class="panel-ref">Editar proveedor</span>
+      <h1>Actualiza la información del proveedor</h1>
+    </div>
+  </header>
 
   <main class="content-area">
-    <form [formGroup]="supplierForm">
+    <form [formGroup]="supplierForm" (ngSubmit)="onSave()">
+      <span class="seccion-titulo">¿Quién es tu proveedor?</span>
 
-      <!-- Información Básica -->
-      <section class="section-card">
-        <span class="section-title">Información Básica</span>
-
-        <app-form-input
-          label="Nombre del proveedor"
-          placeholder="Ej. Farmacéutica XYZ S.A."
-          [control]="getControl('nombre')">
-        </app-form-input>
-
-        <app-form-input
-          label="NIT"
-          placeholder="Ej. 860123456-7"
-          [control]="getControl('nit')">
-        </app-form-input>
-      </section>
-
-      <!-- Detalles de Contacto -->
-      <section class="section-card">
-        <span class="section-title">Detalles de Contacto</span>
-
-        <app-form-input
-          label="Persona de Contacto"
-          placeholder="Ej. Juan Pérez"
-          [control]="getControl('contacto')">
-        </app-form-input>
-
-        <div class="row">
-          <app-form-input
-            label="Teléfono"
-            placeholder="Ej. +57 1 1234567"
-            [control]="getControl('telefono')">
-          </app-form-input>
-
-          <app-form-input
-            label="Email"
-            type="email"
-            placeholder="Ej. contacto@empresa.com"
-            [control]="getControl('email')">
-          </app-form-input>
+      <div class="zona-proveedor">
+        <div class="avatar-proveedor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M16 8V6a4 4 0 0 0-8 0v2"/></svg>
         </div>
-      </section>
+        <div class="col-nombre">
+          <app-form-input label="Nombre del proveedor *" placeholder="Ej. Farmacéutica XYZ S.A." [control]="getControl('nombre')"></app-form-input>
+          <app-form-input label="NIT" placeholder="Ej. 860123456-7" [control]="getControl('nit')"></app-form-input>
+        </div>
+      </div>
 
-      <!-- Información Comercial -->
-      <section class="section-card">
-        <span class="section-title">Información Comercial</span>
+      <span class="seccion-titulo">Contacto</span>
 
-        <app-form-input
-          label="Condición de Pago"
-          placeholder="Ej. Neto 30 días"
-          [control]="getControl('condicionPago')">
-        </app-form-input>
-      </section>
+      <div class="campos-grid">
+        <app-form-input label="Persona de contacto" placeholder="Ej. Juan Pérez" [control]="getControl('contacto')"></app-form-input>
+        <app-form-input label="Teléfono" placeholder="Ej. +57 1 1234567" [control]="getControl('telefono')"></app-form-input>
+        <app-form-input label="Email" placeholder="Ej. contacto@empresa.com" [control]="getControl('email')"></app-form-input>
+        <app-form-input label="Condición de pago" placeholder="Ej. Neto 30 días" [control]="getControl('condicionPago')"></app-form-input>
+      </div>
     </form>
   </main>
 
   <footer class="sticky-footer">
     <button type="button" class="btn btn-cancel" (click)="onCancel()">Cancelar</button>
-    <button type="button" class="btn btn-save" [disabled]="supplierForm.invalid" (click)="onSave()">Actualizar Proveedor</button>
+    <button type="button" class="btn btn-save" [disabled]="supplierForm.invalid" (click)="onSave()">Actualizar proveedor</button>
   </footer>
 </div>
 
-<!-- Confirmation Dialog -->
 @if (showConfirmation()) {
   <app-confirmation-dialog
     title="¿Actualizar Proveedor?"

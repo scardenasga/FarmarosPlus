@@ -15,6 +15,9 @@ public record DevolucionResponse(
         String usuarioResponsable,
         String motivo,
         LocalDateTime fecha,
-        List<DetalleDevolucionResponse> detalles
+        List<DetalleDevolucionResponse> detalles,
+        String observaciones,
+        String estado,
+        String tipoDevolucion
 ) {
 }

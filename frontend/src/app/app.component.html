@@ -1,3 +1,10 @@
+@if (sesion.previewVendedor()) {
+  <div aria-hidden="true" style="position:fixed; inset:0; border:2px solid var(--warning-text); border-radius:10px; pointer-events:none; z-index:1099;"></div>
+  <div style="position:fixed; top:8px; left:50%; transform:translateX(-50%); z-index:1100; background: var(--warning-bg); color: var(--warning-text); border:1px solid var(--warning-text); border-radius:999px; display:inline-flex; align-items:center; gap:8px; padding:4px 10px; font-size:0.68rem; font-weight:800; box-shadow: var(--shadow-2); white-space:nowrap;">
+    <span>👁 VENDEDOR</span>
+    <button type="button" (click)="sesion.desactivarPreview()" style="background: var(--warning-text); color: var(--warning-bg); padding:2px 8px; border-radius:999px; font-weight:800; font-size:0.66rem;">Salir</button>
+  </div>
+}
 @if (navService.showSidebar()) {
   <app-sidebar />
 }

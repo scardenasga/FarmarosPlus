@@ -33,7 +33,7 @@ class DevolucionControllerTest {
     void registrar_debeRetornar201() throws Exception {
         DevolucionResponse response = new DevolucionResponse(
                 1L, 1L, "Proveedor ABC", "admin", "Producto vencido",
-                LocalDateTime.now(), List.of());
+                LocalDateTime.now(), List.of(), null, "PENDIENTE", "POSTERIOR");
 
         when(devolucionService.registrar(any())).thenReturn(response);
 
@@ -93,9 +93,9 @@ class DevolucionControllerTest {
     void actualizar_debeRetornar200() throws Exception {
         DevolucionResponse response = new DevolucionResponse(
                 1L, 1L, "Proveedor ABC", "admin", "Motivo nuevo",
-                LocalDateTime.now(), List.of());
+                LocalDateTime.now(), List.of(), "Nota", "PENDIENTE", "POSTERIOR");
 
-        when(devolucionService.actualizar(eq(1L), any())).thenReturn(response);
+        when(devolucionService.actualizar(eq(1L), any(), any())).thenReturn(response);
 
         mockMvc.perform(patch("/api/devoluciones/1")
                         .contentType(MediaType.APPLICATION_JSON)

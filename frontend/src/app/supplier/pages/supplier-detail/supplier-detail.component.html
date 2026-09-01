@@ -1,7 +1,16 @@
 <div class="detail-page">
-  <div class="sticky-header">
-    <app-top-bar title="Detalle del Proveedor" [showAlert]="false" (back)="onBack()"></app-top-bar>
-  </div>
+  <header class="page-header">
+    <button type="button" class="btn-volver" (click)="onBack()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    </button>
+    <div class="header-text">
+      <span class="panel-ref">Detalle del proveedor</span>
+      <h1>{{ supplier()?.nombre || 'Cargando...' }}</h1>
+    </div>
+    @if (supplier(); as s) {
+      <span class="estado-pill header-estado" [class]="'estado-' + s.estado.toLowerCase()">{{ s.estado }}</span>
+    }
+  </header>
 
   <main class="content-area">
     @if (supplier(); as s) {
@@ -37,12 +46,11 @@
       <button class="btn btn-secondary" (click)="toggleSupplierStatus()">
         {{ s.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
       </button>
-      <button class="btn btn-primary" (click)="onEdit()">Editar Información</button>
+      <button class="btn btn-primary" (click)="onEdit()">Editar información</button>
     </footer>
   }
 </div>
 
-<!-- Diálogos y Confirmaciones (Iguales) -->
 @if (showStatusConfirmation()) {
   <app-confirmation-dialog
     [title]="supplier()?.estado === 'ACTIVO' ? '¿Desactivar Proveedor?' : '¿Activar Proveedor?'"

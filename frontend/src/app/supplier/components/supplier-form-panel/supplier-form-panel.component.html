@@ -1,0 +1,121 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">{{ esEditar() ? 'Editar proveedor' : 'Nuevo proveedor' }}</span>
+        <h2>
+          @if (esEditar()) {
+            {{ detalle()?.nombre || 'Cargando...' }}
+          } @else {
+            Completa la información del proveedor
+          }
+        </h2>
+        @if (esEditar() && detalle(); as d) {
+          <span class="panel-ref">ID #{{ d.idProveedor }} · {{ d.estado }}</span>
+        }
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="cerrar()" aria-label="Cerrar formulario">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (esEditar() && cargandoDetalle()) {
+      <div class="panel-estado">
+        <div class="spinner"></div>
+        <p>Cargando datos del proveedor...</p>
+      </div>
+    } @else {
+
+      @if (supplierForm) {
+        <form [formGroup]="supplierForm" (ngSubmit)="solicitarGuardar()">
+          <div class="panel-cuerpo">
+
+            <span class="seccion-titulo">¿Quién es tu proveedor?</span>
+
+            <div class="zona-proveedor">
+              <div class="avatar-proveedor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8"/>
+                  <rect x="3" y="7" width="18" height="14" rx="2"/>
+                  <path d="M16 8V6a4 4 0 0 0-8 0v2"/>
+                </svg>
+              </div>
+              <div class="col-nombre">
+                <app-form-input
+                  label="Nombre del proveedor *"
+                  placeholder="Ej. Farmacéutica XYZ S.A."
+                  [control]="getControl('nombre')">
+                </app-form-input>
+                <app-form-input
+                  label="NIT"
+                  placeholder="Ej. 860123456-7"
+                  [control]="getControl('nit')">
+                </app-form-input>
+              </div>
+            </div>
+
+            <span class="seccion-titulo">Contacto</span>
+
+            <div class="campos-grid">
+              <app-form-input
+                label="Persona de contacto"
+                placeholder="Ej. Juan Pérez"
+                [control]="getControl('contacto')">
+              </app-form-input>
+
+              <app-form-input
+                label="Teléfono"
+                placeholder="Ej. +57 1 1234567"
+                [control]="getControl('telefono')">
+              </app-form-input>
+
+              <app-form-input
+                label="Email"
+                placeholder="Ej. contacto@empresa.com"
+                [control]="getControl('email')">
+              </app-form-input>
+
+              <app-form-input
+                label="Condición de pago"
+                type="select"
+                [options]="condicionesPago"
+                placeholder="Seleccione una condición"
+                [control]="getControl('condicionPago')">
+              </app-form-input>
+            </div>
+
+            @if (!esEditar()) {
+              <p class="nota-ayuda">Podrás asociar productos y registrar notas después de crear el proveedor.</p>
+            }
+          </div>
+        </form>
+      }
+    }
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-panel secundario" (click)="cerrar()">Cancelar</button>
+      <button
+        type="button"
+        class="btn-panel primario"
+        [disabled]="guardando() || cargandoDetalle()"
+        (click)="solicitarGuardar()">
+        {{ guardando() ? 'Guardando...' : (esEditar() ? 'Guardar cambios' : 'Crear proveedor') }}
+      </button>
+    </footer>
+
+    @if (mostrarConfirmacion()) {
+      <app-confirmation-dialog
+        [title]="esEditar() ? '¿Guardar cambios?' : '¿Crear proveedor?'"
+        [content]="esEditar()
+          ? 'Se actualizará la información de este proveedor. ¿Desea continuar?'
+          : 'Se creará un nuevo proveedor con los datos ingresados. ¿Desea continuar?'"
+        cancelText="Revisar"
+        [confirmText]="esEditar() ? 'Actualizar' : 'Crear'"
+        (onCancel)="cancelarConfirmacion()"
+        (onConfirm)="confirmarGuardado()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

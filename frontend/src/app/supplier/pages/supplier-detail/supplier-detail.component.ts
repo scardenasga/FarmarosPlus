@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TopBarComponent } from '../../../shared/components/top-bar/top-bar.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../../shared/services/navigation.service';
 import { SupplierService } from '../../services/supplier.service';
@@ -17,7 +16,6 @@ import { AddNoteDialogComponent } from '../../components/add-note-dialog/add-not
   standalone: true,
   imports: [
     CommonModule,
-    TopBarComponent,
     ConfirmationDialogComponent,
     SupplierInfoCardComponent,
     SupplierProductListComponent,

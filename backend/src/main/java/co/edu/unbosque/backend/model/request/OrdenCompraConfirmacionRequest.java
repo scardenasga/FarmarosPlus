@@ -20,7 +20,9 @@ public record OrdenCompraConfirmacionRequest(
 
     List<ItemConfirmado> items,
 
-    String observaciones
+    String observaciones,
+
+    java.time.LocalDateTime fechaEsperada
 
 ) {
 

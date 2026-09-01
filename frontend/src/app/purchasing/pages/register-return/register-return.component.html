@@ -1,18 +1,20 @@
 <div class="page">
-  <app-top-bar
-    [title]="esProveedor() ? 'Nueva devolución a proveedor' : 'Nueva devolución a cliente'"
-    [showAlert]="false"
-    (back)="volver()">
-  </app-top-bar>
+  <header class="page-header">
+    <div class="header-left">
+      <button type="button" class="btn-volver" (click)="volver()" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="header-text">
+        <span class="panel-ref">{{ esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente' }}</span>
+        <h1>{{ esProveedor() ? 'Nueva devolución a proveedor' : 'Nueva devolución a cliente' }}</h1>
+      </div>
+    </div>
+  </header>
 
   <main class="content">
-    <div class="mode-switch">
-      <button class="mode-pill" [class.active]="esProveedor()" (click)="onTipoChange('proveedor')">
-        Proveedor
-      </button>
-      <button class="mode-pill" [class.active]="esCliente()" (click)="onTipoChange('cliente')">
-        Cliente
-      </button>
+    <div class="filtros-grupo tipo-switch">
+      <button type="button" class="chip" [class.chip-active]="esProveedor()" (click)="onTipoChange('proveedor')">Proveedor</button>
+      <button type="button" class="chip" [class.chip-active]="esCliente()" (click)="onTipoChange('cliente')">Cliente</button>
     </div>
 
     <div class="form-scroll">

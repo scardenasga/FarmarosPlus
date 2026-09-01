@@ -77,6 +77,17 @@ public class UsuarioController {
         return ResponseEntity.ok(toUsuarioResponse(usuarioService.actualizarEstado(id, request.estado())));
     }
 
+    /**
+     * Elimina fisicamente un usuario si no tiene historial.
+     * Si tiene ventas/compras/ordenes/recepciones/devoluciones, retorna 400 y sugiere inactivar.
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar usuario", description = "Borra el usuario si no tiene registros (ventas, ordenes, recepciones, devoluciones, compras). Si tiene historial, se debe inactivar. Limpia auditoría (SET NULL). Protege SISTEMA.")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+        usuarioService.eliminarUsuario(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private UsuarioResponse toUsuarioResponse(Usuario usuario) {
         return new UsuarioResponse(
                 usuario.getIdUsuario(),
