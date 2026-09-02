@@ -126,6 +126,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- SMILE - FP-Growth y reglas de asociacion (MLE dual/GPL-comercial) -->
+        <dependency>
+            <groupId>com.github.haifengl</groupId>
+            <artifactId>smile-core</artifactId>
+            <version>6.3.0</version>
+        </dependency>
+
         <!-- Base de datos en memoria para tests -->
         <dependency>
             <groupId>com.h2database</groupId>

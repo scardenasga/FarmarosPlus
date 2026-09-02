@@ -92,4 +92,44 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Long
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
+
+    /**
+     * Proyeccion ligera para mineria de canastas: solo ids necesarios.
+     * Solo ventas COMPLETADA y ordenada por venta para agrupacion eficiente.
+     *
+     * @return filas [idVenta, idProducto]
+     */
+    @Query("""
+            SELECT dv.venta.idVenta, dv.producto.uniqueID
+            FROM DetalleVenta dv
+            WHERE dv.venta.estado = 'COMPLETADA'
+            ORDER BY dv.venta.idVenta ASC, dv.producto.uniqueID ASC
+            """)
+    List<Object[]> findCanastaProjection();
+
+    /**
+     * Cuenta ventas completadas distintas.
+     *
+     * @return total de ventas completadas
+     */
+    @Query("""
+            SELECT COUNT(DISTINCT dv.venta.idVenta)
+            FROM DetalleVenta dv
+            WHERE dv.venta.estado = 'COMPLETADA'
+            """)
+    long countVentasCompletadas();
+
+    /**
+     * Frecuencia conjunta de popularidad: productos mas vendidos por unidades totales.
+     *
+     * @return pares [idProducto, totalUnidades] ordenados desc
+     */
+    @Query("""
+            SELECT dv.producto.uniqueID, SUM(dv.cantidad)
+            FROM DetalleVenta dv
+            WHERE dv.venta.estado = 'COMPLETADA'
+            GROUP BY dv.producto.uniqueID
+            ORDER BY SUM(dv.cantidad) DESC
+            """)
+    List<Object[]> findPopularidadProducto();
 }
