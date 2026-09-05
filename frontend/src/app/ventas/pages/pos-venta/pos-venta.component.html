@@ -100,6 +100,15 @@
         }
       </div>
 
+      <!-- Sugerencias POS (FP-Growth) -->
+      @if (carrito().length) {
+        <app-sugerencias-pos
+          [productoIds]="carritoIds()"
+          [limit]="5"
+          (agregar)="onSugerenciaAgregar($event)">
+        </app-sugerencias-pos>
+      }
+
       <!-- Totales -->
       <div class="carrito-footer">
         <div class="totales">

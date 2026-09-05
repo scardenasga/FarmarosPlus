@@ -7,6 +7,9 @@ import { SesionService } from '../../../shared/services/sesion.service';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { ProductSearchCardComponent } from '../../components/product-search-card/product-search-card.component';
+import { SugerenciasPosComponent } from '../../../recomendaciones/components/sugerencias-pos/sugerencias-pos.component';
+import { RecomendacionItem } from '../../../recomendaciones/models/recomendacion.model';
+import { InventoryService } from '../../../inventory/services/inventory.service';
 import { VentaService } from '../../services/venta.service';
 import {
   MetodoPago,
@@ -26,12 +29,13 @@ const METODOS_PAGO: MetodoPago[] = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'];
 @Component({
   selector: 'app-pos-venta',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, ProductSearchCardComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, ProductSearchCardComponent, SugerenciasPosComponent],
   templateUrl: './pos-venta.component.html',
   styleUrl: './pos-venta.component.css'
 })
 export class PosVentaComponent implements OnInit {
   private ventaService = inject(VentaService);
+  private inventoryService = inject(InventoryService);
   private sesion = inject(SesionService);
   private notificacion = inject(NotificacionService);
   private router = inject(Router);
@@ -68,6 +72,50 @@ export class PosVentaComponent implements OnInit {
 
   cantidadDe(productoId: number): number {
     return this.carrito().find(i => i.producto.id === productoId)?.cantidad ?? 0;
+  }
+
+  /** IDs del carrito para el panel de recomendaciones (estable, ordenado). */
+  carritoIds = computed(() => this.carrito().map(i => i.producto.id));
+
+  /** Handler del panel: reutiliza agregar() sin duplicar lógica de lote/stock. */
+  onSugerenciaAgregar(item: RecomendacionItem): void {
+    // Evitar duplicar si ya está en carrito: aumentar cantidad
+    if (this.cantidadDe(item.productoId) > 0) {
+      const existente = this.carrito().find(i => i.producto.id === item.productoId);
+      if (existente) {
+        this.aumentar(existente);
+        return;
+      }
+    }
+    // Buscar en catálogo ya cargado para respuesta inmediata
+    const enCatalogo = this.productos().find(p => p.id === item.productoId);
+    if (enCatalogo) {
+      this.agregar(enCatalogo);
+      return;
+    }
+    // Fallback: cargar producto por ID y luego agregar
+    this.inventoryService.getProductById(item.productoId).subscribe({
+      next: (prod: any) => {
+        // Normalizar Product -> ProductoResponse si viene de inventory
+        const adaptado: ProductoResponse = {
+          id: prod.id ?? prod.uniqueID ?? prod.uniqueid,
+          categoria: prod.categoria ?? null,
+          nombre: prod.nombre,
+          descripcion: prod.descripcion ?? null,
+          codigoBarras: prod.codigoBarras ?? prod.codigo_barras ?? '',
+          stockMinimo: prod.stockMinimo ?? 0,
+          stockActual: prod.stockActual ?? 0,
+          costo: prod.costo ?? 0,
+          precioVenta: prod.precioVenta ?? 0,
+          margenGanancia: prod.margenGanancia ?? 0,
+          porcentajeIva: prod.porcentajeIva ?? 0,
+          requierePrescripcion: prod.requierePrescripcion ?? false,
+          estado: prod.estado ?? 'ACTIVO'
+        };
+        this.agregar(adaptado);
+      },
+      error: () => this.notificacion.error('No se pudo agregar el producto sugerido.')
+    });
   }
 
   /* ---------- Catálogo ---------- */
