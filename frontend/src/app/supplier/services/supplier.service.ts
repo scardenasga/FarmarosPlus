@@ -68,4 +68,19 @@ export class SupplierService {
   createNote(supplierId: number, request: CreateSupplierNoteRequest): Observable<SupplierNote> {
     return this.http.post<SupplierNote>(`${this.apiUrl}/${supplierId}/notas`, request);
   }
+
+  // Imagen (SQLite TEXT + filesystem uploads/proveedores)
+  getImagenUrl(id: number): string {
+    return `${this.apiUrl}/${id}/imagen`;
+  }
+
+  subirImagen(id: number, file: File): Observable<Supplier> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<Supplier>(`${this.apiUrl}/${id}/imagen`, fd);
+  }
+
+  eliminarImagen(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/imagen`);
+  }
 }

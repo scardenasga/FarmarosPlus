@@ -177,7 +177,8 @@ public ResponseEntity<List<VentaResponse>> consultarHistorico(
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                producto.getImagenUrl()
         );
     }
 

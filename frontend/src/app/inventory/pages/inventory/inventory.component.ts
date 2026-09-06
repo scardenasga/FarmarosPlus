@@ -35,6 +35,29 @@ export class InventoryComponent implements OnInit {
   private notificacion = inject(NotificacionService);
   private router = inject(Router);
 
+  imagenesFallidas = signal<Set<number>>(new Set());
+
+  imagenSrc(p: Product): string | null {
+    if (!p.imagenUrl || this.imagenesFallidas().has(p.id)) return null;
+    return `/api/productos/${p.id}/imagen`;
+  }
+
+  onImagenError(p: Product): void {
+    this.imagenesFallidas.update(prev => {
+      const next = new Set(prev);
+      next.add(p.id);
+      return next;
+    });
+  }
+
+  onDetalleImagenError(id: number): void {
+    this.imagenesFallidas.update(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }
+
   productos = signal<Product[]>([]);
   categorias = signal<Categoria[]>([]);
   tendencias = signal<Map<number, number>>(new Map());
@@ -137,6 +160,7 @@ export class InventoryComponent implements OnInit {
     this.inventoryService.getAllProducts().subscribe({
       next: (products) => {
         this.productos.set(products ?? []);
+        this.imagenesFallidas.set(new Set());
         this.cargando.set(false);
       },
       error: () => {

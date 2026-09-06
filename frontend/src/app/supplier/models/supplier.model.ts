@@ -9,6 +9,7 @@ export interface Supplier {
   condicionPago: string | null;
   fechaCreacion: string;
   fechaModificacion: string;
+  imagenUrl?: string | null;
 }
 
 export interface SupplierProductRel {

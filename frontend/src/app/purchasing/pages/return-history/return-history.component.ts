@@ -46,7 +46,7 @@ export class ReturnHistoryComponent implements OnInit {
   eliminando = signal<boolean>(false);
 
   searchTerm = signal<string>('');
-  vista = signal<'grid' | 'tabla'>((localStorage.getItem('devoluciones.vista') as 'grid' | 'tabla') || 'grid');
+  vista = signal<'tabla'>('tabla');
   pagina = signal<number>(1);
   tamanoPagina = signal<number>(10);
   readonly TAMANOS_PAGINA = [5, 10, 25, 50];
@@ -97,7 +97,6 @@ export class ReturnHistoryComponent implements OnInit {
     this.cargar();
   }
   onBuscar(term: string): void { this.searchTerm.set(term); this.pagina.set(1); }
-  cambiarVista(v: 'grid' | 'tabla'): void { this.vista.set(v); localStorage.setItem('devoluciones.vista', v); }
   cambiarPagina(n: number): void { const d = Math.min(Math.max(1,n), this.totalPaginas()); if(d!==this.pagina()) this.pagina.set(d); }
   cambiarTamanoPagina(t: string|number): void { this.tamanoPagina.set(Number(t)); this.pagina.set(1); }
 

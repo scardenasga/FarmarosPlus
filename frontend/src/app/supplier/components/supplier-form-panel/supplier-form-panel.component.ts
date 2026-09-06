@@ -32,6 +32,44 @@ export class SupplierFormPanelComponent implements OnChanges {
   guardando = signal<boolean>(false);
   mostrarConfirmacion = signal<boolean>(false);
 
+  // Imagen (SQLite TEXT + filesystem uploads/proveedores)
+  imagenPreview = signal<string | null>(null);
+  imagenNombre = signal<string>('');
+  archivoImagen = signal<File | null>(null);
+  eliminarImagenExistente = signal<boolean>(false);
+
+  seleccionarImagen(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    if (!archivo) return;
+    if (!archivo.type.startsWith('image/')) {
+      this.notificacion.advertencia('Selecciona un archivo de imagen (PNG, JPG, etc.).');
+      return;
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.notificacion.advertencia('La imagen no puede superar 5MB.');
+      return;
+    }
+    this.archivoImagen.set(archivo);
+    this.eliminarImagenExistente.set(false);
+    const lector = new FileReader();
+    lector.onload = () => {
+      this.imagenPreview.set(String(lector.result));
+      this.imagenNombre.set(archivo.name);
+    };
+    lector.readAsDataURL(archivo);
+    input.value = '';
+  }
+
+  eliminarImagen(): void {
+    this.imagenPreview.set(null);
+    this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    if (this.detalle()?.imagenUrl) {
+      this.eliminarImagenExistente.set(true);
+    }
+  }
+
   condicionesPago = [
     { id: 'Contado', nombre: 'Contado' },
     { id: 'Neto 15', nombre: 'Neto 15 días' },
@@ -55,6 +93,10 @@ export class SupplierFormPanelComponent implements OnChanges {
 
     this.mostrarConfirmacion.set(false);
     this.detalle.set(null);
+    this.imagenPreview.set(null);
+    this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    this.eliminarImagenExistente.set(false);
 
     if (this.esEditar()) {
       const id = this.supplierId();
@@ -72,6 +114,10 @@ export class SupplierFormPanelComponent implements OnChanges {
       next: (detalle) => {
         this.detalle.set(detalle);
         this.cargandoDetalle.set(false);
+        if (detalle.imagenUrl) {
+          this.imagenPreview.set(`/api/proveedores/${detalle.idProveedor}/imagen`);
+          this.imagenNombre.set(detalle.imagenUrl);
+        }
         this.construirFormularioEditar(detalle);
       },
       error: () => {
@@ -138,9 +184,24 @@ export class SupplierFormPanelComponent implements OnChanges {
     };
     this.guardando.set(true);
     this.supplierService.create(request).subscribe({
-      next: () => {
-        this.notificacion.exito(`Proveedor "${request.nombre}" creado correctamente`);
-        this.finalizar();
+      next: (creado: any) => {
+        const id = creado?.idProveedor as number | undefined;
+        const archivo = this.archivoImagen();
+        if (id && archivo) {
+          this.supplierService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Proveedor "${request.nombre}" creado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.advertencia(`Proveedor creado pero la imagen no se pudo subir: ${err.error?.message || err.message}`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Proveedor "${request.nombre}" creado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo crear el proveedor.');
@@ -165,8 +226,35 @@ export class SupplierFormPanelComponent implements OnChanges {
     this.guardando.set(true);
     this.supplierService.update(id, request).subscribe({
       next: () => {
-        this.notificacion.exito(`Proveedor "${request.nombre}" actualizado correctamente`);
-        this.finalizar();
+        const archivo = this.archivoImagen();
+        const debeEliminar = this.eliminarImagenExistente();
+        if (archivo) {
+          this.supplierService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Proveedor "${request.nombre}" actualizado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.error(err.error?.message || 'No se pudo subir la imagen.');
+              this.guardando.set(false);
+              this.mostrarConfirmacion.set(false);
+            }
+          });
+        } else if (debeEliminar) {
+          this.supplierService.eliminarImagen(id).subscribe({
+            next: () => {
+              this.notificacion.exito(`Imagen eliminada y proveedor "${request.nombre}" actualizado`);
+              this.finalizar();
+            },
+            error: () => {
+              this.notificacion.exito(`Proveedor "${request.nombre}" actualizado correctamente`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Proveedor "${request.nombre}" actualizado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo actualizar el proveedor.');

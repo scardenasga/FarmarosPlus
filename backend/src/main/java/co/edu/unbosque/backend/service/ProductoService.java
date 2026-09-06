@@ -52,6 +52,7 @@ public class ProductoService {
     private final co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository;
     private final CurrentUserService currentUserService;
     private final ConfiguracionService configuracionService;
+    private final ProductoImagenStorageService imagenStorageService;
 
     public ProductoService(
             ProductoRepository productoRepository,
@@ -62,7 +63,8 @@ public class ProductoService {
             DetalleVentaRepository detalleVentaRepository,
             co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository,
             CurrentUserService currentUserService,
-            ConfiguracionService configuracionService
+            ConfiguracionService configuracionService,
+            ProductoImagenStorageService imagenStorageService
     ) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
@@ -73,6 +75,7 @@ public class ProductoService {
         this.proveedorProductoRepository = proveedorProductoRepository;
         this.currentUserService = currentUserService;
         this.configuracionService = configuracionService;
+        this.imagenStorageService = imagenStorageService;
     }
 
     /**
@@ -285,6 +288,7 @@ public class ProductoService {
         Double porcentajeIva = toDouble(productoDetalle.get("porcentajeIva"));
         Boolean requierePrescripcion = toBoolean(productoDetalle.get("requierePrescripcion"));
         String estado = (String) productoDetalle.get("estado");
+        String imagenUrl = (String) productoDetalle.get("imagenUrl");
 
         return new ProductoDetalleResponse(
                 productoDetalleId,
@@ -300,6 +304,7 @@ public class ProductoService {
                 porcentajeIva,
                 requierePrescripcion,
                 estado,
+                imagenUrl,
                 lotes
         );
     }
@@ -432,7 +437,52 @@ public class ProductoService {
         loteRepository.deleteAll(
                 loteRepository.findByProducto_UniqueIDOrderByFechaVencimientoAsc(idProducto));
 
+        if (producto.getImagenUrl() != null) {
+            imagenStorageService.eliminar(producto.getImagenUrl());
+        }
         productoRepository.delete(producto);
+    }
+
+    // ===== Imagen =====
+
+    @Transactional
+    public Producto guardarImagen(Long productoId, org.springframework.web.multipart.MultipartFile archivo) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+        String nombreArchivo = imagenStorageService.guardar(productoId, archivo);
+        producto.setImagenUrl(nombreArchivo);
+        return productoRepository.save(producto);
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource obtenerImagenResource(Long productoId) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+        if (producto.getImagenUrl() == null || producto.getImagenUrl().isBlank()) {
+            throw new ResourceNotFoundException("El producto no tiene imagen");
+        }
+        return imagenStorageService.cargarComoResource(producto.getImagenUrl());
+    }
+
+    public String obtenerImagenContentType(Long productoId) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+        if (producto.getImagenUrl() == null || producto.getImagenUrl().isBlank()) {
+            throw new ResourceNotFoundException("El producto no tiene imagen");
+        }
+        return imagenStorageService.detectarContentType(producto.getImagenUrl());
+    }
+
+    @Transactional
+    public void eliminarImagen(Long productoId) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el producto con id " + productoId));
+        if (producto.getImagenUrl() == null || producto.getImagenUrl().isBlank()) {
+            throw new ResourceNotFoundException("El producto no tiene imagen para eliminar");
+        }
+        imagenStorageService.eliminar(producto.getImagenUrl());
+        producto.setImagenUrl(null);
+        productoRepository.save(producto);
     }
 
     private Map<Long, Long> aMapaUnidades(List<Object[]> filas) {
@@ -746,7 +796,8 @@ public class ProductoService {
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                producto.getImagenUrl()
         );
     }
 

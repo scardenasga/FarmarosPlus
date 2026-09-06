@@ -30,17 +30,6 @@
 
   <section class="subtoolbar">
     <span class="conteo">{{ devolucionesFiltradas().length }} devoluciones</span>
-    <div class="controles-derecha">
-      <span class="vista-label">Vista:</span>
-      <div class="vista-toggle">
-        <button type="button" class="vista-btn" [class.vista-activa]="vista() === 'grid'" (click)="cambiarVista('grid')" aria-label="Grid">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        </button>
-        <button type="button" class="vista-btn" [class.vista-activa]="vista() === 'tabla'" (click)="cambiarVista('tabla')" aria-label="Tabla">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        </button>
-      </div>
-    </div>
   </section>
 
   @if (error()) {
@@ -55,46 +44,6 @@
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <p>Sin devoluciones registradas</p>
         <span class="empty-hint">Cambia el filtro proveedor/cliente o crea una nueva.</span>
-      </div>
-    } @else if (vista() === 'grid') {
-      <div class="devoluciones-grid">
-        @for (dev of devolucionesPaginadas(); track dev.id) {
-          <article class="dev-card" (click)="verDetalle(dev)" role="button" tabindex="0" (keydown.enter)="verDetalle(dev)">
-            <div class="card-imagen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
-              @if ($any(dev).estado) {
-                <span class="estado-pill card-estado" [class]="'estado-' + $any(dev).estado.toLowerCase()">{{ $any(dev).estado }}</span>
-              } @else {
-                <span class="estado-pill card-estado estado-pendiente">{{ esProveedor() ? 'Proveedor' : 'Cliente' }}</span>
-              }
-            </div>
-            <div class="card-info">
-              <h4 class="card-nombre" [title]="nombrePrincipal(dev)">{{ nombrePrincipal(dev) }}</h4>
-              <span class="card-desc" [title]="dev.motivo || ''">{{ dev.motivo || ($any(dev).observaciones || 'Sin motivo') }}</span>
-              <span class="card-meta">{{ dev.fecha | date:'dd/MM/yyyy' }} · {{ totalProductos(dev) }} unid.</span>
-            </div>
-            @if (esProveedor()) {
-              <select class="estado-select grid-select" [value]="$any(dev).estado || 'PENDIENTE'" (change)="cambiarEstadoRapido(dev, $any($event.target).value)" (click)="$event.stopPropagation()">
-                @for (est of estadosVisiblesPara(dev); track est) { <option [value]="est">{{ est }}</option> }
-              </select>
-              @if (!isAdmin()) {
-                <span class="rol-hint">{{ $any(dev).estado === 'PENDIENTE' ? 'Envía o cancela' : $any(dev).estado === 'ENVIADA' ? 'En espera de admin' : 'Solo lectura' }}</span>
-              }
-            }
-            <div class="card-pie">
-              <span class="card-usuario">{{ dev.usuarioResponsable }}</span>
-              <span class="card-accion">Ver detalle</span>
-            </div>
-            <div class="card-actions" (click)="$event.stopPropagation()">
-              <button type="button" class="icono-accion" title="Editar" (click)="editar(dev)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-              </button>
-              <button type="button" class="icono-accion peligro" title="Eliminar" (click)="solicitarEliminar(dev)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
-            </div>
-          </article>
-        }
       </div>
     } @else {
       <div class="tabla-scroll">

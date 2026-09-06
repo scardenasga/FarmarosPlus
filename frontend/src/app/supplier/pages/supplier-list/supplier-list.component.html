@@ -102,7 +102,11 @@
         @for (s of suppliersPaginados(); track s.idProveedor) {
           <article class="proveedor-card" (click)="abrirDetalle(s)">
             <div class="card-imagen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V7a2 2 0 0 1 2-2h2"/><path d="M19 9V7a2 2 0 0 0-2-2h-2"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+              @if (imagenSrc(s); as src) {
+                <img [src]="src" [alt]="s.nombre" (error)="onImagenError(s)" loading="lazy" />
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V7a2 2 0 0 1 2-2h2"/><path d="M19 9V7a2 2 0 0 0-2-2h-2"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+              }
               <span class="estado-pill card-estado" [class]="'estado-' + s.estado.toLowerCase()">{{ s.estado }}</span>
             </div>
             <div class="card-info">
@@ -140,7 +144,11 @@
                 </td>
                 <td class="celda-nombre">
                   <span class="mini-imagen">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+                    @if (imagenSrc(s); as src) {
+                      <img [src]="src" [alt]="s.nombre" (error)="onImagenError(s)" loading="lazy" />
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M9 9V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/></svg>
+                    }
                   </span>
                   <span class="nombre-texto" [title]="s.nombre">{{ s.nombre }}</span>
                 </td>

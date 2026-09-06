@@ -30,6 +30,7 @@ export interface Product {
   estado: string;
   categoria?: Categoria;
   numeroLote?: string;
+  imagenUrl?: string | null;
   // UI related fields (optional/computed in FE if needed)
   trend?: number;
 }
@@ -82,6 +83,7 @@ export interface ProductoDetalleResponse {
   porcentajeIva: number;
   requierePrescripcion: boolean;
   estado: string;
+  imagenUrl?: string | null;
   lotes?: Lote[];
 }
 

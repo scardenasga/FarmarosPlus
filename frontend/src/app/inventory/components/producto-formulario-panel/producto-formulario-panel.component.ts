@@ -58,9 +58,11 @@ export class ProductoFormularioPanelComponent implements OnChanges {
   gananciaMinima = signal<number>(30);
   precioSugerido = signal<number | null>(null);
 
-  /* ---------- Imagen (UI preparada; el backend aún no persiste imágenes) ---------- */
+  /* ---------- Imagen (persistida en backend: SQLite TEXT + filesystem) ---------- */
   imagenPreview = signal<string | null>(null);
   imagenNombre = signal<string>('');
+  archivoImagen = signal<File | null>(null);
+  eliminarImagenExistente = signal<boolean>(false);
 
   seleccionarImagen(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -71,7 +73,13 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       this.notificacion.advertencia('Selecciona un archivo de imagen (PNG, JPG, etc.).');
       return;
     }
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.notificacion.advertencia('La imagen no puede superar 5MB.');
+      return;
+    }
 
+    this.archivoImagen.set(archivo);
+    this.eliminarImagenExistente.set(false);
     const lector = new FileReader();
     lector.onload = () => {
       this.imagenPreview.set(String(lector.result));
@@ -79,13 +87,17 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     };
     lector.readAsDataURL(archivo);
 
-    // Permite volver a elegir la misma imagen después de quitarla.
     input.value = '';
   }
 
   eliminarImagen(): void {
     this.imagenPreview.set(null);
     this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    // si estaba editando y tenía imagen en servidor, marcar para borrar
+    if (this.esEditar() && this.detalle()?.imagenUrl) {
+      this.eliminarImagenExistente.set(true);
+    }
   }
 
   esEditar(): boolean {
@@ -102,6 +114,10 @@ export class ProductoFormularioPanelComponent implements OnChanges {
 
     this.mostrarConfirmacion.set(false);
     this.detalle.set(null);
+    this.imagenPreview.set(null);
+    this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    this.eliminarImagenExistente.set(false);
     this.cargarGanancia();
 
     if (this.esEditar()) {
@@ -145,6 +161,10 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       next: (detalle) => {
         this.detalle.set(detalle);
         this.cargandoDetalle.set(false);
+        if (detalle.imagenUrl) {
+          this.imagenPreview.set(`/api/productos/${detalle.id}/imagen`);
+          this.imagenNombre.set(detalle.imagenUrl);
+        }
         this.construirFormularioEditar(detalle);
       },
       error: () => {
@@ -260,10 +280,26 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       numeroLote: v.tieneLote && v.numeroLote ? v.numeroLote : undefined
     };
 
+    this.guardando.set(true);
     this.inventoryService.createProduct(request).subscribe({
-      next: () => {
-        this.notificacion.exito(`Producto "${request.nombre}" creado correctamente`);
-        this.finalizar();
+      next: (creado: any) => {
+        const id = creado?.id as number | undefined;
+        const archivo = this.archivoImagen();
+        if (id && archivo) {
+          this.inventoryService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" creado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.advertencia(`Producto creado pero la imagen no se pudo subir: ${err.error?.message || err.message}`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Producto "${request.nombre}" creado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo crear el producto.');
@@ -291,10 +327,38 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       requierePrescripcion: !!v.requierePrescripcion
     };
 
+    this.guardando.set(true);
     this.inventoryService.updateProduct(id, request).subscribe({
       next: () => {
-        this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
-        this.finalizar();
+        const archivo = this.archivoImagen();
+        const debeEliminar = this.eliminarImagenExistente();
+        if (archivo) {
+          this.inventoryService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" actualizado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.error(err.error?.message || 'No se pudo subir la imagen.');
+              this.guardando.set(false);
+              this.mostrarConfirmacion.set(false);
+            }
+          });
+        } else if (debeEliminar) {
+          this.inventoryService.eliminarImagen(id).subscribe({
+            next: () => {
+              this.notificacion.exito(`Imagen eliminada y producto "${request.nombre}" actualizado`);
+              this.finalizar();
+            },
+            error: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo actualizar el producto.');

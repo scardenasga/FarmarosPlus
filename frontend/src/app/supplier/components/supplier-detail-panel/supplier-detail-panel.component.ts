@@ -32,6 +32,9 @@ export class SupplierDetailPanelComponent {
   showAssociateDialog = signal<boolean>(false);
   showAddNoteDialog = signal<boolean>(false);
   selectedProduct = signal<SupplierProductRel | null>(null);
+  imagenError = signal(false);
+
+  onImagenError(): void { this.imagenError.set(true); }
 
   productosActivos = computed(() => (this.detalle()?.productos ?? []).filter(p => p.estadoRelacion === 'ACTIVO').length);
   productosInactivos = computed(() => (this.detalle()?.productos ?? []).filter(p => p.estadoRelacion === 'INACTIVO').length);
@@ -61,6 +64,7 @@ export class SupplierDetailPanelComponent {
     const id = this.supplierId();
     if (id == null) return;
     this.cargando.set(true);
+    this.imagenError.set(false);
     this.supplierService.getDetail(id).subscribe({
       next: (d) => { this.detalle.set(d); this.cargando.set(false); },
       error: () => this.cargando.set(false)

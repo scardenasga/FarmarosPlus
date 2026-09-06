@@ -268,7 +268,8 @@ public ResponseEntity<OrdenCompraPreviewResponse> previsualizarOrden(
                 proveedor.getEstado(),
                 proveedor.getCondicionPago(),
                 proveedor.getFechaCreacion(),
-                proveedor.getFechaModificacion()
+                proveedor.getFechaModificacion(),
+                proveedor.getImagenUrl()
         );
     }
 

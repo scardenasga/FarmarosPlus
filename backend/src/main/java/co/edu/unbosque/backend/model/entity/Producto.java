@@ -74,4 +74,12 @@ public class Producto extends Auditable {
      */
     @Column(name = "estado", nullable = false)
     private String estado = "ACTIVO";
+
+    /**
+     * Ruta relativa o nombre del archivo de imagen del producto.
+     * Null si no tiene imagen. Se almacena en filesystem (uploads/productos).
+     * En SQLite3: TEXT nullable, sin FK.
+     */
+    @Column(name = "imagen_url")
+    private String imagenUrl;
 }

@@ -11,6 +11,7 @@ public record ProveedorConsultaResponse(
         String email,
         String contacto,
         String estado,
-        String condicionPago
+        String condicionPago,
+        String imagenUrl
 ) {
 }

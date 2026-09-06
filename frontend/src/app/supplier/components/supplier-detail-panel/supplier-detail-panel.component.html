@@ -24,6 +24,11 @@
     } @else {
       @if (detalle(); as d) {
         <div class="panel-cuerpo">
+          @if (d.imagenUrl && !imagenError()) {
+            <div class="detalle-imagen-wrap">
+              <img [src]="'/api/proveedores/' + d.idProveedor + '/imagen'" [alt]="d.nombre" (error)="onImagenError()" />
+            </div>
+          }
           <div class="panel-badges">
             <span class="estado-pill" [class]="'estado-' + d.estado.toLowerCase()">{{ d.estado }}</span>
             @if (d.nit) {

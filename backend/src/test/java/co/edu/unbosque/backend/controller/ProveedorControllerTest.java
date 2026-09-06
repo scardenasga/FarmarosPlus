@@ -163,6 +163,7 @@ class ProveedorControllerTest {
                 "Juan Perez",
                 "ACTIVO",
                 "Neto 30",
+                null,
                 List.of(new ProductoProveedorResponse(
                         10L,
                         "Acetaminofen",
@@ -196,6 +197,7 @@ class ProveedorControllerTest {
                 null,
                 null,
                 "ACTIVO",
+                null,
                 null,
                 List.of()
         );

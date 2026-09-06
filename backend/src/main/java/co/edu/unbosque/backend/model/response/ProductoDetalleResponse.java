@@ -35,6 +35,7 @@ public record ProductoDetalleResponse(
         Double porcentajeIva,
         Boolean requierePrescripcion,
         String estado,
+        String imagenUrl,
         List<LoteProductoResponse> lotes
 ) {
 }

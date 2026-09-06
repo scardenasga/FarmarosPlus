@@ -6,6 +6,12 @@
   <main class="content-area">
     @if (product(); as p) {
       <div class="receipt-card">
+        <!-- Imagen (si existe) -->
+        @if (imagenSrc(); as src) {
+          <div class="product-image-wrap">
+            <img [src]="src" [alt]="p.nombre" (error)="onImagenError()" />
+          </div>
+        }
         <!-- Header -->
         <div class="receipt-header">
           <div class="header-top">

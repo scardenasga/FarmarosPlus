@@ -48,4 +48,7 @@ public class Proveedor extends Auditable {
 
     @Column(name = "condicion_pago")
     private String condicionPago;
+
+    @Column(name = "imagen_url")
+    private String imagenUrl;
 }
