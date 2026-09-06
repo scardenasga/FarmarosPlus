@@ -41,10 +41,10 @@ New-Item -ItemType Directory -Path $STATIC -Force | Out-Null
 Copy-Item -Path (Join-Path $NG_DIST "*") -Destination $STATIC -Recurse -Force
 Write-Host "  Listo" -ForegroundColor Green
 
-# 3. Compilar backend (perfil PROD -> DB en %USERPROFILE%\.farmarosplus\)
-Write-Host "`n[3/4] Compilando backend (PROD)..." -ForegroundColor Yellow
+# 3. Compilar backend (usa perfil por defecto = PROD -> DB en %USERPROFILE%\.farmarosplus\)
+Write-Host "`n[3/4] Compilando backend..." -ForegroundColor Yellow
 Push-Location $BACKEND
-& ./mvnw.cmd clean package -DskipTests -Dspring.profiles.active=prod
+& ./mvnw.cmd clean package -DskipTests
 if ($LASTEXITCODE -ne 0) { throw "Fallo mvn package" }
 Pop-Location
 $JAR = Join-Path $BACKEND "target/backend-0.0.1-SNAPSHOT.jar"
