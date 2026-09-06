@@ -50,13 +50,6 @@ export class SidebarComponent {
       permiso: 'INVENTARIO_VER'
     },
     {
-      label: 'Compras',
-      title: 'Compras a Proveedores',
-      link: '/compras-gestion',
-      iconPath: 'M1 3h15v13H1z',
-      permiso: 'COMPRAS_VER'
-    },
-    {
       label: 'Analítica',
       title: 'Analítica Avanzada',
       link: '/analitica',
@@ -81,6 +74,16 @@ export class SidebarComponent {
 
   ventasVisible = computed(() => this.permisoService.tiene('VENTAS_VER') || this.permisoService.tiene('VENTAS_CREAR'));
 
+  comprasSubmenu = computed(() => {
+    const base: SidebarSubmenu[] = [];
+    if (this.permisoService.tiene('PROVEEDORES_VER')) base.push({ label: 'Proveedores', link: '/proveedores' });
+    if (this.permisoService.tiene('COMPRAS_VER')) base.push({ label: 'Compras', link: '/compras-gestion' });
+    if (this.permisoService.tiene('DEVOLUCIONES_VER')) base.push({ label: 'Devoluciones', link: '/purchasing/return-history' });
+    return base;
+  });
+
+  comprasVisible = computed(() => this.permisoService.tiene('PROVEEDORES_VER') || this.permisoService.tiene('COMPRAS_VER') || this.permisoService.tiene('DEVOLUCIONES_VER'));
+
   readonly bottomItem: SidebarItem = {
     label: 'Configuración',
     title: 'Configuración del Sistema',
@@ -91,6 +94,8 @@ export class SidebarComponent {
 
   /** Estado del menú desplegable de ventas. */
   ventasSubmenuAbierto = signal<boolean>(false);
+  /** Estado del menú desplegable de compras. */
+  comprasSubmenuAbierto = signal<boolean>(false);
 
   currentRoute = toSignal(
     this.router.events.pipe(
@@ -124,14 +129,27 @@ export class SidebarComponent {
     this.ventasSubmenuAbierto.update(v => !v);
   }
 
+  esSeccionComprasActiva(): boolean {
+    const current = this.currentRoute() || '';
+    return current.startsWith('/compras-gestion') || current.startsWith('/purchasing') || current.startsWith('/proveedores') || current.startsWith('/compras');
+  }
+
+  toggleComprasSubmenu(event: Event): void {
+    event.stopPropagation();
+    this.comprasSubmenuAbierto.update(v => !v);
+  }
+
   toggleSidebar(): void {
     this.navService.toggleSidebar();
   }
 
   constructor() {
-    // Si la ruta inicial pertenece a ventas, el submenu nace abierto.
+    // Si la ruta inicial pertenece a ventas o compras, el submenu nace abierto.
     if (this.esSeccionVentasActiva()) {
       this.ventasSubmenuAbierto.set(true);
+    }
+    if (this.esSeccionComprasActiva()) {
+      this.comprasSubmenuAbierto.set(true);
     }
   }
 }

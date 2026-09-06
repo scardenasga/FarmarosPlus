@@ -187,7 +187,7 @@
       </div>
     </section>
 
-    <!-- Ganancia mínima (solo ADMIN) -->
+    <!-- Fila inferior: Ganancia a la izquierda, Versión a la derecha (evita scroll) -->
     <section class="section-card">
       <div class="section-card-header">
         <div class="section-icon" style="background: var(--success-bg); color: var(--success-text);">
@@ -195,50 +195,44 @@
         </div>
         <div>
           <h2>Ganancia mínima</h2>
-          <p class="section-desc">% sobre costo aplicado si no defines precioVenta al crear producto</p>
+          <p class="section-desc">Sobre costo · si dejas el precio vacío</p>
         </div>
       </div>
       <div class="section-body">
         @if (cargandoGanancia()) {
-          <div style="padding: var(--space-m); text-align:center; color: var(--text-muted); font-weight:600;">Cargando...</div>
+          <div style="padding: var(--space-s); text-align:center; color: var(--text-muted); font-weight:600; font-size:0.78rem;">Cargando...</div>
         } @else {
-          <div style="display:flex; flex-direction:column; gap: var(--space-m);">
-            <p style="margin:0; font-size:0.76rem; color: var(--text-muted); font-weight:600; line-height:1.4;">
-              Fórmula: <code style="background: var(--surface-container); padding:2px 6px; border-radius:6px;">precio = costo × (1 + ganancia/100)</code> + validación IVA. Se respeta el cálculo <strong>sobre costo</strong> existente <code style="background: var(--surface-container); padding:2px 6px; border-radius:6px;">{{'((precio-costo)/costo)*100'}}</code>.
-            </p>
-            <label class="form-field">
-              <span>Porcentaje mínimo (%)</span>
-              <input type="number" min="0" max="500" step="0.1" [ngModel]="gananciaMinima()" (ngModelChange)="gananciaMinima.set(+$event)" [disabled]="!esAdmin()" placeholder="30" />
+          <div style="display:flex; gap: var(--space-s); align-items:flex-end; flex-wrap:wrap;">
+            <label class="form-field" style="flex:1; min-width:120px; margin:0;">
+              <span>Porcentaje (%)</span>
+              <input type="number" min="0" max="500" step="0.5" [ngModel]="gananciaMinima()" (ngModelChange)="gananciaMinima.set(+$event)" [disabled]="!esAdmin()" placeholder="30" />
             </label>
-            <div style="display:flex; gap: var(--space-s); align-items:center; flex-wrap:wrap;">
-              <span style="font-size:0.72rem; color: var(--text-muted); font-weight:600;">Ej: costo 10.000 + 30% → 13.000 · costo 8.500 + 19% IVA + 30% → ~11.050</span>
-              @if (esAdmin()) {
-                <button type="button" class="btn-primary" style="margin-left:auto;" [disabled]="guardandoGanancia()" (click)="guardarGanancia()">
-                  {{ guardandoGanancia() ? 'Guardando...' : 'Guardar ganancia' }}
-                </button>
-              }
-            </div>
-            @if (!esAdmin()) {
-              <div style="background: var(--warning-bg); color: var(--warning-text); border-radius:8px; padding:8px 10px; font-size:0.72rem; font-weight:700; text-align:center;">Solo ADMIN puede modificar este valor.</div>
+            @if (esAdmin()) {
+              <button type="button" class="btn-primary" style="height:38px;" [disabled]="guardandoGanancia()" (click)="guardarGanancia()">
+                {{ guardandoGanancia() ? 'Guardando...' : 'Guardar' }}
+              </button>
             }
           </div>
+          @if (!esAdmin()) {
+            <div style="margin-top: var(--space-s); color: var(--text-muted); font-size:0.68rem; font-weight:600;">Solo ADMIN puede modificarlo.</div>
+          }
         }
       </div>
     </section>
 
-    <!-- Info -->
-    <section class="section-card span-2 compact">
+    <!-- Info compacta a la derecha -->
+    <section class="section-card">
       <div class="section-card-header">
-        <div class="section-icon icon-blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div class="section-icon icon-blue" style="width:32px; height:32px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         </div>
         <div>
-          <h2>Información</h2>
-          <p class="section-desc">Versión y entorno</p>
+          <h2 style="font-size:0.86rem;">Información</h2>
+          <p class="section-desc" style="font-size:0.68rem;">Versión y entorno</p>
         </div>
       </div>
-      <div class="section-body">
-        <div class="info-row"><strong>FarmarosPlus</strong> <span>v1.0.0</span> <span style="opacity:0.5">·</span> <span>Sistema de Gestión Farmacéutica</span></div>
+      <div class="section-body" style="padding: var(--space-m) var(--space-l);">
+        <div class="info-row" style="font-size:0.78rem; gap:6px;"><strong>FarmarosPlus</strong> <span>v1.0.0</span> <span style="opacity:0.5">·</span> <span>Sistema de Gestión Farmacéutica</span></div>
       </div>
     </section>
   </main>
