@@ -27,8 +27,6 @@ import { PurchaseHistoryComponent } from './purchasing/pages/purchase-history/pu
 import { PurchaseDetailComponent } from './purchasing/pages/purchase-detail/purchase-detail.component';
 import { PurchaseEditComponent } from './purchasing/pages/purchase-edit/purchase-edit.component';
 import { RegisterPurchaseComponent } from './purchasing/pages/register-purchase/register-purchase.component';
-import { OrderNotificationsComponent } from './purchasing/pages/order-notifications/order-notifications.component';
-import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-preview.component';
 
 // --- COMPONENTES DE DASHBOARD ---
 import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin-dashboard.component';
@@ -81,17 +79,12 @@ export const routes: Routes = [
   { path: 'purchasing/purchase-detail/:id', component: PurchaseDetailComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
   { path: 'purchasing/purchase-edit/:id', component: PurchaseEditComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_GESTIONAR'] } },
   { path: 'purchasing/register-purchase', component: RegisterPurchaseComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_GESTIONAR'] } },
-  { path: 'purchasing/order-notifications', component: OrderNotificationsComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
-  { path: 'purchasing/order-preview/:id', component: OrderPreviewComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['COMPRAS_VER'] } },
 
-  // Redirecciones para compatibilidad con rutas antiguas
+  // Redirecciones para compatibilidad con rutas antiguas (notificaciones y previsualización eliminadas: campana ya no redirige)
   { path: 'entregas', redirectTo: 'purchasing/return-history', pathMatch: 'full' },
   { path: 'entregas/nueva', redirectTo: 'purchasing/register-return', pathMatch: 'full' },
   { path: 'entregas/compras', redirectTo: 'purchasing/purchase-history', pathMatch: 'full' },
   { path: 'entregas/compras/nueva', redirectTo: 'purchasing/register-purchase', pathMatch: 'full' },
-  { path: 'compras/notificaciones', redirectTo: 'purchasing/order-notifications', pathMatch: 'full' },
-  { path: 'compras/previsualizar-orden', redirectTo: 'purchasing/order-notifications', pathMatch: 'full' },
-  { path: 'previsualizar-orden/:id', redirectTo: 'purchasing/order-preview/:id', pathMatch: 'full' },
 
   // --- INVENTARIO ---
   // Categorias ahora es un panel deslizante dentro de /inventario

@@ -92,8 +92,9 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   navegarAAlertas(): void {
+    // Redirección a /alertas deshabilitada por requerimiento: la campana solo muestra
+    // el dropdown informativo (lógica de alertas intacta: contador, listar, marcar leídas).
     this.showNotifications.set(false);
-    this.router.navigate(['/alertas']);
   }
 
   navegarAInventario(): void {

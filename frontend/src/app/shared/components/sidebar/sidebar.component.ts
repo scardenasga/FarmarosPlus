@@ -76,8 +76,9 @@ export class SidebarComponent {
 
   comprasSubmenu = computed(() => {
     const base: SidebarSubmenu[] = [];
+    if (this.permisoService.tiene('COMPRAS_VER')) base.push({ label: 'Gestión de Compras', link: '/compras-gestion' });
     if (this.permisoService.tiene('PROVEEDORES_VER')) base.push({ label: 'Proveedores', link: '/proveedores' });
-    if (this.permisoService.tiene('COMPRAS_VER')) base.push({ label: 'Compras', link: '/compras-gestion' });
+    if (this.permisoService.tiene('COMPRAS_VER')) base.push({ label: 'Compras', link: '/purchasing/purchase-history' });
     if (this.permisoService.tiene('DEVOLUCIONES_VER')) base.push({ label: 'Devoluciones', link: '/purchasing/return-history' });
     return base;
   });
