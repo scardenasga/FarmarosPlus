@@ -13,7 +13,7 @@ export interface AlertaResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AlertaService {
-  private readonly base = 'http://localhost:8080/api/alertas';
+  private readonly base = '/api/alertas';
 
   contadorNoLeidas = signal<number>(0);
 

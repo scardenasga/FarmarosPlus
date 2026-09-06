@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "empaquetar": "powershell -ExecutionPolicy Bypass -File ../scripts/empaquetar.ps1"
   },
   "private": true,
   "dependencies": {
