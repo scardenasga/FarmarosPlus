@@ -12,6 +12,7 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { InventoryService } from '../../services/inventory.service';
+import { ConfiguracionService } from '../../../configuracion/services/configuracion.service';
 import {
   ActualizarProductoRequest,
   Categoria,
@@ -30,6 +31,7 @@ export class ProductoFormularioPanelComponent implements OnChanges {
   private fb = inject(FormBuilder);
   private inventoryService = inject(InventoryService);
   private notificacion = inject(NotificacionService);
+  private configService = inject(ConfiguracionService);
 
   /** 'crear' o 'editar' */
   modo = input.required<'crear' | 'editar'>();
@@ -52,6 +54,9 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     { id: 'INACTIVO', nombre: 'INACTIVO' },
     { id: 'DESCONTINUADO', nombre: 'DESCONTINUADO' }
   ];
+
+  gananciaMinima = signal<number>(30);
+  precioSugerido = signal<number | null>(null);
 
   /* ---------- Imagen (UI preparada; el backend aún no persiste imágenes) ---------- */
   imagenPreview = signal<string | null>(null);
@@ -97,6 +102,7 @@ export class ProductoFormularioPanelComponent implements OnChanges {
 
     this.mostrarConfirmacion.set(false);
     this.detalle.set(null);
+    this.cargarGanancia();
 
     if (this.esEditar()) {
       const id = this.productoId();
@@ -106,6 +112,31 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       }
     }
     this.construirFormularioCrear();
+  }
+
+  private cargarGanancia(): void {
+    this.configService.obtenerGanancia().subscribe({
+      next: (c) => this.gananciaMinima.set(c.porcentajeMinimo ?? 30),
+      error: () => {}
+    });
+  }
+
+  calcularSugerido(): void {
+    const costo = Number(this.getControl('costo')?.value) || 0;
+    const iva = Number(this.getControl('porcentajeIva')?.value) || 0;
+    if (costo <= 0) { this.precioSugerido.set(null); return; }
+    const base = costo * (1 + this.gananciaMinima() / 100);
+    const minimoIva = costo * (1 + iva / 100);
+    const sugerido = base <= minimoIva ? minimoIva + 1 : base;
+    this.precioSugerido.set(Math.round(sugerido * 100) / 100);
+  }
+
+  aplicarPrecioSugerido(): void {
+    const s = this.precioSugerido();
+    if (s != null) {
+      this.getControl('precioVenta').setValue(s);
+      this.getControl('precioVenta').markAsTouched();
+    }
   }
 
   private cargarYConstruir(id: number): void {
@@ -133,13 +164,19 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       stockInicial: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
       costo: [0, [Validators.required, Validators.min(0)]],
-      precioVenta: [0, [Validators.required, Validators.min(0)]],
+      precioVenta: [null, [Validators.min(0)]],
       porcentajeIva: [0, [Validators.required, Validators.min(0)]],
       requierePrescripcion: [false],
       tieneLote: [false],
       numeroLote: [''],
       fechaVencimiento: ['']
     }, { validators: this.validadorPrecio });
+    // recalcular sugerido al cambiar costo/iva
+    setTimeout(() => {
+      this.getControl('costo')?.valueChanges.subscribe(() => this.calcularSugerido());
+      this.getControl('porcentajeIva')?.valueChanges.subscribe(() => this.calcularSugerido());
+      this.calcularSugerido();
+    });
   }
 
   private construirFormularioEditar(p: ProductoDetalleResponse): void {
@@ -159,11 +196,12 @@ export class ProductoFormularioPanelComponent implements OnChanges {
 
   private validadorPrecio(group: FormGroup): { [key: string]: any } | null {
     const costo = group.get('costo')?.value || 0;
-    const precioVenta = group.get('precioVenta')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value;
     const iva = group.get('porcentajeIva')?.value || 0;
 
+    if (precioVenta == null || precioVenta === '' ) return null;
     const minPrecio = costo * (1 + iva / 100);
-    if (precioVenta <= minPrecio && precioVenta > 0) {
+    if (Number(precioVenta) <= minPrecio && Number(precioVenta) > 0) {
       return { priceTooLow: true };
     }
     return null;
@@ -205,6 +243,8 @@ export class ProductoFormularioPanelComponent implements OnChanges {
   private guardarCreacion(): void {
     const v = this.productForm.value;
 
+    const precio = v.precioVenta != null && v.precioVenta !== '' ? Number(v.precioVenta) : undefined;
+
     const request: CrearProductoRequest = {
       nombre: v.nombre,
       descripcion: v.descripcion || undefined,
@@ -213,7 +253,7 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       stockMinimo: Number(v.stockMinimo),
       stockInicial: Number(v.stockInicial),
       costo: Number(v.costo),
-      precioVenta: Number(v.precioVenta),
+      precioVenta: precio,
       porcentajeIva: Number(v.porcentajeIva) || 0,
       requierePrescripcion: !!v.requierePrescripcion,
       fechaVencimiento: v.fechaVencimiento || undefined,

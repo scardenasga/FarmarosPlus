@@ -51,6 +51,7 @@ public class ProductoService {
     private final DetalleVentaRepository detalleVentaRepository;
     private final co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository;
     private final CurrentUserService currentUserService;
+    private final ConfiguracionService configuracionService;
 
     public ProductoService(
             ProductoRepository productoRepository,
@@ -60,7 +61,8 @@ public class ProductoService {
             HistorialPrecioProductoRepository historialPrecioProductoRepository,
             DetalleVentaRepository detalleVentaRepository,
             co.edu.unbosque.backend.repository.ProveedorProductoRepository proveedorProductoRepository,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            ConfiguracionService configuracionService
     ) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
@@ -70,6 +72,7 @@ public class ProductoService {
         this.detalleVentaRepository = detalleVentaRepository;
         this.proveedorProductoRepository = proveedorProductoRepository;
         this.currentUserService = currentUserService;
+        this.configuracionService = configuracionService;
     }
 
     /**
@@ -95,6 +98,14 @@ public class ProductoService {
         Categoria categoria = obtenerCategoriaOpcional(request.categoriaId());
         int stockInicial = valorEnteroSeguro(request.stockInicial());
 
+        Double precioVentaEfectivo = request.precioVenta();
+        if (precioVentaEfectivo == null) {
+            precioVentaEfectivo = configuracionService.calcularPrecioSugerido(
+                    request.costo(),
+                    request.porcentajeIva() != null ? request.porcentajeIva() : 0.0
+            );
+        }
+
         Producto producto = new Producto();
         producto.setCategoria(categoria);
         producto.setNombre(normalizarTexto(request.nombre()));
@@ -103,7 +114,7 @@ public class ProductoService {
         producto.setStockMinimo(valorEnteroSeguro(request.stockMinimo()));
         producto.setStockActual(stockInicial);
         producto.setCosto(request.costo());
-        producto.setPrecioVenta(request.precioVenta());
+        producto.setPrecioVenta(precioVentaEfectivo);
         producto.setPorcentajeIva(request.porcentajeIva() != null ? request.porcentajeIva() : 0.0);
         producto.setRequierePrescripcion(request.requierePrescripcion());
         producto.setEstado("ACTIVO");
@@ -519,15 +530,19 @@ public class ProductoService {
             throw new BusinessException("El codigo de barras es obligatorio");
         if (request.costo() == null || request.costo() < 0)
             throw new BusinessException("El costo del producto debe ser mayor o igual a cero");
-        if (request.precioVenta() == null || request.precioVenta() < 0)
-            throw new BusinessException("El precio de venta debe ser mayor o igual a cero");
+        if (request.precioVenta() != null && request.precioVenta() < 0)
+            throw new BusinessException("El precio de venta no puede ser negativo");
         if (request.stockInicial() == null || request.stockInicial() <= 0)
             throw new BusinessException("El stock inicial debe ser mayor a cero");
         if (request.stockMinimo() != null && request.stockMinimo() < 0)
             throw new BusinessException("El stock minimo no puede ser negativo");
         if (request.requierePrescripcion() == null)
             throw new BusinessException("El campo requierePrescripcion es obligatorio");
-        validarPrecioVentaSuficiente(request.costo(), request.precioVenta(), request.porcentajeIva());
+        Double precioParaValidar = request.precioVenta();
+        if (precioParaValidar == null) {
+            precioParaValidar = configuracionService.calcularPrecioSugerido(request.costo(), request.porcentajeIva());
+        }
+        validarPrecioVentaSuficiente(request.costo(), precioParaValidar, request.porcentajeIva());
         if (request.fechaVencimiento() != null && request.fechaVencimiento().isBefore(LocalDate.now()))
             throw new BusinessException("La fecha de vencimiento no puede estar en el pasado");
     }

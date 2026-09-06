@@ -1,6 +1,7 @@
 package co.edu.unbosque.backend.repository;
 
 import co.edu.unbosque.backend.model.entity.RecepcionCompra;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,9 +14,15 @@ import java.util.List;
  */
 @Repository
 public interface RecepcionCompraRepository extends JpaRepository<RecepcionCompra, Long> {
+    @EntityGraph(attributePaths = {"orden", "orden.proveedor", "usuario", "detalles", "detalles.producto"})
     List<RecepcionCompra> findByEstadoPagoOrderByFechaRecepcionDesc(String estadoPago);
+    @EntityGraph(attributePaths = {"orden", "orden.proveedor", "usuario", "detalles", "detalles.producto"})
     List<RecepcionCompra> findByOrden_IdOrdenOrderByFechaRecepcionDesc(Long ordenId);
     boolean existsByUsuario_IdUsuario(Long idUsuario);
+
+    @Override
+    @EntityGraph(attributePaths = {"orden", "orden.proveedor", "usuario", "detalles", "detalles.producto"})
+    List<RecepcionCompra> findAll();
 
     /**
      * Cumplimiento de entregas a tiempo por proveedor: cuenta recepciones y

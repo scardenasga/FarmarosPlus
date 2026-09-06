@@ -34,6 +34,7 @@ import { OrderPreviewComponent } from './purchasing/pages/order-preview/order-pr
 import { AdminDashboardComponent } from './dashboard/pages/admin-dashboard/admin-dashboard.component';
 import { AnalyticsComponent } from './dashboard/pages/analytics/analytics.component';
 import { LoginComponent } from './auth/pages/login/login.component';
+import { CierreCajaComponent } from './cierres/pages/cierre-caja/cierre-caja.component';
 import { authGuard, loginGuard } from './auth/guards/auth.guard';
 import { roleGuard } from './auth/guards/role.guard';
 import { permisoGuard } from './auth/guards/permiso.guard';
@@ -58,6 +59,8 @@ export const routes: Routes = [
   // --- VENTAS ---
   { path: 'ventas', component: HistorialVentasComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_VER'] } },
   { path: 'ventas/pos', component: PosVentaComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_CREAR'] } },
+  { path: 'ventas/cierre-caja', component: CierreCajaComponent, canActivate: [authGuard, permisoGuard], data: { permisos: ['VENTAS_VER'] } },
+  { path: 'cierre-caja', redirectTo: 'ventas/cierre-caja', pathMatch: 'full' },
   // Flujo antiguo (buscar -> registrar) reemplazado por la vista POS única
   { path: 'ventas/crear', redirectTo: 'ventas/pos', pathMatch: 'full' },
   { path: 'ventas/registrar', redirectTo: 'ventas/pos', pathMatch: 'full' },

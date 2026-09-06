@@ -8,6 +8,7 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { PermisoService } from '../../../shared/services/permiso.service';
+import { ConfiguracionService } from '../../services/configuracion.service';
 
 @Component({
   selector: 'app-settings',
@@ -538,6 +539,7 @@ export class SettingsComponent implements OnInit {
   private auth = inject(AuthService);
   private usuariosService = inject(UsuarioAdminService);
   private notificacion = inject(NotificacionService);
+  private configService = inject(ConfiguracionService);
 
   usuario = this.sesion.usuario;
   inicial = computed(() => {
@@ -625,11 +627,46 @@ export class SettingsComponent implements OnInit {
     { id: 'high-contrast-theme', name: 'Alto Contraste', colors: ['#00ffff', '#000000', '#008b8b'] },
   ];
 
+  // --- Ganancia mínima (sobre costo) ---
+  gananciaMinima = signal<number>(30);
+  cargandoGanancia = signal(false);
+  guardandoGanancia = signal(false);
+
   ngOnInit(): void {
+    this.cargarGanancia();
     if (this.esAdmin()) {
       this.cargarUsuarios();
       this.permisoService.cargarCatalogo();
     }
+  }
+
+  cargarGanancia(): void {
+    this.cargandoGanancia.set(true);
+    this.configService.obtenerGanancia().subscribe({
+      next: (data) => { this.gananciaMinima.set(data.porcentajeMinimo ?? 30); this.cargandoGanancia.set(false); },
+      error: () => this.cargandoGanancia.set(false)
+    });
+  }
+
+  guardarGanancia(): void {
+    if (!this.esAdmin()) { this.notificacion.error('Solo ADMIN puede configurar la ganancia'); return; }
+    const v = Number(this.gananciaMinima());
+    if (!Number.isFinite(v) || v < 0 || v > 500) {
+      this.notificacion.error('El porcentaje debe estar entre 0 y 500');
+      return;
+    }
+    this.guardandoGanancia.set(true);
+    this.configService.actualizarGanancia(v).subscribe({
+      next: (data) => {
+        this.gananciaMinima.set(data.porcentajeMinimo);
+        this.guardandoGanancia.set(false);
+        this.notificacion.exito(`Ganancia mínima actualizada a ${data.porcentajeMinimo}%`);
+      },
+      error: (err) => {
+        this.guardandoGanancia.set(false);
+        this.notificacion.error(err?.error?.message || 'No se pudo guardar la ganancia mínima');
+      }
+    });
   }
 
   changeTheme(theme: ThemeType) {

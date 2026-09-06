@@ -3,7 +3,8 @@ import { NgChartsModule } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PurchasingService } from '../../services/purchasing.service';
 import { OrdenCompraResumen, RecepcionCompraResumen, DevolucionResponse, AlertaDetallada } from '../../models/purchasing.model';
 import { SupplierService } from '../../../supplier/services/supplier.service';
@@ -140,17 +141,19 @@ export class PurchasingDashboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     forkJoin({
-      purchases: this.purchasingService.listarOrdenes(),
-      receptions: this.purchasingService.listarRecepciones(),
-      returns: this.purchasingService.listarDevoluciones(),
-      suppliers: this.supplierService.listActive()
+      purchases: this.purchasingService.listarOrdenes().pipe(catchError(() => of([] as OrdenCompraResumen[]))),
+      receptions: this.purchasingService.listarRecepciones().pipe(catchError(() => of([] as RecepcionCompraResumen[]))),
+      returns: this.purchasingService.listarDevoluciones().pipe(catchError(() => of([] as DevolucionResponse[]))),
+      suppliers: this.supplierService.listActive().pipe(catchError(() => of([] as Supplier[])))
     }).subscribe({
       next: ({ purchases, receptions, returns, suppliers }) => {
         this.buildStatistics(purchases, receptions, returns, suppliers);
+        if (!purchases.length && !receptions.length && !suppliers.length) {
+          this.notificacion.error('No se pudieron cargar las estadísticas de compras.');
+        }
       },
       error: () => {
-        this.error.set('No se pudieron cargar las estadÃ­sticas. Verifica la conexiÃ³n con el backend.');
-        this.notificacion.error('No se pudieron cargar las estadÃ­sticas de compras.');
+        this.notificacion.error('No se pudieron cargar las estadísticas de compras.');
         this.loading.set(false);
       }
     });

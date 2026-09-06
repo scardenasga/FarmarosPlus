@@ -74,6 +74,7 @@ export class SidebarComponent {
     const base: SidebarSubmenu[] = [];
     if (this.permisoService.tiene('VENTAS_VER')) base.push({ label: 'Historial de ventas', link: '/ventas' });
     if (this.permisoService.tiene('VENTAS_CREAR')) base.push({ label: 'Nueva venta (POS)', link: '/ventas/pos' });
+    if (this.permisoService.tiene('VENTAS_VER')) base.push({ label: 'Cierre de caja', link: '/ventas/cierre-caja' });
     if (this.permisoService.tiene('VENTAS_REPORTES_VER')) base.push({ label: 'Reporte de ventas', link: '/reportes/ventas' });
     return base;
   });

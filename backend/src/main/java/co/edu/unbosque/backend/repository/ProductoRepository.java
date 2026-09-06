@@ -60,6 +60,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * @param estado estado funcional del producto
      * @return lista de productos filtrados
      */
+    @EntityGraph(attributePaths = {"categoria"})
     List<Producto> findByEstadoOrderByNombreAsc(String estado);
 
     /**
@@ -151,12 +152,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      *
      * @return productos con stock bajo
      */
-    @Query(value = """
-            SELECT p.*
-            FROM producto p
-            WHERE p.stock_actual <= p.stock_minimo
-            ORDER BY p.stock_actual ASC, p.nombre ASC
-            """, nativeQuery = true)
+    @Query("""
+            SELECT p FROM Producto p LEFT JOIN FETCH p.categoria
+            WHERE p.stockActual <= p.stockMinimo
+            ORDER BY p.stockActual ASC, p.nombre ASC
+            """)
     List<Producto> findProductosConStockBajo();
 
     /**

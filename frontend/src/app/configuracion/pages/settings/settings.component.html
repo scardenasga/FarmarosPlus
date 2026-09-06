@@ -187,6 +187,45 @@
       </div>
     </section>
 
+    <!-- Ganancia mínima (solo ADMIN) -->
+    <section class="section-card">
+      <div class="section-card-header">
+        <div class="section-icon" style="background: var(--success-bg); color: var(--success-text);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <h2>Ganancia mínima</h2>
+          <p class="section-desc">% sobre costo aplicado si no defines precioVenta al crear producto</p>
+        </div>
+      </div>
+      <div class="section-body">
+        @if (cargandoGanancia()) {
+          <div style="padding: var(--space-m); text-align:center; color: var(--text-muted); font-weight:600;">Cargando...</div>
+        } @else {
+          <div style="display:flex; flex-direction:column; gap: var(--space-m);">
+            <p style="margin:0; font-size:0.76rem; color: var(--text-muted); font-weight:600; line-height:1.4;">
+              Fórmula: <code style="background: var(--surface-container); padding:2px 6px; border-radius:6px;">precio = costo × (1 + ganancia/100)</code> + validación IVA. Se respeta el cálculo <strong>sobre costo</strong> existente <code style="background: var(--surface-container); padding:2px 6px; border-radius:6px;">{{'((precio-costo)/costo)*100'}}</code>.
+            </p>
+            <label class="form-field">
+              <span>Porcentaje mínimo (%)</span>
+              <input type="number" min="0" max="500" step="0.1" [ngModel]="gananciaMinima()" (ngModelChange)="gananciaMinima.set(+$event)" [disabled]="!esAdmin()" placeholder="30" />
+            </label>
+            <div style="display:flex; gap: var(--space-s); align-items:center; flex-wrap:wrap;">
+              <span style="font-size:0.72rem; color: var(--text-muted); font-weight:600;">Ej: costo 10.000 + 30% → 13.000 · costo 8.500 + 19% IVA + 30% → ~11.050</span>
+              @if (esAdmin()) {
+                <button type="button" class="btn-primary" style="margin-left:auto;" [disabled]="guardandoGanancia()" (click)="guardarGanancia()">
+                  {{ guardandoGanancia() ? 'Guardando...' : 'Guardar ganancia' }}
+                </button>
+              }
+            </div>
+            @if (!esAdmin()) {
+              <div style="background: var(--warning-bg); color: var(--warning-text); border-radius:8px; padding:8px 10px; font-size:0.72rem; font-weight:700; text-align:center;">Solo ADMIN puede modificar este valor.</div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
     <!-- Info -->
     <section class="section-card span-2 compact">
       <div class="section-card-header">

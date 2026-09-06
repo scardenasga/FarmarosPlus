@@ -152,10 +152,10 @@
               </app-form-input>
 
               <app-form-input
-                label="Precio al cliente *"
+                label="Precio al cliente"
                 type="number"
                 suffix="COP"
-                placeholder="0"
+                placeholder="Vacío = auto ({{ gananciaMinima() }}% sobre costo)"
                 [control]="getControl('precioVenta')">
               </app-form-input>
 
@@ -170,6 +170,13 @@
               <p class="campo-error">
                 El precio al cliente debe ser mayor al costo con IVA incluido.
               </p>
+            }
+            @if (!esEditar() && precioSugerido() != null) {
+              <div style="display:flex; align-items:center; gap:8px; background: var(--success-bg); color: var(--success-text); border:1px solid var(--border-color); border-radius:10px; padding:8px 10px; font-size:0.76rem; font-weight:600; margin-top: -4px;">
+                <span>Sugerido ({{ gananciaMinima() }}%): <strong>{{ precioSugerido() | currency:'COP':'symbol':'1.0-0' }}</strong></span>
+                <button type="button" (click)="aplicarPrecioSugerido()" style="margin-left:auto; background: var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:4px 10px; font-weight:800; font-size:0.72rem; color: var(--text-dark);">Usar sugerido</button>
+              </div>
+              <p style="font-size:0.70rem; color: var(--text-muted); font-weight:600; margin:0;">Si dejas el precio vacío se creará automáticamente con la ganancia mínima configurada en Ajustes.</p>
             }
 
             <!-- ═══ Reglas especiales ═══ -->

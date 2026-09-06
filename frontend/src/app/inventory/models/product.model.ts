@@ -43,7 +43,7 @@ export interface CrearProductoRequest {
   stockMinimo?: number; // Opcional-
   stockInicial: number;//-
   costo: number;//-
-  precioVenta: number;// -
+  precioVenta?: number;// opcional: si no se envía se usa ganancia mínima configurada
   porcentajeIva?: number; // Opcional -
   requierePrescripcion: boolean;
   fechaVencimiento: string | Date; // Opcional (ISO string 2027-12-31)
