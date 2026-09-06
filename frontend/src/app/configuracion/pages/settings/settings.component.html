@@ -83,6 +83,25 @@
       </div>
     </section>
 
+    <!-- Rendimiento - compacto, visible sin scroll -->
+    <section class="section-card span-2 rendimiento-compact">
+      <div class="rendimiento-row">
+        <div class="rendimiento-title">
+          <div class="section-icon icon-blue" style="width:28px;height:28px;border-radius:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
+          <div style="line-height:1.1">
+            <h2 style="font-size:0.82rem;margin:0;font-weight:800;color:var(--text-dark)">Rendimiento</h2>
+            <span style="font-size:0.62rem;color:var(--text-muted);font-weight:600">Reporte por rango · Excel con 9 hojas para análisis</span>
+          </div>
+        </div>
+        <div class="rendimiento-controls">
+          <label class="mini-field">Desde<input type="date" [ngModel]="rendimientoDesde()" (ngModelChange)="rendimientoDesde.set($event)" /></label>
+          <label class="mini-field">Hasta<input type="date" [ngModel]="rendimientoHasta()" (ngModelChange)="rendimientoHasta.set($event)" /></label>
+          <button type="button" class="btn-primary btn-sm" [disabled]="exportandoRendimiento()" (click)="descargarRendimiento('pdf')" title="PDF resumido con KPIs + tablas">@if (exportandoRendimiento()) { ... } @else { PDF }</button>
+          <button type="button" class="btn-ghost btn-sm" [disabled]="exportandoRendimiento()" (click)="descargarRendimiento('excel')" title="Excel con 9 hojas crudas">Excel</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Gestión de usuarios (solo ADMIN) -->
     <section class="section-card span-2">
       <div class="section-card-header">
@@ -235,6 +254,7 @@
         <div class="info-row" style="font-size:0.78rem; gap:6px;"><strong>FarmarosPlus</strong> <span>v1.0.0</span> <span style="opacity:0.5">·</span> <span>Sistema de Gestión Farmacéutica</span></div>
       </div>
     </section>
+
   </main>
 
   <!-- Panel deslizante permisos (izquierda/derecha como en Inventario) -->
