@@ -1,0 +1,47 @@
+<div class="sugerencias-panel" *ngIf="cargando() || recomendaciones().length > 0">
+  <div class="sugerencias-header">
+    <div class="sugerencias-titulo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+      </svg>
+      <span>También suelen llevar</span>
+      @if (esDatosIniciales()) {
+        <span class="badge-datos-iniciales">datos iniciales</span>
+      } @else if (origen() === 'POPULARIDAD') {
+        <span class="badge-popularidad">populares</span>
+      }
+    </div>
+    @if (cargando()) {
+      <span class="sugerencias-cargando">
+        <span class="spinner"></span> buscando...
+      </span>
+    }
+  </div>
+
+  @if (!cargando() && recomendaciones().length > 0) {
+    <div class="chips-lista">
+      @for (item of recomendaciones(); track item.productoId) {
+        <button
+          type="button"
+          class="chip-recomendacion"
+          (click)="onAgregar(item)"
+          [attr.title]="'Confianza ' + (item.confianza | percent:'1.0-0') + ' · Lift ' + (item.lift | number:'1.1-1')"
+          [attr.aria-label]="'Agregar ' + item.nombre">
+          <span class="chip-nombre">{{ item.nombre }}</span>
+          <span class="chip-accion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </span>
+        </button>
+      }
+    </div>
+    <p class="sugerencias-nota">
+      @if (origen() === 'FPGROWTH') {
+        Sugerencia basada en compras anteriores
+      } @else if (origen() === 'POPULARIDAD') {
+        Producto popular entre nuestros clientes
+      }
+    </p>
+  }
+</div>
