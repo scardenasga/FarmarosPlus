@@ -68,15 +68,14 @@ public class ProductoController {
                                     name = "Producto sin lote",
                                     value = """
                                             {
-                                              "nombre": "Acetaminofen 500mg",
+                                              "nombre": "Gaseosa 350ml",
                                               "codigoBarras": "7701234567890",
                                               "stockMinimo": 10,
                                               "stockInicial": 20,
-                                              "costo": 8500.0,
-                                              "precioVenta": 12000.0,
-                                              "porcentajeIva": 0.0,
-                                              "requierePrescripcion": false,
-                                              "fechaVencimiento": "2027-12-31"
+                                              "costo": 1500.0,
+                                              "precioVenta": 2500.0,
+                                              "porcentajeIva": 19.0,
+                                              "requierePrescripcion": false
                                             }
                                             """
                             ),
