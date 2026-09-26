@@ -15,6 +15,7 @@ public record ProveedorResponse(
         String estado,
         String condicionPago,
         LocalDateTime fechaCreacion,
-        LocalDateTime fechaModificacion
+        LocalDateTime fechaModificacion,
+        String imagenUrl
 ) {
 }

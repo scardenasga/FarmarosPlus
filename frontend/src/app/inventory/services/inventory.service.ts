@@ -67,6 +67,22 @@ export class InventoryService {
     return this.http.delete<void>(`${this.productsUrl}/${id}`);
   }
 
+  // Imagen (SQLite TEXT + filesystem)
+  /** URL directa del binario (para <img src>). Usa timestamp para bust caché tras subir. */
+  getImagenUrl(id: number): string {
+    return `${this.productsUrl}/${id}/imagen`;
+  }
+
+  subirImagen(id: number, file: File): Observable<Product> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<Product>(`${this.productsUrl}/${id}/imagen`, fd);
+  }
+
+  eliminarImagen(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.productsUrl}/${id}/imagen`);
+  }
+
   // Categories
   // Removed: now handled by CategoriaService
 }

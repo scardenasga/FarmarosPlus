@@ -288,6 +288,13 @@
   justify-content: center;
   color: var(--text-muted, var(--outline));
   flex-shrink: 0;
+  overflow: hidden;
+}
+.card-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 .card-imagen svg { width: 34px; height: 34px; }
 .card-estado { position: absolute; top: 6px; right: 6px; font-size: 0.58rem; padding: 2px 7px; }
@@ -362,6 +369,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.mini-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 .mini-imagen svg { width: 14px; height: 14px; }
 .nombre-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -41,6 +41,9 @@ class ProveedorServiceTest {
     @Mock
     private ProveedorProductoRepository proveedorProductoRepository;
 
+    @Mock
+    private ProveedorImagenStorageService proveedorImagenStorageService;
+
     @InjectMocks
     private ProveedorService proveedorService;
 

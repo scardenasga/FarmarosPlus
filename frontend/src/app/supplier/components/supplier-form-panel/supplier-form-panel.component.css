@@ -122,6 +122,53 @@ form {
   align-items: stretch;
 }
 
+.zona-imagen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 96px;
+  height: 96px;
+  align-self: center;
+  border: 2px dashed var(--border-color, var(--outline-variant));
+  border-radius: 12px;
+  background-color: var(--card-bg, var(--surface-container-low));
+  color: var(--text-muted, var(--outline));
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  overflow: hidden;
+}
+
+.zona-imagen:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.06));
+}
+
+.zona-imagen input[type="file"] { display: none; }
+.zona-imagen svg { width: 26px; height: 26px; }
+.zona-imagen.con-preview { border-style: solid; }
+.zona-imagen img { width: 100%; height: 100%; object-fit: cover; background-color: #ffffff; }
+.zona-texto { font-size: 0.66rem; font-weight: 700; }
+.btn-quitar-imagen {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+}
+.btn-quitar-imagen:hover { background-color: var(--danger-text); }
+.btn-quitar-imagen svg { width: 12px; height: 12px; }
+.nota-imagen { font-size: 0.62rem; color: var(--text-muted, var(--outline)); margin-top: auto; }
+
 .avatar-proveedor {
   width: 96px;
   height: 96px;

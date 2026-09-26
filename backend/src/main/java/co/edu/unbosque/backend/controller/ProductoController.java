@@ -27,6 +27,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 /**
@@ -61,15 +68,14 @@ public class ProductoController {
                                     name = "Producto sin lote",
                                     value = """
                                             {
-                                              "nombre": "Acetaminofen 500mg",
+                                              "nombre": "Gaseosa 350ml",
                                               "codigoBarras": "7701234567890",
                                               "stockMinimo": 10,
                                               "stockInicial": 20,
-                                              "costo": 8500.0,
-                                              "precioVenta": 12000.0,
-                                              "porcentajeIva": 0.0,
-                                              "requierePrescripcion": false,
-                                              "fechaVencimiento": "2027-12-31"
+                                              "costo": 1500.0,
+                                              "precioVenta": 2500.0,
+                                              "porcentajeIva": 19.0,
+                                              "requierePrescripcion": false
                                             }
                                             """
                             ),
@@ -325,6 +331,40 @@ public class ProductoController {
         return ResponseEntity.ok(toProductoResponse(productoService.actualizarPrecio(codigoBarras, request)));
     }
 
+    // ===== Imagen del producto (SQLite TEXT + filesystem) =====
+
+    @PostMapping(value = "/{id}/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Subir/actualizar imagen del producto",
+            description = "Guarda la imagen en filesystem (uploads/productos/producto-{id}.ext) y persiste el nombre en producto.imagen_url (TEXT SQLite). "
+                    + "Formatos: jpg, jpeg, png, webp, gif. Tamaño máximo 5MB. Si el producto ya tenía imagen, la reemplaza."
+    )
+    public ResponseEntity<ProductoResponse> subirImagen(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file
+    ) {
+        Producto actualizado = productoService.guardarImagen(id, file);
+        return ResponseEntity.ok(toProductoResponse(actualizado));
+    }
+
+    @GetMapping("/{id}/imagen")
+    @Operation(summary = "Obtener imagen del producto", description = "Devuelve el archivo binario si existe; si no, 404.")
+    public ResponseEntity<Resource> obtenerImagen(@PathVariable Long id) {
+        Resource resource = productoService.obtenerImagenResource(id);
+        String contentType = productoService.obtenerImagenContentType(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
+    @DeleteMapping("/{id}/imagen")
+    @Operation(summary = "Eliminar imagen del producto", description = "Borra el archivo y limpia producto.imagen_url.")
+    public ResponseEntity<Void> eliminarImagen(@PathVariable Long id) {
+        productoService.eliminarImagen(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private ProductoResponse toProductoResponse(Producto producto) {
         return new ProductoResponse(
                 producto.getUniqueID(),
@@ -339,7 +379,8 @@ public class ProductoController {
                 producto.getMargenGanancia(),
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
-                producto.getEstado()
+                producto.getEstado(),
+                producto.getImagenUrl()
         );
     }
 

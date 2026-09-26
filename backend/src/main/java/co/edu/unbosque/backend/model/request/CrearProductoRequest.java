@@ -44,9 +44,8 @@ public record CrearProductoRequest(
         @DecimalMin(value = "0.0", inclusive = true, message = "El costo no puede ser negativo")
         @Schema(description = "Costo de compra del producto", example = "8500.0")
         Double costo,
-        @NotNull(message = "El precio de venta es obligatorio")
         @DecimalMin(value = "0.0", inclusive = true, message = "El precio de venta no puede ser negativo")
-        @Schema(description = "Precio de venta del producto", example = "12000.0")
+        @Schema(description = "Precio de venta del producto. Si no se envía, se calcula automáticamente usando la ganancia mínima configurada en /api/configuracion/ganancia (sobre costo).", example = "12000.0")
         Double precioVenta,
         @DecimalMin(value = "0.0", inclusive = true, message = "El porcentaje de IVA no puede ser negativo")
         @Schema(description = "Porcentaje de IVA. Medicamentos: 0.0, Cosméticos/otros: 19.0", example = "0.0")
@@ -55,8 +54,7 @@ public record CrearProductoRequest(
         @Schema(description = "Indica si el producto requiere prescripcion medica", example = "false")
         Boolean requierePrescripcion,
         @FutureOrPresent(message = "La fecha de vencimiento no puede estar en el pasado")
-        @Schema(description = "Fecha de vencimiento opcional del lote inicial. Si se envia, se crea el lote aunque numeroLote sea null.", example = "2027-12-31")
-        @NotNull(message = "Debe existir una fecha de vencimiento.")
+        @Schema(description = "Fecha de vencimiento opcional del lote inicial. Solo requerida si el producto maneja lote; si se envia, se crea el lote aunque numeroLote sea null.", example = "2027-12-31")
         LocalDate fechaVencimiento,
         @Schema(description = "Numero de lote opcional. Si se envia, tambien se crea un lote inicial.", example = "AMX-2026-01")
         String numeroLote

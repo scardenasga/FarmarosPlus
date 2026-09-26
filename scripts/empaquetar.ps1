@@ -41,7 +41,7 @@ New-Item -ItemType Directory -Path $STATIC -Force | Out-Null
 Copy-Item -Path (Join-Path $NG_DIST "*") -Destination $STATIC -Recurse -Force
 Write-Host "  Listo" -ForegroundColor Green
 
-# 3. Compilar backend
+# 3. Compilar backend (usa perfil por defecto = PROD -> DB en %USERPROFILE%\.farmarosplus\)
 Write-Host "`n[3/4] Compilando backend..." -ForegroundColor Yellow
 Push-Location $BACKEND
 & ./mvnw.cmd clean package -DskipTests

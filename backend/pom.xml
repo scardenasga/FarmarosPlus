@@ -171,10 +171,31 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- DEV por defecto al usar ./mvnw spring-boot:run o Run desde IDE -->
+                    <!-- Usa database/farmarosplus.db (perfil dev). El JAR sigue usando PROD (user.home). -->
+                    <jvmArguments>-Dspring.profiles.active=dev</jvmArguments>
+                    <!-- Asegura que la ruta relativa database/farmarosplus.db resuelva desde la raiz del proyecto -->
+                    <workingDirectory>${project.basedir}/..</workingDirectory>
                 </configuration>
             </plugin>
 
         </plugins>
     </build>
+
+    <profiles>
+        <!-- DEV: ejecucion local con DB del proyecto (database/farmarosplus.db) -->
+        <!-- Se activa automaticamente al usar ./mvnw spring-boot:run por el jvmArguments en el plugin -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+        <!-- PROD: JAR empaquetado para cliente con DB en ${user.home}/.farmarosplus/ -->
+        <!-- Es el comportamiento por defecto del JAR (application.properties), no requiere -Pprod salvo si quieres forzarlo -->
+        <profile>
+            <id>prod</id>
+        </profile>
+    </profiles>
 
 </project>

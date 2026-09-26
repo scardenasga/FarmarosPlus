@@ -31,15 +31,18 @@ public class ProveedorService {
     private final ProveedorRepository proveedorRepository;
     private final ProductoRepository productoRepository;
     private final ProveedorProductoRepository proveedorProductoRepository;
+    private final ProveedorImagenStorageService imagenStorageService;
 
     public ProveedorService(
             ProveedorRepository proveedorRepository,
             ProductoRepository productoRepository,
-            ProveedorProductoRepository proveedorProductoRepository
+            ProveedorProductoRepository proveedorProductoRepository,
+            ProveedorImagenStorageService imagenStorageService
     ) {
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
         this.proveedorProductoRepository = proveedorProductoRepository;
+        this.imagenStorageService = imagenStorageService;
     }
 
     @Transactional
@@ -89,6 +92,7 @@ public class ProveedorService {
                 proveedor.getContacto(),
                 proveedor.getEstado(),
                 proveedor.getCondicionPago(),
+                proveedor.getImagenUrl(),
                 productos
         );
     }
@@ -195,6 +199,41 @@ public class ProveedorService {
     public void eliminarProductoProveedor(Long idProveedor, Long productoId) {
         ProveedorProducto relacion = obtenerRelacionProveedorProducto(idProveedor, productoId);
         proveedorProductoRepository.delete(relacion);
+    }
+
+    // ===== Imagen proveedor =====
+
+    @Transactional
+    public Proveedor guardarImagen(Long idProveedor, org.springframework.web.multipart.MultipartFile archivo) {
+        Proveedor proveedor = obtenerProveedorPorId(idProveedor);
+        String nombreArchivo = imagenStorageService.guardar(idProveedor, archivo);
+        proveedor.setImagenUrl(nombreArchivo);
+        return proveedorRepository.save(proveedor);
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource obtenerImagenResource(Long idProveedor) {
+        Proveedor proveedor = obtenerProveedorPorId(idProveedor);
+        if (proveedor.getImagenUrl() == null || proveedor.getImagenUrl().isBlank())
+            throw new ResourceNotFoundException("El proveedor no tiene imagen");
+        return imagenStorageService.cargarComoResource(proveedor.getImagenUrl());
+    }
+
+    public String obtenerImagenContentType(Long idProveedor) {
+        Proveedor proveedor = obtenerProveedorPorId(idProveedor);
+        if (proveedor.getImagenUrl() == null || proveedor.getImagenUrl().isBlank())
+            throw new ResourceNotFoundException("El proveedor no tiene imagen");
+        return imagenStorageService.detectarContentType(proveedor.getImagenUrl());
+    }
+
+    @Transactional
+    public void eliminarImagen(Long idProveedor) {
+        Proveedor proveedor = obtenerProveedorPorId(idProveedor);
+        if (proveedor.getImagenUrl() == null || proveedor.getImagenUrl().isBlank())
+            throw new ResourceNotFoundException("El proveedor no tiene imagen para eliminar");
+        imagenStorageService.eliminar(proveedor.getImagenUrl());
+        proveedor.setImagenUrl(null);
+        proveedorRepository.save(proveedor);
     }
 
     private void validarCreacionProveedor(CrearProveedorRequest request) {

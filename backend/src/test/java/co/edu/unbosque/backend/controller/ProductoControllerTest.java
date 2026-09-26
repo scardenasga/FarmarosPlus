@@ -156,7 +156,8 @@ class ProductoControllerTest {
                 41.18,
                 0.0,
                 false,
-                "ACTIVO"
+                "ACTIVO",
+                null
         );
 
         when(productoService.buscarActivosPorNombreOCodigo("acetaminofen")).thenReturn(List.of(respuesta));
@@ -227,6 +228,7 @@ class ProductoControllerTest {
                 0.0,
                 false,
                 "ACTIVO",
+                null,
                 List.of()
         );
 
@@ -253,6 +255,7 @@ class ProductoControllerTest {
                 0.0,
                 false,
                 "ACTIVO",
+                null,
                 List.of()
         );
 

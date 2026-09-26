@@ -30,6 +30,7 @@ export interface Product {
   estado: string;
   categoria?: Categoria;
   numeroLote?: string;
+  imagenUrl?: string | null;
   // UI related fields (optional/computed in FE if needed)
   trend?: number;
 }
@@ -43,7 +44,7 @@ export interface CrearProductoRequest {
   stockMinimo?: number; // Opcional-
   stockInicial: number;//-
   costo: number;//-
-  precioVenta: number;// -
+  precioVenta?: number;// opcional: si no se envía se usa ganancia mínima configurada
   porcentajeIva?: number; // Opcional -
   requierePrescripcion: boolean;
   fechaVencimiento: string | Date; // Opcional (ISO string 2027-12-31)
@@ -82,6 +83,7 @@ export interface ProductoDetalleResponse {
   porcentajeIva: number;
   requierePrescripcion: boolean;
   estado: string;
+  imagenUrl?: string | null;
   lotes?: Lote[];
 }
 

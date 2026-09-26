@@ -1,0 +1,125 @@
+<div class="cierre-page">
+  <header class="page-header-pc">
+    <div class="header-text">
+      <h1>Cierre de caja</h1>
+      <p>Cuadre por método de pago · snapshot para auditoría</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="hoy()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Hoy
+      </button>
+      <button type="button" class="btn-secondary" (click)="cargarHistorial()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Recargar
+      </button>
+    </div>
+  </header>
+
+  <div class="content-wrap">
+    <!-- Filtros compactos -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Periodo a cerrar</h2>
+        <small>Solo lectura · no afecta ventas</small>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <label class="form-field">Desde<input type="datetime-local" [ngModel]="desde()" (ngModelChange)="desde.set($event)" /></label>
+          <label class="form-field">Hasta<input type="datetime-local" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)" /></label>
+          <label class="form-field">Monto inicial<input type="number" min="0" step="100" [ngModel]="montoInicial()" (ngModelChange)="montoInicial.set(+$event)" placeholder="0" /></label>
+          <label class="form-field">Efectivo contado<input type="number" min="0" step="100" [ngModel]="montoDeclarado()" (ngModelChange)="montoDeclarado.set($event === '' || $event == null ? null : +$event)" placeholder="Opcional" /></label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-primary" (click)="consultar()" [disabled]="cargandoResumen()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            {{ cargandoResumen() ? 'Consultando...' : 'Consultar' }}
+          </button>
+          <input type="text" placeholder="Observaciones (opcional)" [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen compacto -->
+    @if (resumen(); as r) {
+      <section class="card">
+        <div class="card-header">
+          <h2>Resumen</h2>
+          <small>{{ r.fechaApertura | date:'short' }} → {{ r.fechaCierre | date:'short' }}</small>
+        </div>
+        <div class="card-body">
+          <div class="kpi-strip">
+            <div class="kpi-item">
+              <div class="kpi-icon icon-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="kpi-texto"><span class="kpi-etiqueta">Ventas</span><span class="kpi-valor">{{ r.cantidadVentas }}</span><span class="kpi-sub">{{ r.cantidadAnuladas }} anuladas</span></div>
+            </div>
+            <div class="kpi-item">
+              <div class="kpi-icon icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <div class="kpi-texto"><span class="kpi-etiqueta">Total ventas</span><span class="kpi-valor">{{ r.totalVentas | currency:'COP':'symbol':'1.0-0' }}</span><span class="kpi-sub">Desc. {{ r.totalDescuentos | currency:'COP':'symbol':'1.0-0' }}</span></div>
+            </div>
+            <div class="kpi-item">
+              <div class="kpi-icon icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <div class="kpi-texto"><span class="kpi-etiqueta">Ganancia est.</span><span class="kpi-valor" style="color: var(--success-text)">{{ r.gananciaEstimada | currency:'COP':'symbol':'1.0-0' }}</span><span class="kpi-sub">IVA {{ r.totalIva | currency:'COP':'symbol':'1.0-0' }}</span></div>
+            </div>
+            <div class="kpi-item">
+              <div class="kpi-icon icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+              <div class="kpi-texto"><span class="kpi-etiqueta">Efectivo</span><span class="kpi-valor">{{ r.totalEfectivo | currency:'COP':'symbol':'1.0-0' }}</span><span class="kpi-sub">Esp. {{ r.efectivoEsperado | currency:'COP':'symbol':'1.0-0' }}</span></div>
+            </div>
+            <div class="kpi-item" style="max-width:190px;">
+              <div class="kpi-icon icon-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="22" y2="10"/></svg></div>
+              <div class="kpi-texto"><span class="kpi-etiqueta">Tarjeta / Transf.</span><span class="kpi-valor" style="font-size:0.92rem;">{{ r.totalTarjeta | currency:'COP':'symbol':'1.0-0' }} / {{ r.totalTransferencia | currency:'COP':'symbol':'1.0-0' }}</span></div>
+            </div>
+          </div>
+          @if (diferencia() !== null) {
+            <div class="inline-diff">
+              <span class="badge" [class.badge-ok]="diferencia()===0" [class.badge-warn]="diferencia()!==0 && (diferencia()! > -1000 && diferencia()! < 1000)" [class.badge-danger]="diferencia()!==null && (diferencia()! <= -1000 || diferencia()! >= 1000)">
+                Dif. {{ diferencia() | currency:'COP':'symbol':'1.0-0' }} {{ diferencia()===0 ? '· Cuadre' : (diferencia()! >0 ? '· Sobrante' : '· Faltante') }}
+              </span>
+              <span>Declarado {{ (montoDeclarado() ?? 0) | currency:'COP':'symbol':'1.0-0' }} − Esp. {{ r.efectivoEsperado | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+          }
+          <div style="display:flex; justify-content:flex-end; margin-top: var(--space-s);">
+            <button type="button" class="btn-primary" (click)="guardarCierre()" [disabled]="guardando()">{{ guardando() ? 'Guardando...' : 'Guardar cierre' }}</button>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Historial compacto -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Historial</h2>
+        <small>{{ cierres().length }} registro(s)</small>
+      </div>
+      <div class="card-body" style="padding:0;">
+        @if (cierres().length === 0) {
+          <div class="empty-state">Aún no hay cierres guardados.</div>
+        } @else {
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>#</th><th>Periodo</th><th>Ventas</th><th>Efectivo</th><th>Total</th><th>Ganancia</th><th>Dif.</th><th>Estado</th></tr></thead>
+              <tbody>
+                @for (c of cierres(); track c.id) {
+                  <tr>
+                    <td>#{{ c.id }}</td>
+                    <td style="font-size:0.68rem; white-space:nowrap;">{{ c.fechaApertura | date:'short' }} → {{ c.fechaCierre | date:'shortDate' }}</td>
+                    <td>{{ c.cantidadVentas }}<span style="color:var(--text-muted); font-size:0.64rem;"> ({{ c.cantidadAnuladas }}a)</span></td>
+                    <td>{{ c.totalEfectivo | currency:'COP':'symbol':'1.0-0' }}</td>
+                    <td style="font-weight:800;">{{ c.totalVentas | currency:'COP':'symbol':'1.0-0' }}</td>
+                    <td style="color: var(--success-text); font-weight:700;">{{ c.gananciaEstimada | currency:'COP':'symbol':'1.0-0' }}</td>
+                    <td>
+                      @if (c.diferencia !== null) {
+                        <span class="badge" [class.badge-ok]="c.diferencia===0" [class.badge-warn]="c.diferencia!==0" [class.badge-danger]="c.diferencia!==null && (c.diferencia! <= -1000 || c.diferencia! >= 1000)">{{ c.diferencia | currency:'COP':'symbol':'1.0-0' }}</span>
+                      } @else { — }
+                    </td>
+                    <td><span class="badge badge-ok">{{ c.estado }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>

@@ -169,10 +169,14 @@
         @for (p of productosPaginados(); track p.id) {
           <article class="producto-card" (click)="abrirDetalle(p)">
             <div class="card-imagen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-                <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-              </svg>
+              @if (imagenSrc(p); as src) {
+                <img [src]="src" [alt]="p.nombre" (error)="onImagenError(p)" loading="lazy" />
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                  <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+                </svg>
+              }
               @if (trendDe(p.id); as t) {
                 <span
                   class="trend-badge"
@@ -225,10 +229,14 @@
                 </td>
                 <td class="celda-nombre">
                   <span class="mini-imagen">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-                      <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-                    </svg>
+                    @if (imagenSrc(p); as src) {
+                      <img [src]="src" [alt]="p.nombre" (error)="onImagenError(p)" loading="lazy" />
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                        <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+                      </svg>
+                    }
                   </span>
                   <span class="nombre-texto" [title]="p.nombre">{{ p.nombre }}</span>
                 </td>
@@ -352,6 +360,11 @@
 
         @if (detalleProducto(); as d) {
         <div class="panel-cuerpo">
+          @if (d.imagenUrl && !imagenesFallidas().has(d.id)) {
+            <div class="detalle-imagen-wrap">
+              <img [src]="'/api/productos/' + d.id + '/imagen'" [alt]="d.nombre" (error)="onDetalleImagenError(d.id)" />
+            </div>
+          }
           <div class="panel-badges">
             @if (d.categoria) {
               <span class="badge-categoria">{{ d.categoria.nombre }}</span>

@@ -13,10 +13,12 @@ import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
 import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
 import co.edu.unbosque.backend.model.response.ProductoResponse;
 import co.edu.unbosque.backend.repository.CategoriaRepository;
+import co.edu.unbosque.backend.repository.DetalleVentaRepository;
 import co.edu.unbosque.backend.repository.HistorialPrecioProductoRepository;
 import co.edu.unbosque.backend.repository.LoteRepository;
 import co.edu.unbosque.backend.repository.MovimientoInventarioRepository;
 import co.edu.unbosque.backend.repository.ProductoRepository;
+import co.edu.unbosque.backend.repository.ProveedorProductoRepository;
 import jakarta.persistence.Tuple;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +60,18 @@ class ProductoServiceTest {
 
     @Mock
     private CurrentUserService currentUserService;
+
+    @Mock
+    private ConfiguracionService configuracionService;
+
+    @Mock
+    private DetalleVentaRepository detalleVentaRepository;
+
+    @Mock
+    private ProveedorProductoRepository proveedorProductoRepository;
+
+    @Mock
+    private ProductoImagenStorageService productoImagenStorageService;
 
     @InjectMocks
     private ProductoService productoService;

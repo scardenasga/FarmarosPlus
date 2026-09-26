@@ -14,6 +14,7 @@ public record ProveedorDetalleResponse(
         String contacto,
         String estado,
         String condicionPago,
+        String imagenUrl,
         List<ProductoProveedorResponse> productos
 ) {
 }

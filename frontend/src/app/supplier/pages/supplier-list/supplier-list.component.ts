@@ -26,6 +26,21 @@ export class SupplierListComponent implements OnInit {
 
   @ViewChild(SupplierDetailPanelComponent) detailPanel?: SupplierDetailPanelComponent;
 
+  imagenesFallidas = signal<Set<number>>(new Set());
+
+  imagenSrc(s: Supplier): string | null {
+    if (!s.imagenUrl || this.imagenesFallidas().has(s.idProveedor)) return null;
+    return `/api/proveedores/${s.idProveedor}/imagen`;
+  }
+
+  onImagenError(s: Supplier): void {
+    this.imagenesFallidas.update(prev => {
+      const next = new Set(prev);
+      next.add(s.idProveedor);
+      return next;
+    });
+  }
+
   suppliers = signal<Supplier[]>([]);
   cargando = signal<boolean>(true);
   searchTerm = signal<string>('');
@@ -104,7 +119,7 @@ export class SupplierListComponent implements OnInit {
   cargarProveedores(): void {
     this.cargando.set(true);
     this.supplierService.listAll().subscribe({
-      next: (suppliers) => { this.suppliers.set(suppliers ?? []); this.cargando.set(false); },
+      next: (suppliers) => { this.suppliers.set(suppliers ?? []); this.imagenesFallidas.set(new Set()); this.cargando.set(false); },
       error: () => { this.notificacion.error('No se pudo cargar los proveedores.'); this.cargando.set(false); }
     });
   }

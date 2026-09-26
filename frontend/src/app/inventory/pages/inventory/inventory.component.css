@@ -490,6 +490,14 @@
   justify-content: center;
   color: var(--text-muted, var(--outline));
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.card-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .card-imagen svg {
@@ -642,6 +650,14 @@ th.col-check input[type="checkbox"] {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.mini-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .mini-imagen svg {
@@ -903,6 +919,20 @@ th.col-check input[type="checkbox"] {
   text-align: center;
   color: var(--text-muted, var(--outline));
   font-size: 0.85rem;
+}
+
+.detalle-imagen-wrap {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-container-high, rgba(128,128,128,.08));
+}
+
+.detalle-imagen-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .panel-cuerpo {

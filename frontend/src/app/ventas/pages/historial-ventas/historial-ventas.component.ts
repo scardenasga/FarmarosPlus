@@ -233,4 +233,8 @@ export class HistorialVentasComponent implements OnInit {
   irAReportes(): void {
     this.router.navigate(['/reportes/ventas']);
   }
+
+  irACierre(): void {
+    this.router.navigate(['/ventas/cierre-caja']);
+  }
 }

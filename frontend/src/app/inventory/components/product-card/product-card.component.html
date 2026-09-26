@@ -1,6 +1,10 @@
 <article class="card" (click)="clicked.emit()" role="button" tabindex="0" (keydown.enter)="clicked.emit()">
   <div class="image-container">
-    <div class="placeholder-image flex-center">📦</div>
+    @if (imagenSrc(); as src) {
+      <img class="product-image" [src]="src" [alt]="product().nombre" (error)="onImagenError()" loading="lazy" />
+    } @else {
+      <div class="placeholder-image flex-center">📦</div>
+    }
   </div>
 
   <div class="info-container">

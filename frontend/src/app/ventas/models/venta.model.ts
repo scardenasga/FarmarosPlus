@@ -42,6 +42,7 @@ export interface ProductoResponse {
   porcentajeIva: number;
   requierePrescripcion: boolean;
   estado: string;
+  imagenUrl?: string | null;
 }
 
 export interface DetalleVenta {

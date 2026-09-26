@@ -31,6 +31,7 @@ public record ProductoResponse(
         Double margenGanancia,
         Double porcentajeIva,
         Boolean requierePrescripcion,
-        String estado
+        String estado,
+        String imagenUrl
 ) {
 }

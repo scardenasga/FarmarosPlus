@@ -23,6 +23,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   product = signal<ProductoDetalleResponse | null>(null);
   showDeleteConfirmation = signal<boolean>(false);
   isLotesOpen = signal<boolean>(false);
+  imagenError = signal<boolean>(false);
 
   ngOnInit(): void {
     this.navService.hideNav();
@@ -50,6 +51,16 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   toggleLotes(): void {
     this.isLotesOpen.update(v => !v);
+  }
+
+  imagenSrc(): string | null {
+    const p = this.product();
+    if (!p?.imagenUrl || this.imagenError()) return null;
+    return `/api/productos/${p.id}/imagen`;
+  }
+
+  onImagenError(): void {
+    this.imagenError.set(true);
   }
 
   getBarcodePattern(code: string): number[] {

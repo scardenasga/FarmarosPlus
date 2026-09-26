@@ -83,6 +83,25 @@
       </div>
     </section>
 
+    <!-- Rendimiento - compacto, visible sin scroll -->
+    <section class="section-card span-2 rendimiento-compact">
+      <div class="rendimiento-row">
+        <div class="rendimiento-title">
+          <div class="section-icon icon-blue" style="width:28px;height:28px;border-radius:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
+          <div style="line-height:1.1">
+            <h2 style="font-size:0.82rem;margin:0;font-weight:800;color:var(--text-dark)">Rendimiento</h2>
+            <span style="font-size:0.62rem;color:var(--text-muted);font-weight:600">Reporte por rango · Excel con 9 hojas para análisis</span>
+          </div>
+        </div>
+        <div class="rendimiento-controls">
+          <label class="mini-field">Desde<input type="date" [ngModel]="rendimientoDesde()" (ngModelChange)="rendimientoDesde.set($event)" /></label>
+          <label class="mini-field">Hasta<input type="date" [ngModel]="rendimientoHasta()" (ngModelChange)="rendimientoHasta.set($event)" /></label>
+          <button type="button" class="btn-primary btn-sm" [disabled]="exportandoRendimiento()" (click)="descargarRendimiento('pdf')" title="PDF resumido con KPIs + tablas">@if (exportandoRendimiento()) { ... } @else { PDF }</button>
+          <button type="button" class="btn-ghost btn-sm" [disabled]="exportandoRendimiento()" (click)="descargarRendimiento('excel')" title="Excel con 9 hojas crudas">Excel</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Gestión de usuarios (solo ADMIN) -->
     <section class="section-card span-2">
       <div class="section-card-header">
@@ -187,21 +206,55 @@
       </div>
     </section>
 
-    <!-- Info -->
-    <section class="section-card span-2 compact">
+    <!-- Fila inferior: Ganancia a la izquierda, Versión a la derecha (evita scroll) -->
+    <section class="section-card">
       <div class="section-card-header">
-        <div class="section-icon icon-blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div class="section-icon" style="background: var(--success-bg); color: var(--success-text);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
         <div>
-          <h2>Información</h2>
-          <p class="section-desc">Versión y entorno</p>
+          <h2>Ganancia mínima</h2>
+          <p class="section-desc">Sobre costo · si dejas el precio vacío</p>
         </div>
       </div>
       <div class="section-body">
-        <div class="info-row"><strong>FarmarosPlus</strong> <span>v1.0.0</span> <span style="opacity:0.5">·</span> <span>Sistema de Gestión Farmacéutica</span></div>
+        @if (cargandoGanancia()) {
+          <div style="padding: var(--space-s); text-align:center; color: var(--text-muted); font-weight:600; font-size:0.78rem;">Cargando...</div>
+        } @else {
+          <div style="display:flex; gap: var(--space-s); align-items:flex-end; flex-wrap:wrap;">
+            <label class="form-field" style="flex:1; min-width:120px; margin:0;">
+              <span>Porcentaje (%)</span>
+              <input type="number" min="0" max="500" step="0.5" [ngModel]="gananciaMinima()" (ngModelChange)="gananciaMinima.set(+$event)" [disabled]="!esAdmin()" placeholder="30" />
+            </label>
+            @if (esAdmin()) {
+              <button type="button" class="btn-primary" style="height:38px;" [disabled]="guardandoGanancia()" (click)="guardarGanancia()">
+                {{ guardandoGanancia() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            }
+          </div>
+          @if (!esAdmin()) {
+            <div style="margin-top: var(--space-s); color: var(--text-muted); font-size:0.68rem; font-weight:600;">Solo ADMIN puede modificarlo.</div>
+          }
+        }
       </div>
     </section>
+
+    <!-- Info compacta a la derecha -->
+    <section class="section-card">
+      <div class="section-card-header">
+        <div class="section-icon icon-blue" style="width:32px; height:32px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div>
+          <h2 style="font-size:0.86rem;">Información</h2>
+          <p class="section-desc" style="font-size:0.68rem;">Versión y entorno</p>
+        </div>
+      </div>
+      <div class="section-body" style="padding: var(--space-m) var(--space-l);">
+        <div class="info-row" style="font-size:0.78rem; gap:6px;"><strong>FarmarosPlus</strong> <span>v1.0.0</span> <span style="opacity:0.5">·</span> <span>Sistema de Gestión Farmacéutica</span></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Panel deslizante permisos (izquierda/derecha como en Inventario) -->

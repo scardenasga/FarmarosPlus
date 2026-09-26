@@ -8,6 +8,8 @@ import { UsuarioAdminService, UsuarioAdmin, CrearUsuarioPayload } from '../../se
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { PermisoService } from '../../../shared/services/permiso.service';
+import { ConfiguracionService } from '../../services/configuracion.service';
+import { RendimientoService } from '../../services/rendimiento.service';
 
 @Component({
   selector: 'app-settings',
@@ -529,6 +531,32 @@ import { PermisoService } from '../../../shared/services/permiso.service';
     .btn-panel.secundario { background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); }
     .btn-panel.primario { background: var(--accent-green-dark, var(--primary-container)); color: var(--on-primary-container); border: none; }
     .btn-panel.primario:disabled { opacity: 0.6; cursor: wait; }
+
+    /* Rendimiento compacto - no requiere scroll, ocupa ~56px */
+    .rendimiento-compact { padding: 0; overflow: hidden; }
+    .rendimiento-row {
+      display: flex; align-items: center; gap: var(--space-m);
+      padding: 10px var(--space-l); flex-wrap: wrap;
+      min-height: 56px;
+    }
+    .rendimiento-title { display: flex; align-items: center; gap: var(--space-s); flex-shrink: 0; }
+    .rendimiento-controls {
+      display: flex; align-items: flex-end; gap: var(--space-s);
+      flex-wrap: wrap; margin-left: auto;
+    }
+    .mini-field { display: flex; flex-direction: column; gap: 3px; }
+    .mini-field input[type="date"] {
+      height: 32px; padding: 0 8px;
+      border: 1px solid var(--border-color); border-radius: 8px;
+      background: var(--card-bg); color: var(--text-dark);
+      font-size: 0.74rem; font-weight: 600; min-width: 136px;
+    }
+    .btn-sm { height: 32px; padding: 0 14px; font-size: 0.74rem; border-radius: 8px; }
+    @media (max-width: 640px) {
+      .rendimiento-row { flex-direction: column; align-items: stretch; }
+      .rendimiento-controls { margin-left: 0; }
+      .mini-field { flex: 1; }
+    }
   `]
 })
 export class SettingsComponent implements OnInit {
@@ -538,6 +566,8 @@ export class SettingsComponent implements OnInit {
   private auth = inject(AuthService);
   private usuariosService = inject(UsuarioAdminService);
   private notificacion = inject(NotificacionService);
+  private configService = inject(ConfiguracionService);
+  private rendimientoService = inject(RendimientoService);
 
   usuario = this.sesion.usuario;
   inicial = computed(() => {
@@ -625,11 +655,80 @@ export class SettingsComponent implements OnInit {
     { id: 'high-contrast-theme', name: 'Alto Contraste', colors: ['#00ffff', '#000000', '#008b8b'] },
   ];
 
+  // --- Ganancia mínima (sobre costo) ---
+  gananciaMinima = signal<number>(30);
+  cargandoGanancia = signal(false);
+  guardandoGanancia = signal(false);
+
+  // --- Rendimiento / funcionamiento (Configuración, on-demand por rango) ---
+  rendimientoDesde = signal<string>('');
+  rendimientoHasta = signal<string>('');
+  exportandoRendimiento = signal(false);
+
   ngOnInit(): void {
+    this.cargarGanancia();
     if (this.esAdmin()) {
       this.cargarUsuarios();
       this.permisoService.cargarCatalogo();
     }
+  }
+
+  cargarGanancia(): void {
+    this.cargandoGanancia.set(true);
+    this.configService.obtenerGanancia().subscribe({
+      next: (data) => { this.gananciaMinima.set(data.porcentajeMinimo ?? 30); this.cargandoGanancia.set(false); },
+      error: () => this.cargandoGanancia.set(false)
+    });
+  }
+
+  guardarGanancia(): void {
+    if (!this.esAdmin()) { this.notificacion.error('Solo ADMIN puede configurar la ganancia'); return; }
+    const v = Number(this.gananciaMinima());
+    if (!Number.isFinite(v) || v < 0 || v > 500) {
+      this.notificacion.error('El porcentaje debe estar entre 0 y 500');
+      return;
+    }
+    this.guardandoGanancia.set(true);
+    this.configService.actualizarGanancia(v).subscribe({
+      next: (data) => {
+        this.gananciaMinima.set(data.porcentajeMinimo);
+        this.guardandoGanancia.set(false);
+        this.notificacion.exito(`Ganancia mínima actualizada a ${data.porcentajeMinimo}%`);
+      },
+      error: (err) => {
+        this.guardandoGanancia.set(false);
+        this.notificacion.error(err?.error?.message || 'No se pudo guardar la ganancia mínima');
+      }
+    });
+  }
+
+  descargarRendimiento(formato: 'pdf' | 'excel'): void {
+    const desde = this.rendimientoDesde() || undefined;
+    const hasta = this.rendimientoHasta() || undefined;
+    if (desde && hasta && desde > hasta) {
+      this.notificacion.error('La fecha de inicio no puede ser posterior a la fecha de fin');
+      return;
+    }
+    this.exportandoRendimiento.set(true);
+    const obs = formato === 'pdf'
+      ? this.rendimientoService.descargarPdf(desde, hasta)
+      : this.rendimientoService.descargarExcel(desde, hasta);
+    obs.subscribe({
+      next: (blob) => {
+        this.exportandoRendimiento.set(false);
+        const sufijo = desde || hasta ? `_${desde || 'inicio'}_a_${hasta || 'hoy'}` : '';
+        const nombre = `reporte-rendimiento${sufijo}.${formato === 'pdf' ? 'pdf' : 'xlsx'}`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nombre; a.click();
+        URL.revokeObjectURL(url);
+        this.notificacion.exito(`Reporte de rendimiento ${formato.toUpperCase()} descargado`);
+      },
+      error: (err) => {
+        this.exportandoRendimiento.set(false);
+        this.notificacion.error(err?.error?.message || `No se pudo descargar el reporte ${formato.toUpperCase()}`);
+      }
+    });
   }
 
   changeTheme(theme: ThemeType) {

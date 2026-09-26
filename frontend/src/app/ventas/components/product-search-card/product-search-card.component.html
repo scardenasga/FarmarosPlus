@@ -1,7 +1,7 @@
 <article class="product-card" [class.selected]="isSelected()" (click)="seleccionar()">
   <div class="image-container">
-    @if (product().imagenUrl) {
-      <img [src]="product().imagenUrl" [alt]="product().nombre" class="product-image">
+    @if (imagenSrc(); as src) {
+      <img [src]="src" [alt]="product().nombre" class="product-image" (error)="onImagenError()" loading="lazy" />
     } @else {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>

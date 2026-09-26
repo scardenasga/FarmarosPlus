@@ -1,6 +1,10 @@
 <article class="card" (click)="clicked.emit()" role="button" tabindex="0" (keydown.enter)="clicked.emit()">
   <div class="icon-container">
-    🏢
+    @if (imagenSrc(); as src) {
+      <img [src]="src" [alt]="supplier().nombre" (error)="onImagenError()" />
+    } @else {
+      🏢
+    }
   </div>
 
   <div class="info-container">

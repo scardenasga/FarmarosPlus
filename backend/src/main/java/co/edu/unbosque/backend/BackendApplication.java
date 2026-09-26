@@ -26,9 +26,13 @@ public class BackendApplication {
             }
         } catch (Exception ignored) {}
 
-        // Si ya hay una instancia corriendo en 8080, solo abre el navegador y sale.
-        // Asi no da "Failed to launch JVM" por puerto ocupado si hace doble click 2 veces.
-        if (yaEstaCorriendo()) {
+        // Solo en PROD (ejecutable) si ya hay instancia en 8080, abre navegador y sale.
+        // En DEV (IntelliJ) deja que falle normal para ver el error de puerto ocupado.
+        boolean esDev = false;
+        for (String a : args) if (a != null && a.contains("dev")) esDev = true;
+        String profiles = System.getProperty("spring.profiles.active", "");
+        if (profiles.toLowerCase().contains("dev")) esDev = true;
+        if (!esDev && yaEstaCorriendo()) {
             abrirNavegadorEstatico();
             System.exit(0);
         }
@@ -74,9 +78,12 @@ public class BackendApplication {
         };
     }
 
-    // Al arrancar, abre el navegador solo. Asi el usuario hace doble click y ya ve la app.
-    @EventListener(ApplicationReadyEvent.class)
-    public void abrirNavegador() {
+    // Al arrancar, abre el navegador solo en PROD (ejecutable). En DEV (IntelliJ) no molesta.
+    @EventListener
+    public void abrirNavegador(ApplicationReadyEvent event) {
+        org.springframework.core.env.Environment env = event.getApplicationContext().getEnvironment();
+        // No abrir en dev/test
+        for (String p : env.getActiveProfiles()) if ("dev".equalsIgnoreCase(p)) return;
         String url = "http://localhost:8080";
         try {
             // Solo si no estamos en modo test

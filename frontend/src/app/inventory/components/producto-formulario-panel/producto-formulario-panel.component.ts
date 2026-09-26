@@ -12,6 +12,7 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
 import { FormInputComponent } from '../../../shared/components/form-input/form-input.component';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 import { InventoryService } from '../../services/inventory.service';
+import { ConfiguracionService } from '../../../configuracion/services/configuracion.service';
 import {
   ActualizarProductoRequest,
   Categoria,
@@ -30,6 +31,7 @@ export class ProductoFormularioPanelComponent implements OnChanges {
   private fb = inject(FormBuilder);
   private inventoryService = inject(InventoryService);
   private notificacion = inject(NotificacionService);
+  private configService = inject(ConfiguracionService);
 
   /** 'crear' o 'editar' */
   modo = input.required<'crear' | 'editar'>();
@@ -53,9 +55,14 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     { id: 'DESCONTINUADO', nombre: 'DESCONTINUADO' }
   ];
 
-  /* ---------- Imagen (UI preparada; el backend aún no persiste imágenes) ---------- */
+  gananciaMinima = signal<number>(30);
+  precioSugerido = signal<number | null>(null);
+
+  /* ---------- Imagen (persistida en backend: SQLite TEXT + filesystem) ---------- */
   imagenPreview = signal<string | null>(null);
   imagenNombre = signal<string>('');
+  archivoImagen = signal<File | null>(null);
+  eliminarImagenExistente = signal<boolean>(false);
 
   seleccionarImagen(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -66,7 +73,13 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       this.notificacion.advertencia('Selecciona un archivo de imagen (PNG, JPG, etc.).');
       return;
     }
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.notificacion.advertencia('La imagen no puede superar 5MB.');
+      return;
+    }
 
+    this.archivoImagen.set(archivo);
+    this.eliminarImagenExistente.set(false);
     const lector = new FileReader();
     lector.onload = () => {
       this.imagenPreview.set(String(lector.result));
@@ -74,13 +87,17 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     };
     lector.readAsDataURL(archivo);
 
-    // Permite volver a elegir la misma imagen después de quitarla.
     input.value = '';
   }
 
   eliminarImagen(): void {
     this.imagenPreview.set(null);
     this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    // si estaba editando y tenía imagen en servidor, marcar para borrar
+    if (this.esEditar() && this.detalle()?.imagenUrl) {
+      this.eliminarImagenExistente.set(true);
+    }
   }
 
   esEditar(): boolean {
@@ -97,6 +114,11 @@ export class ProductoFormularioPanelComponent implements OnChanges {
 
     this.mostrarConfirmacion.set(false);
     this.detalle.set(null);
+    this.imagenPreview.set(null);
+    this.imagenNombre.set('');
+    this.archivoImagen.set(null);
+    this.eliminarImagenExistente.set(false);
+    this.cargarGanancia();
 
     if (this.esEditar()) {
       const id = this.productoId();
@@ -108,12 +130,41 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     this.construirFormularioCrear();
   }
 
+  private cargarGanancia(): void {
+    this.configService.obtenerGanancia().subscribe({
+      next: (c) => this.gananciaMinima.set(c.porcentajeMinimo ?? 30),
+      error: () => {}
+    });
+  }
+
+  calcularSugerido(): void {
+    const costo = Number(this.getControl('costo')?.value) || 0;
+    const iva = Number(this.getControl('porcentajeIva')?.value) || 0;
+    if (costo <= 0) { this.precioSugerido.set(null); return; }
+    const base = costo * (1 + this.gananciaMinima() / 100);
+    const minimoIva = costo * (1 + iva / 100);
+    const sugerido = base <= minimoIva ? minimoIva + 1 : base;
+    this.precioSugerido.set(Math.round(sugerido * 100) / 100);
+  }
+
+  aplicarPrecioSugerido(): void {
+    const s = this.precioSugerido();
+    if (s != null) {
+      this.getControl('precioVenta').setValue(s);
+      this.getControl('precioVenta').markAsTouched();
+    }
+  }
+
   private cargarYConstruir(id: number): void {
     this.cargandoDetalle.set(true);
     this.inventoryService.getProductDetail(id).subscribe({
       next: (detalle) => {
         this.detalle.set(detalle);
         this.cargandoDetalle.set(false);
+        if (detalle.imagenUrl) {
+          this.imagenPreview.set(`/api/productos/${detalle.id}/imagen`);
+          this.imagenNombre.set(detalle.imagenUrl);
+        }
         this.construirFormularioEditar(detalle);
       },
       error: () => {
@@ -133,13 +184,19 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       stockInicial: [0, [Validators.required, Validators.min(0)]],
       stockMinimo: [0, [Validators.required, Validators.min(0)]],
       costo: [0, [Validators.required, Validators.min(0)]],
-      precioVenta: [0, [Validators.required, Validators.min(0)]],
+      precioVenta: [null, [Validators.min(0)]],
       porcentajeIva: [0, [Validators.required, Validators.min(0)]],
       requierePrescripcion: [false],
       tieneLote: [false],
       numeroLote: [''],
       fechaVencimiento: ['']
     }, { validators: this.validadorPrecio });
+    // recalcular sugerido al cambiar costo/iva
+    setTimeout(() => {
+      this.getControl('costo')?.valueChanges.subscribe(() => this.calcularSugerido());
+      this.getControl('porcentajeIva')?.valueChanges.subscribe(() => this.calcularSugerido());
+      this.calcularSugerido();
+    });
   }
 
   private construirFormularioEditar(p: ProductoDetalleResponse): void {
@@ -159,11 +216,12 @@ export class ProductoFormularioPanelComponent implements OnChanges {
 
   private validadorPrecio(group: FormGroup): { [key: string]: any } | null {
     const costo = group.get('costo')?.value || 0;
-    const precioVenta = group.get('precioVenta')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value;
     const iva = group.get('porcentajeIva')?.value || 0;
 
+    if (precioVenta == null || precioVenta === '' ) return null;
     const minPrecio = costo * (1 + iva / 100);
-    if (precioVenta <= minPrecio && precioVenta > 0) {
+    if (Number(precioVenta) <= minPrecio && Number(precioVenta) > 0) {
       return { priceTooLow: true };
     }
     return null;
@@ -205,6 +263,8 @@ export class ProductoFormularioPanelComponent implements OnChanges {
   private guardarCreacion(): void {
     const v = this.productForm.value;
 
+    const precio = v.precioVenta != null && v.precioVenta !== '' ? Number(v.precioVenta) : undefined;
+
     const request: CrearProductoRequest = {
       nombre: v.nombre,
       descripcion: v.descripcion || undefined,
@@ -213,17 +273,33 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       stockMinimo: Number(v.stockMinimo),
       stockInicial: Number(v.stockInicial),
       costo: Number(v.costo),
-      precioVenta: Number(v.precioVenta),
+      precioVenta: precio,
       porcentajeIva: Number(v.porcentajeIva) || 0,
       requierePrescripcion: !!v.requierePrescripcion,
       fechaVencimiento: v.fechaVencimiento || undefined,
       numeroLote: v.tieneLote && v.numeroLote ? v.numeroLote : undefined
     };
 
+    this.guardando.set(true);
     this.inventoryService.createProduct(request).subscribe({
-      next: () => {
-        this.notificacion.exito(`Producto "${request.nombre}" creado correctamente`);
-        this.finalizar();
+      next: (creado: any) => {
+        const id = creado?.id as number | undefined;
+        const archivo = this.archivoImagen();
+        if (id && archivo) {
+          this.inventoryService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" creado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.advertencia(`Producto creado pero la imagen no se pudo subir: ${err.error?.message || err.message}`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Producto "${request.nombre}" creado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo crear el producto.');
@@ -251,10 +327,38 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       requierePrescripcion: !!v.requierePrescripcion
     };
 
+    this.guardando.set(true);
     this.inventoryService.updateProduct(id, request).subscribe({
       next: () => {
-        this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
-        this.finalizar();
+        const archivo = this.archivoImagen();
+        const debeEliminar = this.eliminarImagenExistente();
+        if (archivo) {
+          this.inventoryService.subirImagen(id, archivo).subscribe({
+            next: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" actualizado con imagen`);
+              this.finalizar();
+            },
+            error: (err) => {
+              this.notificacion.error(err.error?.message || 'No se pudo subir la imagen.');
+              this.guardando.set(false);
+              this.mostrarConfirmacion.set(false);
+            }
+          });
+        } else if (debeEliminar) {
+          this.inventoryService.eliminarImagen(id).subscribe({
+            next: () => {
+              this.notificacion.exito(`Imagen eliminada y producto "${request.nombre}" actualizado`);
+              this.finalizar();
+            },
+            error: () => {
+              this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
+              this.finalizar();
+            }
+          });
+        } else {
+          this.notificacion.exito(`Producto "${request.nombre}" actualizado correctamente`);
+          this.finalizar();
+        }
       },
       error: (err) => {
         this.notificacion.error(err.error?.message || 'No se pudo actualizar el producto.');

@@ -35,13 +35,24 @@
             <span class="seccion-titulo">¿Quién es tu proveedor?</span>
 
             <div class="zona-proveedor">
-              <div class="avatar-proveedor">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8"/>
-                  <rect x="3" y="7" width="18" height="14" rx="2"/>
-                  <path d="M16 8V6a4 4 0 0 0-8 0v2"/>
-                </svg>
-              </div>
+              <label class="zona-imagen" [class.con-preview]="imagenPreview()">
+                <input type="file" accept="image/*" (change)="seleccionarImagen($event)" />
+                @if (imagenPreview(); as preview) {
+                  <img [src]="preview" alt="Vista previa del proveedor" />
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="m21 15-5-5L5 21"/>
+                  </svg>
+                  <span class="zona-texto">Logo</span>
+                }
+                @if (imagenPreview()) {
+                  <button type="button" class="btn-quitar-imagen" (click)="eliminarImagen(); $event.preventDefault()" title="Quitar imagen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                }
+              </label>
               <div class="col-nombre">
                 <app-form-input
                   label="Nombre del proveedor *"
@@ -53,6 +64,10 @@
                   placeholder="Ej. 860123456-7"
                   [control]="getControl('nit')">
                 </app-form-input>
+                <span class="nota-imagen">
+                  @if (imagenPreview()) { Se guardará con el proveedor (JPG/PNG/WEBP, máx 5MB). }
+                  @else { Opcional: añade logo del proveedor. }
+                </span>
               </div>
             </div>
 

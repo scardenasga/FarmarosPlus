@@ -29,7 +29,7 @@
             @if (alertas().length) {
               <div class="dropdown-lista">
                 @for (a of alertas(); track a.idOrden) {
-                  <button type="button" class="notif-fila" (click)="navigateTo('/purchasing/order-notifications')">
+                  <div class="notif-fila notif-fila--no-click">
                     <span
                       class="notif-dot"
                       [class.notif-atrasada]="a.estadoActual === 'NO_RECIBIDA'"></span>
@@ -38,25 +38,17 @@
                       <small>{{ a.proveedorNombre }} · {{ a.diasTranscurridos }} días</small>
                     </span>
                     <span class="notif-estado">{{ a.estadoActual }}</span>
-                  </button>
+                  </div>
                 }
               </div>
             } @else {
               <p class="notif-vacio">Sin órdenes pendientes por recibir o pagar.</p>
             }
-
-            <button type="button" class="notif-ver-todas" (click)="navigateTo('/purchasing/order-notifications')">
-              Ver todas las notificaciones
-            </button>
           </div>
         }
       </div>
     </div>
   </header>
-
-  @if (error()) {
-    <div class="error-banner">{{ error() }}</div>
-  }
 
   @if (loading()) {
     <div class="estado-card">

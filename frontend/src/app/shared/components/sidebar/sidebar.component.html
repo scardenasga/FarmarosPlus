@@ -109,25 +109,58 @@
       }
     </a>
     }
-    @if (tienePermiso('COMPRAS_VER')) {
-    <a
-      [routerLink]="'/compras-gestion'"
-      class="nav-btn"
-      [class.active]="isRouteActive('/compras-gestion') || isRouteActive('/purchasing')"
-      [title]="'Compras a Proveedores'"
-    >
-      <div class="icon-box">
-        <svg viewBox="0 0 24 24">
-          <rect x="1" y="3" width="15" height="13"/>
-          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-          <circle cx="5.5" cy="18.5" r="2.5"/>
-          <circle cx="18.5" cy="18.5" r="2.5"/>
-        </svg>
+    <!-- Compras con submenu desplegable -->
+    @if (comprasVisible()) {
+    <div class="nav-group">
+      <div
+        class="nav-btn nav-fila"
+        [class.active]="esSeccionComprasActiva()"
+      >
+        <a
+          [routerLink]="'/compras-gestion'"
+          class="fila-enlace"
+          title="Compras"
+          (click)="comprasSubmenuAbierto.set(true)"
+        >
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24">
+              <rect x="1" y="3" width="15" height="13"/>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/>
+              <circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+          </div>
+          @if (navService.isSidebarExpanded()) {
+            <span class="nav-label">Compras</span>
+          }
+        </a>
+
+        @if (navService.isSidebarExpanded()) {
+          <button
+            type="button"
+            class="submenu-chevron"
+            [class.chevron-abierto]="comprasSubmenuAbierto()"
+            (click)="toggleComprasSubmenu($event)"
+            [attr.aria-label]="comprasSubmenuAbierto() ? 'Contraer submenu de compras' : 'Expandir submenu de compras'">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        }
       </div>
-      @if (navService.isSidebarExpanded()) {
-        <span class="nav-label">Compras</span>
+
+      @if (navService.isSidebarExpanded() && comprasSubmenuAbierto()) {
+        <ul class="submenu">
+          @for (item of comprasSubmenu(); track item.link) {
+            <li>
+              <a
+                [routerLink]="item.link"
+                class="submenu-item"
+                [class.submenu-activo]="isRouteActive(item.link, true)"
+              >{{ item.label }}</a>
+            </li>
+          }
+        </ul>
       }
-    </a>
+    </div>
     }
     @if (tienePermiso('ANALITICA_VER')) {
     <a

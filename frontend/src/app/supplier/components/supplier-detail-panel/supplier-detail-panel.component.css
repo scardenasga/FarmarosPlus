@@ -91,6 +91,20 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.detalle-imagen-wrap {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-container-high, rgba(128,128,128,.08));
+}
+
+.detalle-imagen-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .panel-cuerpo {
   flex: 1;
   overflow-y: auto;

@@ -19,6 +19,9 @@
   flex-direction: column;
 }
 
+.product-image-wrap { width: 100%; border-radius: var(--radius-m); overflow: hidden; background: var(--surface-container); max-height: 260px; display:flex; align-items:center; justify-content:center; }
+.product-image-wrap img { width: 100%; height: 260px; object-fit: cover; }
+
 /* Receipt Card Design */
 .receipt-card {
   background-color: var(--surface-container-low);

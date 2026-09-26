@@ -110,7 +110,8 @@ export class PosVentaComponent implements OnInit {
           margenGanancia: prod.margenGanancia ?? 0,
           porcentajeIva: prod.porcentajeIva ?? 0,
           requierePrescripcion: prod.requierePrescripcion ?? false,
-          estado: prod.estado ?? 'ACTIVO'
+          estado: prod.estado ?? 'ACTIVO',
+          imagenUrl: prod.imagenUrl ?? null
         };
         this.agregar(adaptado);
       },

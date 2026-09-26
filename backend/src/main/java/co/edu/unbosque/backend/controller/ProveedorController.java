@@ -21,6 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 /**
@@ -217,6 +222,36 @@ public class ProveedorController {
         return ResponseEntity.noContent().build();
     }
 
+    // ===== Imagen proveedor (SQLite TEXT + filesystem uploads/proveedores) =====
+
+    @PostMapping(value = "/{id}/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir/actualizar imagen del proveedor", description = "Guarda en uploads/proveedores/proveedor-{id}.ext y persiste en proveedor.imagen_url (TEXT). Formatos: jpg, jpeg, png, webp, gif. Máx 5MB.")
+    public ResponseEntity<ProveedorResponse> subirImagen(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file
+    ) {
+        Proveedor actualizado = proveedorService.guardarImagen(id, file);
+        return ResponseEntity.ok(toProveedorResponse(actualizado));
+    }
+
+    @GetMapping("/{id}/imagen")
+    @Operation(summary = "Obtener imagen del proveedor")
+    public ResponseEntity<Resource> obtenerImagen(@PathVariable Long id) {
+        Resource resource = proveedorService.obtenerImagenResource(id);
+        String contentType = proveedorService.obtenerImagenContentType(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
+    @DeleteMapping("/{id}/imagen")
+    @Operation(summary = "Eliminar imagen del proveedor")
+    public ResponseEntity<Void> eliminarImagen(@PathVariable Long id) {
+        proveedorService.eliminarImagen(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private ProveedorResponse toProveedorResponse(Proveedor proveedor) {
         return new ProveedorResponse(
                 proveedor.getIdProveedor(),
@@ -228,7 +263,8 @@ public class ProveedorController {
                 proveedor.getEstado(),
                 proveedor.getCondicionPago(),
                 proveedor.getFechaCreacion(),
-                proveedor.getFechaModificacion()
+                proveedor.getFechaModificacion(),
+                proveedor.getImagenUrl()
         );
     }
 
@@ -241,7 +277,8 @@ public class ProveedorController {
                 proveedor.getEmail(),
                 proveedor.getContacto(),
                 proveedor.getEstado(),
-                proveedor.getCondicionPago()
+                proveedor.getCondicionPago(),
+                proveedor.getImagenUrl()
         );
     }
 
