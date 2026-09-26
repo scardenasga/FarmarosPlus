@@ -90,6 +90,9 @@ class ProductoServiceTest {
                 0.0,
                 false,
                 null,
+                null,
+                null,
+                null,
                 null
         );
 
@@ -128,7 +131,10 @@ class ProductoServiceTest {
                 0.0,
                 true,
                 LocalDate.now().plusYears(1),
-                "LOT-01"
+                "LOT-01",
+                null,
+                null,
+                null
         );
 
         Categoria categoria = new Categoria();
@@ -172,6 +178,9 @@ class ProductoServiceTest {
                 0.0,
                 false,
                 LocalDate.now().plusMonths(6),
+                null,
+                null,
+                null,
                 null
         );
 
@@ -210,6 +219,9 @@ class ProductoServiceTest {
                 0.0,
                 false,
                 null,
+                null,
+                null,
+                null,
                 null
         );
 
@@ -229,6 +241,9 @@ class ProductoServiceTest {
                 1100.0,
                 19.0,
                 false,
+                null,
+                null,
+                null,
                 null,
                 null
         );
@@ -250,7 +265,10 @@ class ProductoServiceTest {
                 0.0,
                 false,
                 LocalDate.now().plusMonths(6),
-                "LOT-001"
+                "LOT-001",
+                null,
+                null,
+                null
         );
 
         when(productoRepository.existsByCodigoBarrasIgnoreCase("7708888888888")).thenReturn(false);
@@ -320,7 +338,10 @@ class ProductoServiceTest {
                 13500.0,
                 0.0,
                 false,
-                "INACTIVO"
+                "INACTIVO",
+                null,
+                null,
+                null
         );
 
         Categoria categoria = new Categoria();

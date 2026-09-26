@@ -36,6 +36,9 @@ public record ProductoDetalleResponse(
         Boolean requierePrescripcion,
         String estado,
         String imagenUrl,
-        List<LoteProductoResponse> lotes
+        List<LoteProductoResponse> lotes,
+        String unidadVenta,
+        Integer unidadesPorPresentacion,
+        Double precioPresentacion
 ) {
 }

@@ -3,6 +3,7 @@ package co.edu.unbosque.backend.model.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 /**
@@ -49,6 +50,15 @@ public record ActualizarProductoRequest(
                 message = "El estado debe ser ACTIVO, INACTIVO o DESCONTINUADO"
         )
         @Schema(description = "Estado funcional del producto", example = "ACTIVO")
-        String estado
+        String estado,
+        @Pattern(regexp = "^$|UNIDAD|PRESENTACION|AMBAS", message = "unidadVenta debe ser UNIDAD, PRESENTACION o AMBAS")
+        @Schema(description = "Modo de venta: UNIDAD, PRESENTACION o AMBAS", example = "AMBAS")
+        String unidadVenta,
+        @Positive(message = "unidadesPorPresentacion debe ser mayor a cero")
+        @Schema(description = "Cuántas unidades por presentación (ej. 10, 14)", example = "10")
+        Integer unidadesPorPresentacion,
+        @DecimalMin(value = "0.0", inclusive = false, message = "El precio de presentación debe ser mayor a cero")
+        @Schema(description = "Precio de la presentación completa", example = "22000.0")
+        Double precioPresentacion
 ) {
 }

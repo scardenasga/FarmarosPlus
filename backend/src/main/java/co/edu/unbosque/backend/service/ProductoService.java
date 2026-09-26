@@ -121,7 +121,12 @@ public class ProductoService {
         producto.setPorcentajeIva(request.porcentajeIva() != null ? request.porcentajeIva() : 0.0);
         producto.setRequierePrescripcion(request.requierePrescripcion());
         producto.setEstado("ACTIVO");
+        String unidadVentaNorm = normalizarUnidadVenta(request.unidadVenta());
+        producto.setUnidadVenta(unidadVentaNorm);
+        producto.setUnidadesPorPresentacion(request.unidadesPorPresentacion());
+        producto.setPrecioPresentacion(request.precioPresentacion());
 
+        validarPresentacion(unidadVentaNorm, request.unidadesPorPresentacion(), request.precioPresentacion());
         validarProducto(producto);
         Producto productoGuardado = productoRepository.save(producto);
 
@@ -247,6 +252,26 @@ public class ProductoService {
             }
             producto.setEstado(estado);
         }
+        if (request.unidadVenta() != null) {
+            String unidadVenta = normalizarUnidadVenta(request.unidadVenta());
+            producto.setUnidadVenta(unidadVenta);
+            if (request.unidadesPorPresentacion() != null) {
+                producto.setUnidadesPorPresentacion(request.unidadesPorPresentacion());
+            }
+            if (request.precioPresentacion() != null) {
+                producto.setPrecioPresentacion(request.precioPresentacion());
+            }
+            validarPresentacion(producto.getUnidadVenta(), producto.getUnidadesPorPresentacion(), producto.getPrecioPresentacion());
+        } else {
+            // si se envían campos de presentación sin unidadVenta, validar igual
+            if (request.unidadesPorPresentacion() != null || request.precioPresentacion() != null) {
+                validarPresentacion(producto.getUnidadVenta(), 
+                    request.unidadesPorPresentacion() != null ? request.unidadesPorPresentacion() : producto.getUnidadesPorPresentacion(),
+                    request.precioPresentacion() != null ? request.precioPresentacion() : producto.getPrecioPresentacion());
+                if (request.unidadesPorPresentacion() != null) producto.setUnidadesPorPresentacion(request.unidadesPorPresentacion());
+                if (request.precioPresentacion() != null) producto.setPrecioPresentacion(request.precioPresentacion());
+            }
+        }
 
         validarPrecioVentaSuficiente(
                 valorMonetarioSeguro(producto.getCosto()),
@@ -289,6 +314,9 @@ public class ProductoService {
         Boolean requierePrescripcion = toBoolean(productoDetalle.get("requierePrescripcion"));
         String estado = (String) productoDetalle.get("estado");
         String imagenUrl = (String) productoDetalle.get("imagenUrl");
+        String unidadVenta = (String) productoDetalle.get("unidadVenta");
+        Integer unidadesPorPresentacion = toInteger(productoDetalle.get("unidadesPorPresentacion"));
+        Double precioPresentacion = toDouble(productoDetalle.get("precioPresentacion"));
 
         return new ProductoDetalleResponse(
                 productoDetalleId,
@@ -305,7 +333,10 @@ public class ProductoService {
                 requierePrescripcion,
                 estado,
                 imagenUrl,
-                lotes
+                lotes,
+                unidadVenta != null ? unidadVenta : "UNIDAD",
+                unidadesPorPresentacion,
+                precioPresentacion
         );
     }
 
@@ -595,6 +626,7 @@ public class ProductoService {
         validarPrecioVentaSuficiente(request.costo(), precioParaValidar, request.porcentajeIva());
         if (request.fechaVencimiento() != null && request.fechaVencimiento().isBefore(LocalDate.now()))
             throw new BusinessException("La fecha de vencimiento no puede estar en el pasado");
+        validarPresentacion(normalizarUnidadVenta(request.unidadVenta()), request.unidadesPorPresentacion(), request.precioPresentacion());
     }
 
     private void validarNumeroLoteUnico(String numeroLote) {
@@ -638,7 +670,10 @@ public class ProductoService {
                         || request.precioVenta() != null
                         || request.porcentajeIva() != null
                         || request.requierePrescripcion() != null
-                        || request.estado() != null;
+                        || request.estado() != null
+                        || request.unidadVenta() != null
+                        || request.unidadesPorPresentacion() != null
+                        || request.precioPresentacion() != null;
         if (!tieneCambios) {
             throw new BusinessException("La solicitud de actualizacion debe incluir al menos un campo modificable");
         }
@@ -696,6 +731,36 @@ public class ProductoService {
     private String normalizarEstadoProducto(String estado) {
         if (estado == null || estado.isBlank()) return "ACTIVO";
         return estado.trim().toUpperCase();
+    }
+
+    private String normalizarUnidadVenta(String unidadVenta) {
+        if (unidadVenta == null || unidadVenta.isBlank()) return "UNIDAD";
+        String u = unidadVenta.trim().toUpperCase();
+        if (!"UNIDAD".equals(u) && !"PRESENTACION".equals(u) && !"AMBAS".equals(u)) {
+            throw new BusinessException("unidadVenta debe ser UNIDAD, PRESENTACION o AMBAS");
+        }
+        return u;
+    }
+
+    private void validarPresentacion(String unidadVenta, Integer unidadesPorPresentacion, Double precioPresentacion) {
+        String uv = unidadVenta != null ? unidadVenta : "UNIDAD";
+        boolean requierePresentacion = "PRESENTACION".equals(uv) || "AMBAS".equals(uv);
+        if (requierePresentacion) {
+            if (unidadesPorPresentacion == null || unidadesPorPresentacion <= 1) {
+                throw new BusinessException("Para " + uv + " debe indicar unidadesPorPresentacion mayor a 1 (ej. 10, 14)");
+            }
+            if (precioPresentacion == null || precioPresentacion <= 0) {
+                throw new BusinessException("Para " + uv + " debe indicar precioPresentacion mayor a cero");
+            }
+        } else {
+            // UNIDAD: no debe traer datos de presentación
+            if (unidadesPorPresentacion != null) {
+                throw new BusinessException("unidadesPorPresentacion solo aplica cuando unidadVenta es PRESENTACION o AMBAS");
+            }
+            if (precioPresentacion != null) {
+                throw new BusinessException("precioPresentacion solo aplica cuando unidadVenta es PRESENTACION o AMBAS");
+            }
+        }
     }
 
     private String normalizarTexto(String texto) {
@@ -797,7 +862,10 @@ public class ProductoService {
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
                 producto.getEstado(),
-                producto.getImagenUrl()
+                producto.getImagenUrl(),
+                producto.getUnidadVenta() != null ? producto.getUnidadVenta() : "UNIDAD",
+                producto.getUnidadesPorPresentacion(),
+                producto.getPrecioPresentacion()
         );
     }
 

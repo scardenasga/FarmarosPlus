@@ -87,7 +87,7 @@
         </div>
 
         <app-form-input
-          label="Precio Venta"
+          label="Precio Venta (unidad suelta)"
           type="number"
           suffix="COP"
           [control]="getControl('precioVenta')">
@@ -97,6 +97,48 @@
           <span class="error-text" style="color: var(--error); font-size: 12px; margin-top: -8px;">
             El precio de venta debe ser mayor al costo con IVA.
           </span>
+        }
+
+      </section>
+
+      <!-- Dosificación / Blíster — visible siempre -->
+      <section class="section-card" style="border:2px solid var(--primary, #0ea5e9);">
+        <span class="section-title" style="display:flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 8v8M12 8v8M17 8v8"/></svg>
+          Dosificación — ¿Cómo se vende este producto?
+          <span style="margin-left:auto; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; background:var(--primary-container); color:var(--on-primary-container);">Blíster / Unidad</span>
+        </span>
+        <p style="font-size:11px; color:var(--text-muted); margin:4px 0 10px;">Elige si se vende solo suelto, solo por blister/caja, o ambas. Cada producto puede tener su propio tamaño (no todos son x10).</p>
+        <app-form-input
+          label="Modo de venta"
+          type="select"
+          [options]="[{id:'UNIDAD', nombre:'Solo unidad suelta (ej. gaseosa)'}, {id:'PRESENTACION', nombre:'Solo blister/caja (no se vende suelto)'}, {id:'AMBAS', nombre:'Unidad y blister/caja (ej. tabletas)'}]"
+          [control]="getControl('unidadVenta')">
+        </app-form-input>
+
+        @if (productForm.get('unidadVenta')?.value === 'PRESENTACION' || productForm.get('unidadVenta')?.value === 'AMBAS') {
+          <div class="row">
+            <app-form-input
+              label="Unidades por blister/caja *"
+              type="number"
+              placeholder="Ej. 10, 14, 30"
+              [control]="getControl('unidadesPorPresentacion')">
+            </app-form-input>
+            <app-form-input
+              label="Precio blister/caja *"
+              type="number"
+              suffix="COP"
+              [control]="getControl('precioPresentacion')">
+            </app-form-input>
+          </div>
+          @if (productForm.errors?.['presentacionInvalida'] && (productForm.get('unidadesPorPresentacion')?.touched || productForm.get('precioPresentacion')?.touched)) {
+            <span class="error-text" style="color: var(--error); font-size: 12px; margin-top: -8px; display:block;">
+              Para blister/caja indica unidades (&gt;1) y precio (&gt;0) por presentación.
+            </span>
+          }
+          <small style="font-size: 11px; color: var(--text-muted);">Ej.: Amoxicilina x10 → $22.000 blíster, Ibuprofeno x14 → $25.000 blíster. En la venta podrás elegir Unidad o Blíster.</small>
+        } @else {
+          <small style="font-size: 11px; color: var(--text-muted);">Este producto solo se venderá por unidad suelta. Precio por unidad arriba en “Parámetros de Venta”.</small>
         }
       </section>
 

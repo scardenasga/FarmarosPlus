@@ -27,6 +27,7 @@ export class SugerenciasPosComponent {
   totalVentas = signal(0);
   recomendaciones = signal<RecomendacionItem[]>([]);
   actualizadoEn = signal<string | null>(null);
+  colapsado = signal<boolean>(this.cargarColapsado());
 
   /** Etiqueta discreta para datos iniciales (<30 ventas). */
   esDatosIniciales = computed(() => (this.totalVentas() > 0 && this.totalVentas() < 30));
@@ -100,5 +101,15 @@ export class SugerenciasPosComponent {
 
   onAgregar(item: RecomendacionItem): void {
     this.agregar.emit(item);
+  }
+
+  toggleColapsado(): void {
+    const v = !this.colapsado();
+    this.colapsado.set(v);
+    try { localStorage.setItem('pos.sugerencias.colapsado', v ? '1' : '0'); } catch {}
+  }
+
+  private cargarColapsado(): boolean {
+    try { return localStorage.getItem('pos.sugerencias.colapsado') === '1'; } catch { return false; }
   }
 }

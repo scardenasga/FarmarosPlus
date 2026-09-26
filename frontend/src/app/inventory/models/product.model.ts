@@ -15,6 +15,8 @@ export interface LoteResponse extends Lote {
   producto?: Product;
 }
 
+export type UnidadVenta = 'UNIDAD' | 'PRESENTACION' | 'AMBAS';
+
 export interface Product {
   id: number;
   nombre: string;
@@ -31,6 +33,9 @@ export interface Product {
   categoria?: Categoria;
   numeroLote?: string;
   imagenUrl?: string | null;
+  unidadVenta?: UnidadVenta | string;
+  unidadesPorPresentacion?: number | null;
+  precioPresentacion?: number | null;
   // UI related fields (optional/computed in FE if needed)
   trend?: number;
 }
@@ -47,8 +52,11 @@ export interface CrearProductoRequest {
   precioVenta?: number;// opcional: si no se envía se usa ganancia mínima configurada
   porcentajeIva?: number; // Opcional -
   requierePrescripcion: boolean;
-  fechaVencimiento: string | Date; // Opcional (ISO string 2027-12-31)
+  fechaVencimiento?: string | Date; // Opcional (ISO string 2027-12-31)
   numeroLote?: string; // Opcional
+  unidadVenta?: UnidadVenta | string;
+  unidadesPorPresentacion?: number | null;
+  precioPresentacion?: number | null;
 }
 
 export interface ActualizarProductoRequest {
@@ -62,6 +70,9 @@ export interface ActualizarProductoRequest {
   porcentajeIva?: number;
   requierePrescripcion?: boolean;
   estado?: string;
+  unidadVenta?: UnidadVenta | string;
+  unidadesPorPresentacion?: number | null;
+  precioPresentacion?: number | null;
 }
 
 export interface CreateCategoriaRequest {
@@ -85,6 +96,9 @@ export interface ProductoDetalleResponse {
   estado: string;
   imagenUrl?: string | null;
   lotes?: Lote[];
+  unidadVenta?: UnidadVenta | string;
+  unidadesPorPresentacion?: number | null;
+  precioPresentacion?: number | null;
 }
 
 // Interfaces adicionales necesarias:

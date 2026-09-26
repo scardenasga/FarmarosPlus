@@ -126,34 +126,67 @@ if (detalleRequest.loteId() != null) {
             ));
 }
 
+            // Resolver presentación: UNIDAD vs PRESENTACION (blister/caja variable)
+            String tipoVenta = detalleRequest.tipoVenta() != null && !detalleRequest.tipoVenta().isBlank()
+                    ? detalleRequest.tipoVenta().trim().toUpperCase() : "UNIDAD";
+            if (!"UNIDAD".equals(tipoVenta) && !"PRESENTACION".equals(tipoVenta)) {
+                throw new BusinessException("tipoVenta debe ser UNIDAD o PRESENTACION");
+            }
+            int unidadesADescontar;
+            double precioPresentacionUnitario = 0;
+            if ("PRESENTACION".equals(tipoVenta)) {
+                String uv = producto.getUnidadVenta() != null ? producto.getUnidadVenta().trim().toUpperCase() : "UNIDAD";
+                if (!"PRESENTACION".equals(uv) && !"AMBAS".equals(uv)) {
+                    throw new BusinessException("El producto " + producto.getNombre() + " no permite venta por presentación (blister/caja)");
+                }
+                Integer factor = producto.getUnidadesPorPresentacion();
+                if (factor == null || factor <= 1) {
+                    throw new BusinessException("El producto " + producto.getNombre() + " no tiene configurado unidadesPorPresentacion");
+                }
+                unidadesADescontar = detalleRequest.cantidad() * factor;
+                // precio: si el cliente envía precioUnitario se asume que es precio de la presentación (blister)
+                Double precioBlister = detalleRequest.precioUnitario() != null ? detalleRequest.precioUnitario() : producto.getPrecioPresentacion();
+                if (precioBlister == null || precioBlister <= 0) {
+                    throw new BusinessException("El producto " + producto.getNombre() + " no tiene precioPresentacion configurado");
+                }
+                precioPresentacionUnitario = precioBlister / factor;
+            } else {
+                unidadesADescontar = detalleRequest.cantidad();
+            }
+
 if (lote != null) {
-    validarDisponibilidad(producto, lote, detalleRequest.cantidad());
+    validarDisponibilidad(producto, lote, unidadesADescontar);
 } else {
-    if (valorSeguro(producto.getStockActual()) < detalleRequest.cantidad()) {
+    if (valorSeguro(producto.getStockActual()) < unidadesADescontar) {
         throw new InsufficientStockException(
                 "Stock insuficiente para el producto " + producto.getNombre()
         );
     }
 }
             int stockAnterior = valorSeguro(producto.getStockActual());
-            int stockNuevo = stockAnterior - detalleRequest.cantidad();
+            int stockNuevo = stockAnterior - unidadesADescontar;
 Integer cantidadLoteNueva = null;
 
 if (lote != null) {
-    cantidadLoteNueva = valorSeguro(lote.getCantidad()) - detalleRequest.cantidad();
+    cantidadLoteNueva = valorSeguro(lote.getCantidad()) - unidadesADescontar;
 }
-            Double precioUnitario = detalleRequest.precioUnitario() != null
-                    ? detalleRequest.precioUnitario()
-                    : producto.getPrecioVenta();
+            Double precioUnitario;
+            if ("PRESENTACION".equals(tipoVenta)) {
+                precioUnitario = precioPresentacionUnitario;
+            } else {
+                precioUnitario = detalleRequest.precioUnitario() != null
+                        ? detalleRequest.precioUnitario()
+                        : producto.getPrecioVenta();
+            }
 
-            double subtotalLinea = precioUnitario * detalleRequest.cantidad();
+            double subtotalLinea = precioUnitario * unidadesADescontar;
             double ivaLinea = subtotalLinea * (valorMonetarioSeguro(producto.getPorcentajeIva()) / 100.0);
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setVenta(venta);
             detalle.setProducto(producto);
             detalle.setLote(lote);
-            detalle.setCantidad(detalleRequest.cantidad());
+            detalle.setCantidad(unidadesADescontar);
             detalle.setPrecioUnitarioAplicado(precioUnitario);
             detalle.setSubtotalLinea(subtotalLinea);
             detalle.setIvaLinea(ivaLinea);

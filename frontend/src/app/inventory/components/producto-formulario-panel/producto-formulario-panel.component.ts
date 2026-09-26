@@ -189,8 +189,11 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       requierePrescripcion: [false],
       tieneLote: [false],
       numeroLote: [''],
-      fechaVencimiento: ['']
-    }, { validators: this.validadorPrecio });
+      fechaVencimiento: [''],
+      unidadVenta: ['UNIDAD', [Validators.required]],
+      unidadesPorPresentacion: [null],
+      precioPresentacion: [null]
+    }, { validators: this.validadorPresentacion });
     // recalcular sugerido al cambiar costo/iva
     setTimeout(() => {
       this.getControl('costo')?.valueChanges.subscribe(() => this.calcularSugerido());
@@ -210,8 +213,32 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       costo: [p.costo, [Validators.required, Validators.min(0)]],
       precioVenta: [p.precioVenta, [Validators.required, Validators.min(0)]],
       porcentajeIva: [p.porcentajeIva, [Validators.required, Validators.min(0)]],
-      requierePrescripcion: [!!p.requierePrescripcion]
-    }, { validators: this.validadorPrecio });
+      requierePrescripcion: [!!p.requierePrescripcion],
+      unidadVenta: [p.unidadVenta || 'UNIDAD', [Validators.required]],
+      unidadesPorPresentacion: [p.unidadesPorPresentacion ?? null],
+      precioPresentacion: [p.precioPresentacion ?? null]
+    }, { validators: this.validadorPresentacion });
+  }
+
+  private validadorPresentacion(group: FormGroup): { [key: string]: any } | null {
+    const uv = group.get('unidadVenta')?.value;
+    const up = group.get('unidadesPorPresentacion')?.value;
+    const pp = group.get('precioPresentacion')?.value;
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
+    if (needs) {
+      if (up == null || up === '' || Number(up) <= 1) return { presentacionInvalida: true };
+      if (pp == null || pp === '' || Number(pp) <= 0) return { presentacionInvalida: true };
+    }
+    const costo = group.get('costo')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value;
+    const iva = group.get('porcentajeIva')?.value || 0;
+    if (precioVenta != null && precioVenta !== '') {
+      const minPrecio = costo * (1 + iva / 100);
+      if (Number(precioVenta) <= minPrecio && Number(precioVenta) > 0) {
+        return { priceTooLow: true };
+      }
+    }
+    return null;
   }
 
   private validadorPrecio(group: FormGroup): { [key: string]: any } | null {
@@ -264,6 +291,8 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     const v = this.productForm.value;
 
     const precio = v.precioVenta != null && v.precioVenta !== '' ? Number(v.precioVenta) : undefined;
+    const uv = v.unidadVenta || 'UNIDAD';
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
 
     const request: CrearProductoRequest = {
       nombre: v.nombre,
@@ -277,7 +306,10 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       porcentajeIva: Number(v.porcentajeIva) || 0,
       requierePrescripcion: !!v.requierePrescripcion,
       fechaVencimiento: v.fechaVencimiento || undefined,
-      numeroLote: v.tieneLote && v.numeroLote ? v.numeroLote : undefined
+      numeroLote: v.tieneLote && v.numeroLote ? v.numeroLote : undefined,
+      unidadVenta: uv,
+      unidadesPorPresentacion: needs && v.unidadesPorPresentacion ? Number(v.unidadesPorPresentacion) : undefined,
+      precioPresentacion: needs && v.precioPresentacion ? Number(v.precioPresentacion) : undefined
     };
 
     this.guardando.set(true);
@@ -314,6 +346,8 @@ export class ProductoFormularioPanelComponent implements OnChanges {
     if (!id) return;
 
     const v = this.productForm.value;
+    const uv = v.unidadVenta || 'UNIDAD';
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
     const request: ActualizarProductoRequest = {
       nombre: v.nombre,
       descripcion: v.descripcion || undefined,
@@ -324,7 +358,10 @@ export class ProductoFormularioPanelComponent implements OnChanges {
       costo: Number(v.costo),
       porcentajeIva: Number(v.porcentajeIva) || 0,
       precioVenta: Number(v.precioVenta),
-      requierePrescripcion: !!v.requierePrescripcion
+      requierePrescripcion: !!v.requierePrescripcion,
+      unidadVenta: uv,
+      unidadesPorPresentacion: needs && v.unidadesPorPresentacion ? Number(v.unidadesPorPresentacion) : null,
+      precioPresentacion: needs && v.precioPresentacion ? Number(v.precioPresentacion) : null
     };
 
     this.guardando.set(true);

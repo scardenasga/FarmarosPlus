@@ -380,7 +380,10 @@ public class ProductoController {
                 producto.getPorcentajeIva(),
                 producto.getRequierePrescripcion(),
                 producto.getEstado(),
-                producto.getImagenUrl()
+                producto.getImagenUrl(),
+                producto.getUnidadVenta() != null ? producto.getUnidadVenta() : "UNIDAD",
+                producto.getUnidadesPorPresentacion(),
+                producto.getPrecioPresentacion()
         );
     }
 

@@ -22,6 +22,9 @@ public record VentaDetalleRequest(
         @Positive(message = "La cantidad debe ser mayor a cero")
         Integer cantidad,
         @DecimalMin(value = "0.0", inclusive = true, message = "El precio unitario no puede ser negativo")
-        Double precioUnitario
+        Double precioUnitario,
+        @jakarta.validation.constraints.Pattern(regexp = "^$|UNIDAD|PRESENTACION", message = "tipoVenta debe ser UNIDAD o PRESENTACION")
+        @io.swagger.v3.oas.annotations.media.Schema(description = "Tipo de venta: UNIDAD (sueltas) o PRESENTACION (blister/caja). Si es PRESENTACION, cantidad se refiere a presentaciones y se descuenta cantidad*unidadesPorPresentacion.", example = "UNIDAD")
+        String tipoVenta
 ) {
 }

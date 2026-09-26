@@ -1,45 +1,58 @@
 .sugerencias-panel {
-  padding: var(--space-m) var(--space-l);
+  padding: 6px 10px;
   border-top: 1px solid var(--border-color, var(--outline-variant));
   border-bottom: 1px solid var(--border-color, var(--outline-variant));
   background-color: var(--surface-container-low, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%));
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
+  gap: 4px;
+}
+
+.sugerencias-panel.colapsado {
+  padding: 5px 10px;
 }
 
 .sugerencias-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-s);
+  gap: 6px;
 }
 
 .sugerencias-titulo {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-s);
-  font-size: 0.72rem;
+  gap: 6px;
+  font-size: 0.64rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   color: var(--text-dark, var(--on-background));
 }
 
 .sugerencias-titulo svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   color: var(--primary);
   flex-shrink: 0;
 }
 
-.badge-datos-iniciales,
-.badge-popularidad {
+.sugerencias-contador {
   font-size: 0.60rem;
   font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+
+.badge-datos-iniciales,
+.badge-popularidad {
+  font-size: 0.54rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 6px;
+  letter-spacing: 0.4px;
+  padding: 1px 5px;
   border-radius: var(--radius-full, 9999px);
   border: 1px solid var(--border-color, var(--outline-variant));
 }
@@ -59,15 +72,15 @@
 .sugerencias-cargando {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.68rem;
+  gap: 5px;
+  font-size: 0.62rem;
   font-weight: 600;
   color: var(--text-muted, var(--outline));
 }
 
 .spinner {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 2px solid var(--border-color, var(--outline-variant));
   border-top-color: var(--primary);
   border-radius: 50%;
@@ -78,25 +91,51 @@
   to { transform: rotate(360deg); }
 }
 
+.btn-minimizar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color, var(--outline-variant));
+  background: var(--card-bg, #fff);
+  color: var(--text-muted, var(--outline));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-minimizar:hover {
+  background: var(--surface-container-low);
+  color: var(--text-dark);
+  border-color: var(--primary);
+}
+
+.btn-minimizar svg {
+  width: 12px;
+  height: 12px;
+}
+
 .chips-lista {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-s);
+  gap: 4px;
 }
 
 .chip-recomendacion {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: 4px;
   max-width: 100%;
-  padding: 6px 8px 6px 12px;
+  padding: 3px 5px 3px 8px;
   border-radius: var(--radius-full, 9999px);
   background-color: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, var(--outline-variant));
   color: var(--text-dark, var(--on-background));
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.1;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s, transform 0.1s, box-shadow 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
@@ -121,12 +160,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 160px;
+  max-width: 120px;
 }
 
 .chip-accion {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--radius-full, 9999px);
   background-color: var(--primary);
   color: var(--on-primary, #ffffff);
@@ -137,14 +176,14 @@
 }
 
 .chip-accion svg {
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
 }
 
 .sugerencias-nota {
   margin: 0;
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-weight: 600;
   color: var(--text-muted, var(--outline));
-  letter-spacing: 0.2px;
+  letter-spacing: 0.15px;
 }

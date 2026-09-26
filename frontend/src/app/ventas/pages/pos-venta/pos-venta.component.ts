@@ -17,11 +17,14 @@ import {
   VentaDetalleRequest
 } from '../../models/venta.model';
 
+type TipoVenta = 'UNIDAD' | 'PRESENTACION';
+
 interface ItemCarrito {
   producto: ProductoResponse;
   cantidad: number;
   loteId: number | null;
   numeroLote: string | null;
+  tipoVenta: TipoVenta;
 }
 
 const METODOS_PAGO: MetodoPago[] = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'];
@@ -77,6 +80,8 @@ export class PosVentaComponent implements OnInit {
   /** IDs del carrito para el panel de recomendaciones (estable, ordenado). */
   carritoIds = computed(() => this.carrito().map(i => i.producto.id));
 
+  hayProductosConBlister = computed(() => this.productos().some(p => p.unidadVenta === 'AMBAS' || p.unidadVenta === 'PRESENTACION'));
+
   /** Handler del panel: reutiliza agregar() sin duplicar lógica de lote/stock. */
   onSugerenciaAgregar(item: RecomendacionItem): void {
     // Evitar duplicar si ya está en carrito: aumentar cantidad
@@ -111,7 +116,10 @@ export class PosVentaComponent implements OnInit {
           porcentajeIva: prod.porcentajeIva ?? 0,
           requierePrescripcion: prod.requierePrescripcion ?? false,
           estado: prod.estado ?? 'ACTIVO',
-          imagenUrl: prod.imagenUrl ?? null
+          imagenUrl: prod.imagenUrl ?? null,
+          unidadVenta: prod.unidadVenta ?? 'UNIDAD',
+          unidadesPorPresentacion: prod.unidadesPorPresentacion ?? null,
+          precioPresentacion: prod.precioPresentacion ?? null
         };
         this.agregar(adaptado);
       },
@@ -180,24 +188,67 @@ export class PosVentaComponent implements OnInit {
     producto: ProductoResponse,
     lote: { id: number; numeroLote?: string | null } | null
   ) {
+    const tipo: TipoVenta = producto.unidadVenta === 'PRESENTACION' ? 'PRESENTACION' : 'UNIDAD';
     this.carrito.update(prev => [
       ...prev,
       {
         producto,
         cantidad: 1,
         loteId: lote?.id ?? null,
-        numeroLote: lote?.numeroLote ?? null
+        numeroLote: lote?.numeroLote ?? null,
+        tipoVenta: tipo
       }
     ]);
   }
 
+  factorDe(p: ProductoResponse): number {
+    return p.unidadesPorPresentacion && p.unidadesPorPresentacion > 1 ? p.unidadesPorPresentacion : 1;
+  }
+
+  precioUnidad(p: ProductoResponse, tipo: TipoVenta): number {
+    if (tipo === 'PRESENTACION' && p.precioPresentacion) {
+      return p.precioPresentacion / this.factorDe(p);
+    }
+    return p.precioVenta;
+  }
+
+  precioPresentacionTotal(p: ProductoResponse): number {
+    return p.precioPresentacion ?? p.precioVenta * this.factorDe(p);
+  }
+
+  puedeVenderPor(p: ProductoResponse, tipo: TipoVenta): boolean {
+    const uv = p.unidadVenta || 'UNIDAD';
+    if (tipo === 'UNIDAD') return uv === 'UNIDAD' || uv === 'AMBAS';
+    return uv === 'PRESENTACION' || uv === 'AMBAS';
+  }
+
+  cambiarTipo(item: ItemCarrito, tipo: TipoVenta): void {
+    if (!this.puedeVenderPor(item.producto, tipo)) return;
+    this.carrito.update(prev => prev.map(i =>
+      i.producto.id === item.producto.id ? { ...i, tipoVenta: tipo, cantidad: 1 } : i
+    ));
+  }
+
+  maxCantidadPara(item: ItemCarrito): number {
+    const stock = item.producto.stockActual ?? 0;
+    if (item.tipoVenta === 'PRESENTACION') {
+      const f = this.factorDe(item.producto);
+      return Math.floor(stock / f);
+    }
+    return stock;
+  }
+
+  unidadesReales(item: ItemCarrito): number {
+    return item.tipoVenta === 'PRESENTACION' ? item.cantidad * this.factorDe(item.producto) : item.cantidad;
+  }
+
   aumentar(item: ItemCarrito | ProductoResponse) {
     const id = 'producto' in item ? item.producto.id : item.id;
-    this.carrito.update(prev => prev.map(i =>
-      i.producto.id === id && i.cantidad < (i.producto.stockActual ?? 0)
-        ? { ...i, cantidad: i.cantidad + 1 }
-        : i
-    ));
+    this.carrito.update(prev => prev.map(i => {
+      if (i.producto.id !== id) return i;
+      const max = this.maxCantidadPara(i);
+      return i.cantidad < max ? { ...i, cantidad: i.cantidad + 1 } : i;
+    }));
   }
 
   disminuir(item: ItemCarrito | ProductoResponse) {
@@ -220,15 +271,14 @@ export class PosVentaComponent implements OnInit {
 
   /** Actualiza la cantidad escrita manualmente, limitada al stock disponible. */
   actualizarCantidad(item: ItemCarrito, valor: string | number | null) {
-    const stock = item.producto.stockActual ?? 0;
+    const max = this.maxCantidadPara(item);
     let cantidad = Math.floor(Number(valor));
 
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
-      // Si el campo queda vacío o inválido, se elimina la línea.
       this.eliminar(item);
       return;
     }
-    if (cantidad > stock) cantidad = stock;
+    if (cantidad > max) cantidad = max;
 
     this.carrito.update(prev => prev.map(i =>
       i.producto.id === item.producto.id ? { ...i, cantidad } : i
@@ -243,13 +293,21 @@ export class PosVentaComponent implements OnInit {
 
   /* ---------- Totales ---------- */
 
+  private precioLineaUnitario(i: ItemCarrito): number {
+    return this.precioUnidad(i.producto, i.tipoVenta);
+  }
+
+  private unidadesLinea(i: ItemCarrito): number {
+    return this.unidadesReales(i);
+  }
+
   subtotal = computed(() =>
-    this.carrito().reduce((acc, i) => acc + i.producto.precioVenta * i.cantidad, 0)
+    this.carrito().reduce((acc, i) => acc + this.precioLineaUnitario(i) * this.unidadesLinea(i), 0)
   );
 
   ivaTotal = computed(() =>
     this.carrito().reduce((acc, i) => {
-      const linea = i.producto.precioVenta * i.cantidad;
+      const linea = this.precioLineaUnitario(i) * this.unidadesLinea(i);
       return acc + linea * ((i.producto.porcentajeIva ?? 0) / 100);
     }, 0)
   );
@@ -306,12 +364,16 @@ export class PosVentaComponent implements OnInit {
 
     this.procesando.set(true);
 
-    const detalles: VentaDetalleRequest[] = this.carrito().map(i => ({
-      productoId: i.producto.id,
-      loteId: i.loteId,
-      cantidad: i.cantidad,
-      precioUnitario: i.producto.precioVenta
-    }));
+    const detalles: VentaDetalleRequest[] = this.carrito().map(i => {
+      const esPres = i.tipoVenta === 'PRESENTACION';
+      return {
+        productoId: i.producto.id,
+        loteId: i.loteId,
+        cantidad: i.cantidad,
+        precioUnitario: esPres ? (i.producto.precioPresentacion ?? i.producto.precioVenta * this.factorDe(i.producto)) : i.producto.precioVenta,
+        tipoVenta: i.tipoVenta
+      };
+    });
 
     // EFECTIVO admite sobrepago (el excedente es cambio); los otros medios
     // deben ser por el monto exacto según reglas del backend.

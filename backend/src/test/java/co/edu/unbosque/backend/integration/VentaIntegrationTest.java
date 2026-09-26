@@ -186,7 +186,7 @@ class VentaIntegrationTest {
         return new CrearVentaRequest(
                 vendedor.getIdUsuario(),
                 0.0,
-                List.of(new VentaDetalleRequest(producto.getUniqueID(), lote.getIdLote(), cantidad, null)),
+                List.of(new VentaDetalleRequest(producto.getUniqueID(), lote.getIdLote(), cantidad, null, null)),
                 pagos
         );
     }
