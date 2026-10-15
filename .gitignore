@@ -9,7 +9,8 @@
 
 # SQLite
 
-database/*.db 
+database/*.db
+uploads/
 
 # OS files
 
@@ -20,3 +21,8 @@ desktop.ini
 # Logs
 
 *.log
+.claude/worktrees/eager-kalam-808df1/
+.claude/settings.local.json
+
+
+target-jpackage-output/

@@ -1,0 +1,80 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="brand">
+        <span class="brand-name">Farmaros<span class="brand-plus">+</span></span>
+        <span class="brand-subtitle">Sistema de Gestión Farmacéutica</span>
+      </div>
+      <h1 class="login-title">Iniciar sesión</h1>
+      <p class="login-hint">Ingresa con tu usuario para continuar</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()" #f="ngForm">
+      <label class="field">
+        <span class="field-label">Usuario</span>
+        <div class="input-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a2 2 0 0 0-1-1.73" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="admin o vendedor"
+            autocomplete="username"
+            required
+          />
+        </div>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Contraseña</span>
+        <div class="input-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <input
+            [type]="mostrarPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="eye-btn" (click)="togglePassword()" [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            @if (mostrarPassword) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            }
+          </button>
+        </div>
+      </label>
+
+      @if (errorMsg()) {
+        <div class="error-banner" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="cargando()">
+        @if (cargando()) {
+          <span class="spinner"></span> Iniciando...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+
+      <div class="demo-box">
+        <span class="demo-title">Usuarios demo</span>
+        <div class="demo-row"><span class="demo-role admin">ADMIN</span><code>admin / admin123</code></div>
+        <div class="demo-row"><span class="demo-role vendor">VENDEDOR</span><code>vendedor / vendedor123</code></div>
+      </div>
+    </form>
+  </div>
+</div>

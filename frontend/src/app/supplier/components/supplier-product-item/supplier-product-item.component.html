@@ -1,0 +1,33 @@
+<div class="product-item" [class.inactive]="product().estadoRelacion === 'INACTIVO'">
+  <div class="product-info">
+    <div class="name-row">
+      <span class="product-name">{{ product().nombre }}</span>
+      <span class="status-dot" [class.active]="product().estadoRelacion === 'ACTIVO'"></span>
+    </div>
+    <div class="detail-row">
+      <span class="barcode">Cod: {{ product().codigoBarras }}</span>
+      @if (product().codigoProductoProveedor) {
+        <span class="supplier-code">Ref Prov: {{ product().codigoProductoProveedor }}</span>
+      }
+    </div>
+    @if (product().precioReferencia) {
+      <div class="price-row">
+        <span class="price-label">Precio Ref:</span>
+        <span class="price-value">{{ product().precioReferencia | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="actions">
+    <button class="action-btn" (click)="toggleStatus.emit(product())" [title]="product().estadoRelacion === 'ACTIVO' ? 'Inactivar' : 'Activar'">
+      @if (product().estadoRelacion === 'ACTIVO') {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+      } @else {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10M18.36 6.64a9 9 0 1 1-12.73 0"/></svg>
+      }
+    </button>
+    <button class="action-btn delete" (click)="remove.emit(product())" title="Eliminar relación">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+    </button>
+  </div>
+</div>

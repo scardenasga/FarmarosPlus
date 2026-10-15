@@ -1,0 +1,18 @@
+.main-content {
+  margin-left: 72px; /* Ancho del sidebar compacto */
+  min-height: 100vh;
+  width: calc(100% - 72px);
+  box-sizing: border-box;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.sidebar-expanded {
+  margin-left: 220px; /* Ancho del sidebar expandido */
+  width: calc(100% - 220px);
+}
+
+.main-content.no-padding {
+  margin-left: 0;
+  width: 100%;
+}

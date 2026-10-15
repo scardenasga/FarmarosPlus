@@ -1,0 +1,27 @@
+<app-bottom-sheet 
+  [isOpen]="isVisible()" 
+  (close)="close.emit()"
+  title="Filtrar Proveedores"
+>
+  <div class="filter-header">
+    <h2>Filtrar por</h2>
+  </div>
+
+  <section>
+    <h3 class="section-title">Estado</h3>
+    <div class="chips-container">
+      @for (state of states; track state) {
+        <app-filter-chip
+          [label]="state"
+          [selected]="selectedStates().includes(state)"
+          (toggle)="toggleState(state)"
+        ></app-filter-chip>
+      }
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn-clear" (click)="clearFilters()">Limpiar</button>
+    <button class="btn-apply" (click)="applyFilters()">Aplicar Filtros</button>
+  </div>
+</app-bottom-sheet>

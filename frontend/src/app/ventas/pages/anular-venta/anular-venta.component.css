@@ -1,0 +1,125 @@
+/* Contenedor principal que se adapta al tema */
+.container {
+  background-color: var(--background);
+  min-height: 100vh;
+  padding: 0 16px 120px;
+  color: var(--on-background);
+  font-family: sans-serif;
+}
+
+/* Header con botones e iconos */
+.header {
+  background-color: var(--surface-container-high);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-back, .btn-campana {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.titulo {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--on-background);
+  flex: 1;
+  text-align: center;
+}
+
+/* Caja de información de la venta */
+.info-box {
+  background-color: var(--surface-container-low);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px;
+  border: 1px solid var(--outline-variant);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.info-lbl { color: var(--on-surface-variant); }
+.info-val { color: var(--on-surface); font-weight: 600; }
+
+/* Tarjetas de productos */
+.prod-card {
+  background-color: var(--surface-container);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 0 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--outline-variant);
+}
+
+.prod-nombre {
+  color: var(--on-surface);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Input del Motivo de Anulación */
+.motivo-input-wrap {
+  background-color: var(--surface-container-highest);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 12px;
+  border: 1px solid var(--outline-variant);
+}
+
+.motivo-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--on-background);
+  outline: none;
+  font-size: 14px;
+}
+
+/* Botones de acción inferiores */
+.acciones {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background);
+  padding: 20px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.btn-cancelar {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary-container);
+  border: none;
+  padding: 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-eliminar {
+  background-color: var(--error);
+  color: var(--on-error);
+  border: none;
+  padding: 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-eliminar:disabled {
+  opacity: 0.5;
+}

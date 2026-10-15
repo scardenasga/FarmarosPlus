@@ -1,0 +1,58 @@
+<div class="period-filter">
+  <div class="quick-buttons">
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'DIA'"
+      (click)="seleccionarPeriodo('DIA')"
+    >Hoy</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'SEMANA'"
+      (click)="seleccionarPeriodo('SEMANA')"
+    >Esta semana</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'MES'"
+      (click)="seleccionarPeriodo('MES')"
+    >Este mes</button>
+    <button
+      type="button"
+      class="period-btn"
+      [class.active]="periodo === 'PERSONALIZADO'"
+      (click)="seleccionarPeriodo('PERSONALIZADO')"
+    >Personalizado</button>
+  </div>
+
+  @if (periodo === 'PERSONALIZADO') {
+    <div class="custom-range">
+      <div class="fecha-campo">
+        <label>Desde</label>
+        <input
+          type="date"
+          [value]="fechaInicioPersonalizada"
+          (change)="onFechaInicioChange($any($event.target).value)"
+        />
+      </div>
+      <svg class="range-separator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+      </svg>
+      <div class="fecha-campo">
+        <label>Hasta</label>
+        <input
+          type="date"
+          [value]="fechaFinPersonalizada"
+          (change)="onFechaFinChange($any($event.target).value)"
+        />
+      </div>
+
+      @if (error) {
+        <p class="error-text">{{ error }}</p>
+      }
+    </div>
+  } @else {
+    <span class="rango-aplicado">{{ rangoAplicadoTexto() }}</span>
+  }
+</div>

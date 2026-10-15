@@ -1,0 +1,66 @@
+<div class="container">
+  <div class="status-bar"></div>
+
+  
+ <app-boton-retroceder 
+    [titulo]="'Resumen de venta'" 
+    [subtitulo]="'Verifica los productos antes de confirmar'">
+  </app-boton-retroceder>
+
+  <div class="seccion-label">PRODUCTOS ({{ productos.length }})</div>
+
+  <div class="productos-scroll">
+    <div *ngFor="let p of productos" class="prod-card-resumen">
+      <div class="prod-img-box">
+        <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" alt="" />
+        <div *ngIf="!p.imagenUrl" class="prod-avatar-resumen">{{ p.nombre?.substring(0,3).toUpperCase() }}</div>
+      </div>
+      <div class="prod-info-resumen">
+        <span class="p-name">{{ p.nombre }}</span>
+        <span class="p-price">${{ p.precioVenta | number }}</span>
+      </div>
+      <div class="prod-derecha">
+        <span class="p-qty">{{ p.cantidad }} und.</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="totales-card">
+    <div class="t-row">
+      <span>Subtotal</span>
+      <span class="t-val">${{ subtotal | number }}</span>
+    </div>
+    @if (ivaTotal > 0) {
+      <div class="t-row">
+        <span>IVA</span>
+        <span class="t-val">${{ ivaTotal | number }}</span>
+      </div>
+    }
+    <div class="t-row row-desc">
+      <span>Descuento</span>
+      <span class="t-val">- $0</span>
+    </div>
+    <div class="t-row row-total">
+      <span>Total</span>
+      <span class="t-val">${{ total | number }}</span>
+    </div>
+  </div>
+
+ 
+  <div class="metodo-seccion">
+    <span class="metodo-label">MÉTODO DE PAGO</span>
+    <div class="metodo-grid">
+      <button [class.active]="metodoPago==='EFECTIVO'" (click)="metodoPago='EFECTIVO'">Efectivo</button>
+      <button [class.active]="metodoPago==='TARJETA'" (click)="metodoPago='TARJETA'">Tarjeta</button>
+    </div>
+  </div>
+
+  
+ <div class="acciones-finales">
+    <button class="btn-cancel" (click)="cancelar()">Cancelar</button>
+    <button class="btn-confirm" (click)="confirmarVenta()" [disabled]="cargando">
+      {{ cargando ? 'Procesando...' : 'Confirmar Venta' }}
+    </button>
+  </div>
+</div>

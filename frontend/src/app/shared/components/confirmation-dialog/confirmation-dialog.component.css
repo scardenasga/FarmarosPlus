@@ -1,0 +1,126 @@
+﻿.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-l);
+  z-index: 1010;
+  animation: overlay-entrada 0.2s ease-out;
+}
+
+@keyframes overlay-entrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog-container {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--card-bg, var(--surface-container-low));
+  border: 1px solid var(--border-color, var(--outline-variant));
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  padding: var(--space-l);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-s);
+  animation: tarjeta-entrada 0.2s ease-out;
+}
+
+@keyframes tarjeta-entrada {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- Icono ---------- */
+.dialog-icono {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full, 9999px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+  background-color: var(--info-bg);
+  color: var(--info-text);
+}
+
+.dialog-icono svg {
+  width: 22px;
+  height: 22px;
+}
+
+.peligroso .dialog-icono {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* ---------- Texto ---------- */
+.dialog-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-dark, var(--on-background));
+}
+
+.dialog-content {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-muted, var(--on-surface));
+}
+
+/* ---------- Acciones ---------- */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-m);
+  margin-top: var(--space-l);
+  width: 100%;
+}
+
+.dialog-btn {
+  min-width: 96px;
+  height: 38px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.1s, background-color 0.2s;
+}
+
+.dialog-btn:hover {
+  filter: brightness(1.05);
+}
+
+.dialog-btn:active {
+  transform: scale(0.97);
+}
+
+.dialog-btn-cancel {
+  background-color: transparent;
+  border: 1px solid var(--border-color, var(--outline-variant));
+  color: var(--text-dark, var(--on-background));
+}
+
+.dialog-btn-cancel:hover {
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.08));
+}
+
+.dialog-btn-confirm {
+  background-color: var(--accent-green-dark, var(--primary-container));
+  color: var(--on-primary-container);
+  border: none;
+}
+
+/* Variante destructiva: botón rojo */
+.dialog-btn-peligroso {
+  background-color: var(--danger-text, #c92a2a);
+  color: #ffffff;
+}

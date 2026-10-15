@@ -1,0 +1,424 @@
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background-color: var(--background);
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--background);
+}
+
+.content-area {
+  flex: 1;
+  padding: var(--space-l);
+  display: flex;
+  flex-direction: column;
+}
+
+.product-image-wrap { width: 100%; border-radius: var(--radius-m); overflow: hidden; background: var(--surface-container); max-height: 260px; display:flex; align-items:center; justify-content:center; }
+.product-image-wrap img { width: 100%; height: 260px; object-fit: cover; }
+
+/* Receipt Card Design */
+.receipt-card {
+  background-color: var(--surface-container-low);
+  border-radius: var(--radius-l);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  box-shadow: var(--shadow-2);
+  position: relative;
+  overflow: hidden;
+}
+
+.receipt-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--primary), var(--primary) 20px, transparent 20px, transparent 40px);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+}
+
+.product-id {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--outline);
+  letter-spacing: 1.5px;
+}
+
+.rx-badge {
+  background-color: var(--error);
+  color: var(--on-error);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-s);
+  text-transform: uppercase;
+}
+
+.product-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.2;
+}
+
+.header-info {
+  display: flex;
+  gap: var(--space-s);
+  margin-top: var(--space-s);
+}
+
+.category-badge {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+}
+
+.status-badge {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+}
+
+.status-badge[data-status="ACTIVO"] { color: var(--success); }
+.status-badge[data-status="INACTIVO"] { color: var(--outline); }
+.status-badge[data-status="STOCK BAJO"] { color: var(--error); }
+
+.receipt-divider {
+  height: 1px;
+  background-color: var(--outline-variant);
+  margin: var(--space-s) 0;
+}
+
+.receipt-divider.dotted {
+  background: none;
+  border-top: 2px dotted var(--outline-variant);
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--outline);
+  text-transform: uppercase;
+}
+
+.description-text {
+  font-size: 16px;
+  color: var(--on-surface-variant);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-l);
+}
+
+.stat-card {
+  background-color: var(--surface-container);
+  padding: var(--space-m);
+  border-radius: var(--radius-m);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--outline);
+}
+
+.stat-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.stat-unit {
+  font-size: 14px;
+  color: var(--outline);
+}
+
+.stat-sub {
+  font-size: 13px;
+  color: var(--outline);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-sub-label {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+
+.stat-sub-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.stat-sub-value.highlight {
+  color: var(--primary);
+}
+
+/* Accordion */
+.lotes-accordion {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-container);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.accordion-header {
+  width: 100%;
+  padding: var(--space-l);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.chevron {
+  transition: transform 0.3s ease;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease;
+}
+
+.lotes-accordion.open .accordion-content {
+  max-height: 500px;
+  padding: 0 var(--space-l) var(--space-l);
+}
+
+.lotes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.lote-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-m);
+  background-color: var(--surface-container-low);
+  border-radius: var(--radius-s);
+  border-left: 3px solid var(--primary);
+}
+
+.lote-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.lote-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.lote-date {
+  font-size: 14px;
+  color: var(--outline);
+}
+
+.lote-qty {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.empty-lotes {
+  font-size: 13px;
+  color: var(--outline);
+  text-align: center;
+  margin: var(--space-m) 0;
+}
+
+/* Price Section */
+.price-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--outline);
+  text-transform: uppercase;
+}
+
+.cost-label {
+  font-size: 14px;
+  color: var(--outline);
+}
+
+.price-amount {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Barcode */
+.receipt-footer {
+  margin-top: var(--space-xl);
+  display: flex;
+  justify-content: center;
+  padding-bottom: var(--space-l);
+}
+
+.barcode-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.barcode-container {
+  display: flex;
+  align-items: flex-end;
+  height: 50px;
+  gap: 3px;
+  padding: 0 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.bar {
+  background-color: var(--on-surface);
+  height: 100%;
+}
+
+.barcode-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--on-surface);
+}
+
+/* Footer Actions */
+.sticky-footer {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-l);
+  background-color: var(--background);
+  display: flex;
+  gap: var(--space-m);
+  z-index: 100;
+}
+
+.btn {
+  flex: 1;
+  height: 56px;
+  border-radius: var(--radius-m);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary {
+  background-color: var(--surface-container);
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-2);
+}
+
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-m);
+  color: var(--outline);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--surface-container-high);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

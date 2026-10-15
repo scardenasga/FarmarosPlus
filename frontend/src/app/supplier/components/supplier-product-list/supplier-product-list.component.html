@@ -1,0 +1,34 @@
+<div class="lotes-accordion" [class.open]="isOpen()">
+  <button class="accordion-header" (click)="toggleAccordion()">
+    <div class="header-content">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V21H3V8M1 3H23V8H1V3M10 12H14"/></svg>
+      <span>Productos Asociados ({{ products().length }})</span>
+    </div>
+    <svg class="chevron" [class.rotated]="isOpen()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  
+  <div class="accordion-content">
+    <div class="list-actions">
+      <button class="btn-add" (click)="addProduct.emit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Asociar Producto
+      </button>
+    </div>
+
+    @if (products().length > 0) {
+      <div class="products-container">
+        @for (product of products(); track product.id) {
+          <app-supplier-product-item
+            [product]="product"
+            (toggleStatus)="toggleStatus.emit($event)"
+            (remove)="remove.emit($event)"
+          ></app-supplier-product-item>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <p>No hay productos asociados a este proveedor.</p>
+      </div>
+    }
+  </div>
+</div>

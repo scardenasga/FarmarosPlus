@@ -1,0 +1,122 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel-formulario">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">Ingreso de stock</span>
+        <h2>Registrar entrada de mercancía</h2>
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="cerrar()" aria-label="Cerrar formulario">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <form [formGroup]="stockForm" (ngSubmit)="solicitarGuardar()">
+      <div class="panel-cuerpo">
+
+        <!-- ═══ 1 · Producto ═══ -->
+        <span class="seccion-titulo">1 · ¿Qué producto entra?</span>
+
+        <app-form-input
+          label="Código de barras"
+          placeholder="Escanea o escribe el código del producto"
+          [control]="getControl('codigoBarras')"
+          [hasIcon]="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18"/><path d="M7 19h10"/><path d="M12 5v14"/></svg>
+        </app-form-input>
+
+        @if (isSearching()) {
+          <div class="estado-busqueda">
+            <div class="mini-spinner"></div>
+            Buscando producto...
+          </div>
+        } @else {
+
+          @if (foundProduct(); as p) {
+            <div class="producto-encontrado">
+              <div class="pe-info">
+                <span class="pe-nombre">{{ p.nombre }}</span>
+                @if (p.categoria) {
+                  <span class="pe-cat">{{ p.categoria.nombre }}</span>
+                }
+              </div>
+              <span class="pe-stock">{{ p.stockActual }} uds actuales</span>
+            </div>
+          } @else if (codigoBuscadoLargo()) {
+            <div class="estado-busqueda error">
+              No se encontró ningún producto con ese código.
+            </div>
+          }
+        }
+
+        <!-- ═══ 2 · Ingreso ═══ -->
+        <span class="seccion-titulo">2 · Cuánto y cómo ingresa</span>
+
+        <div class="campos-grid">
+          <app-form-input
+            label="Cantidad que ingresa *"
+            type="number"
+            placeholder="0"
+            [control]="getControl('cantidad')">
+          </app-form-input>
+
+          <app-form-input
+            label="Vence el *"
+            type="date"
+            [control]="getControl('fechaVencimiento')">
+          </app-form-input>
+        </div>
+
+        <app-form-input
+          label="Número de lote"
+          placeholder="Ej. LOT-123"
+          [control]="getControl('numeroLote')">
+        </app-form-input>
+
+        <!-- ═══ 3 · Precios ═══ -->
+        <span class="seccion-titulo">3 · ¿Actualizar precios? <small>(opcional)</small></span>
+
+        <div class="campos-grid">
+          <app-form-input
+            label="Nuevo costo"
+            type="number"
+            suffix="COP"
+            placeholder="$ 0.00"
+            [control]="getControl('nuevoCosto')">
+          </app-form-input>
+
+          <app-form-input
+            label="Nuevo precio al cliente"
+            type="number"
+            suffix="COP"
+            placeholder="$ 0.00"
+            [control]="getControl('nuevoPrecioVenta')">
+          </app-form-input>
+        </div>
+      </div>
+    </form>
+
+    <footer class="panel-footer">
+      <button type="button" class="btn-panel secundario" (click)="cerrar()">Cancelar</button>
+      <button
+        type="button"
+        class="btn-panel primario"
+        [disabled]="registrando()"
+        (click)="solicitarGuardar()">
+        {{ registrando() ? 'Registrando...' : 'Registrar ingreso' }}
+      </button>
+    </footer>
+
+    @if (showConfirmation()) {
+      <app-confirmation-dialog
+        title="Confirmar ingreso"
+        content="{{ 'Se agregarán ' + (getControl('cantidad').value ?? 0) + ' unidades de ' + (foundProduct()?.nombre || '') + ' al inventario. ¿Desea continuar?' }}"
+        cancelText="Revisar"
+        confirmText="Registrar"
+        (onCancel)="cancelConfirmation()"
+        (onConfirm)="confirmarIngreso()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

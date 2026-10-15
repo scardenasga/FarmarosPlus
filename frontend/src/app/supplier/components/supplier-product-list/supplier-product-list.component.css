@@ -1,0 +1,90 @@
+.lotes-accordion {
+  background-color: var(--surface-container);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-top: var(--space-m);
+}
+
+.accordion-header {
+  width: 100%;
+  padding: var(--space-l);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.chevron {
+  transition: transform 0.3s ease;
+  color: var(--outline);
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease;
+}
+
+.open .accordion-content {
+  max-height: 800px;
+  padding: 0 var(--space-l) var(--space-l);
+}
+
+.list-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-m);
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: 8px 20px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  box-shadow: var(--shadow-2);
+  filter: brightness(1.1);
+}
+
+.products-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.empty-state {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--outline);
+  font-size: 14px;
+  background-color: var(--surface-container-low);
+  border-radius: var(--radius-m);
+  border: 2px dashed var(--outline-variant);
+}

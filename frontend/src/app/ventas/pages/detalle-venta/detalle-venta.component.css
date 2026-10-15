@@ -1,0 +1,194 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  background: var(--background); /* Antes #151c1a */
+  min-height: 100vh;
+  padding-bottom: 180px;
+  font-family: sans-serif;
+  position: relative;
+  color: var(--on-background);
+}
+
+.status-bar { 
+  height: 36px; 
+  background: var(--background); 
+}
+
+.header {
+  background: var(--surface-container-high); /* Antes #1e2825 */
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titulo { 
+  font-size: 16px; 
+  font-weight: 600; 
+  color: var(--on-background); 
+  flex: 1; 
+  text-align: center; 
+}
+
+.btn-back, .btn-campana { 
+  background: none; 
+  border: none; 
+  color: var(--primary); 
+  cursor: pointer; 
+}
+
+.venta-top { display: flex; justify-content: space-between; padding: 14px 16px; }
+.venta-id { color: var(--on-background); font-weight: 600; }
+.venta-hora { color: var(--on-surface-variant); font-size: 13px; }
+
+.info-box {
+  background: var(--surface-container-low); /* Antes #1a2320 */
+  border-radius: 10px; 
+  margin: 0 12px 12px;
+  padding: 12px; 
+  border: 1px solid var(--outline-variant);
+}
+
+.info-lbl { color: var(--on-surface-variant); font-size: 14px; }
+.info-val { color: var(--on-surface); font-size: 14px; }
+.fecha-verde { color: var(--primary); }
+
+.productos-lista { padding: 0 12px; }
+.prod-card {
+   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: transform 0.2s ease;
+}
+
+.prod-card:hover {
+  transform: translateY(-2px);
+}
+.prod-nombre { color: var(--on-surface); font-size: 13px; display: block; }
+.prod-precio { color: var(--primary); font-size: 12px; }
+
+.prod-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.prod-stock {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.totales {
+  background: var(--surface-container-low); 
+  margin: 12px; 
+  border-radius: 10px;
+  padding: 12px; 
+  border: 1px solid var(--outline-variant);
+}
+
+.total { 
+  color: var(--on-background); 
+ font-weight: 700;
+  font-size: 22px;
+  border-top: 1px solid var(--outline-variant);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.prod-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.acciones {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 370px;
+  display: flex;
+  gap: 12px;
+  z-index: 999;
+}
+
+.btn-anular, .btn-confirmar {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all .2s ease;
+}
+
+/* El botón rojo ahora usa la variable de error del tema */
+.btn-anular {
+  background: var(--error);
+  color: var(--on-error);
+}
+
+.btn-factura {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  border: 1.5px solid var(--outline);
+  cursor: pointer;
+  font-size: 14px;
+  background: transparent;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .2s ease;
+}
+
+.btn-factura:active {
+  background: var(--surface-container-high);
+}
+
+.btn-confirmar {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Modales */
+.modal-box { 
+  background: var(--surface-container-high); 
+  border-radius: 15px; 
+  padding: 25px; 
+  width: 85%; 
+  max-width: 320px; 
+  border: 1px solid var(--outline-variant); 
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+.modal-titulo { color: var(--on-background); }
+.modal-desc { color: var(--on-surface-variant); }
+
+@media (min-width: 768px) {
+  .acciones { bottom: 90px; }
+  .productos-lista { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+}

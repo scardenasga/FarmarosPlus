@@ -1,0 +1,112 @@
+.receipt-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-m);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.supplier-id {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--outline);
+  letter-spacing: 1.5px;
+}
+
+.status-badge {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+
+.status-badge[data-status="ACTIVO"] { color: var(--success); }
+.status-badge[data-status="INACTIVO"] { color: var(--outline); }
+
+.supplier-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.2;
+}
+
+.header-info {
+  display: flex;
+  gap: var(--space-s);
+  margin-top: var(--space-s);
+}
+
+.nit-badge {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+}
+
+.receipt-divider {
+  height: 1px;
+  background-color: var(--outline-variant);
+  margin: var(--space-s) 0;
+}
+
+.receipt-divider.dotted {
+  background: none;
+  border-top: 2px dotted var(--outline-variant);
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--outline);
+  text-transform: uppercase;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
+}
+
+.contact-item, .payment-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-label {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+
+.item-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.item-value.highlight {
+  color: var(--primary);
+}
+
+@media (min-width: 600px) {
+  .contact-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-m);
+  }
+}

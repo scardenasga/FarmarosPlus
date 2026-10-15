@@ -1,0 +1,95 @@
+.period-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+}
+
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* Botones pill con los tokens de la app */
+.period-btn {
+  padding: 7px 16px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  background-color: var(--card-bg, var(--surface-container));
+  color: var(--text-dark, var(--on-surface-variant));
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.period-btn:hover {
+  background-color: var(--surface-container-high, rgba(128, 128, 128, 0.08));
+}
+
+.period-btn.active {
+  background-color: var(--accent-green-dark, var(--primary-container));
+  color: var(--on-primary-container);
+  border-color: transparent;
+}
+
+/* Rango personalizado con inputs nativos y tokens de la app */
+.custom-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+}
+
+.fecha-campo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.fecha-campo label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 800;
+  color: var(--text-muted, var(--outline));
+}
+
+.fecha-campo input[type="date"] {
+  height: 36px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--border-color, var(--outline-variant));
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark, var(--on-background));
+  background-color: var(--card-bg, transparent);
+  color-scheme: inherit;
+}
+
+.range-separator {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted, var(--outline));
+}
+
+.rango-aplicado {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--info-text, var(--outline));
+  background-color: var(--info-bg, transparent);
+  padding: 4px 12px;
+  border-radius: var(--radius-full, 9999px);
+  white-space: nowrap;
+}
+
+.error-text {
+  color: var(--danger-text, var(--error, #b3261e));
+  background-color: var(--danger-bg, transparent);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0;
+}

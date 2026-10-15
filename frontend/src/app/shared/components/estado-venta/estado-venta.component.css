@@ -1,0 +1,19 @@
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.badge.completada {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.badge.anulada {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}

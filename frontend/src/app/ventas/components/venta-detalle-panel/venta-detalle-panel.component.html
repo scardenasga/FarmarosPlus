@@ -1,0 +1,157 @@
+@if (visible()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+
+  <aside class="panel">
+    <header class="panel-header">
+      <h3>Detalle de Venta</h3>
+      <button type="button" class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </header>
+
+    @if (cargando()) {
+      <div class="panel-estado">Cargando detalle...</div>
+    } @else if (error()) {
+      <div class="panel-estado error">{{ error() }}</div>
+    } @else {
+
+      @if (venta(); as v) {
+
+      <!-- Cabecera fija: info general -->
+      <div class="panel-info">
+        <div class="info-fila-principal">
+          <div>
+            <div class="venta-id-linea">
+              <span class="venta-id">#{{ v.id }}</span>
+              <app-estado-venta [estado]="v.estado"></app-estado-venta>
+            </div>
+            <p class="venta-fecha">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+              {{ v.fecha | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+          <span class="metodo-badge">{{ metodoPago(v) }}</span>
+        </div>
+
+        <div class="vendedor-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span class="vendedor-label">Cajero:</span>
+          <span class="vendedor-nombre">{{ vendedor(v) }}</span>
+        </div>
+
+        @if (!estaCompletada(v.estado) && v.motivoAnulacion) {
+          <div class="motivo-box">
+            <strong>Motivo de anulación:</strong> {{ v.motivoAnulacion }}
+          </div>
+        }
+      </div>
+
+      <!-- Artículos (scrollable) -->
+      <div class="panel-articulos">
+        <h4 class="articulos-titulo">Artículos ({{ detallesDe(v).length }})</h4>
+
+        @for (d of detallesDe(v); track d.id) {
+          <div class="articulo">
+            <div class="articulo-info">
+              <div class="articulo-linea">
+                <span class="articulo-cantidad">{{ d.cantidad }}x</span>
+                <span class="articulo-nombre">{{ d.producto?.nombre || 'Producto' }}</span>
+              </div>
+              @if (d.lote?.numeroLote) {
+                <span class="articulo-lote">Lote: {{ d.lote!.numeroLote }}</span>
+              }
+              <span class="articulo-precio">${{ d.precioUnitarioAplicado | number:'1.0-2' }} c/u</span>
+            </div>
+            <span class="articulo-subtotal">${{ d.subtotalLinea | number:'1.0-2' }}</span>
+          </div>
+        } @empty {
+          <div class="sin-articulos">Sin artículos registrados.</div>
+        }
+
+        <div class="totales-linea">
+          <span>Subtotal</span>
+          <span>${{ v.subtotal | number:'1.0-2' }}</span>
+        </div>
+        <div class="totales-linea">
+          <span>IVA</span>
+          <span>${{ v.iva | number:'1.0-2' }}</span>
+        </div>
+        <div class="totales-linea">
+          <span>Descuento</span>
+          <span class="descuento">-${{ v.descuento | number:'1.0-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Pie fijo: total y acciones -->
+      <footer class="panel-footer">
+        <div class="total-box">
+          <span>Total</span>
+          <span class="total-valor">${{ v.total | number:'1.0-2' }}</span>
+        </div>
+
+        @if (v.cambio > 0) {
+          <div class="cambio-box">
+            <span>Cambio entregado</span>
+            <span>${{ v.cambio | number:'1.0-2' }}</span>
+          </div>
+        }
+
+        @if (mostrandoAnulacion()) {
+          <div class="anular-form">
+            <label for="motivo-anulacion">Motivo de anulación</label>
+            <textarea
+              id="motivo-anulacion"
+              rows="2"
+              [(ngModel)]="motivoAnulacion"
+              placeholder="Ej: Error en el registro de la venta"></textarea>
+            @if (errorAnulacion()) {
+              <p class="anular-error">{{ errorAnulacion() }}</p>
+            }
+            <div class="anular-acciones">
+              <button type="button" class="btn-secundario" (click)="cancelarAnulacion()">Cancelar</button>
+              <button
+                type="button"
+                class="btn-peligro"
+                [disabled]="anulando()"
+                (click)="confirmarAnulacion()">
+                {{ anulando() ? 'Anulando...' : 'Confirmar anulación' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="acciones">
+          <button
+            type="button"
+            class="btn-accion"
+            [disabled]="descargandoFactura()"
+            (click)="descargarFactura()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/>
+            </svg>
+            {{ descargandoFactura() ? 'Generando...' : 'Factura PDF' }}
+          </button>
+
+          @if (puedeAnular(v)) {
+            <button type="button" class="btn-accion peligro" (click)="toggleAnulacion()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>
+              </svg>
+              Anular
+            </button>
+          }
+        </div>
+      </footer>
+      } @else {
+        <div class="panel-estado">Seleccione una venta del historial.</div>
+      }
+    }
+  </aside>
+}

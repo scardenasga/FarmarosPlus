@@ -1,0 +1,36 @@
+.contenedor-navegacion {
+  padding: 15px 20px;
+  background-color: var(--background);
+}
+
+.bloque-superior {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-flecha {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 2.8rem;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 0;
+  line-height: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.titulo-principal {
+  color: var(--on-background);
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: bold;
+}
+
+.subtitulo-secundario {
+  color: var(--outline);
+  font-size: 0.85rem;
+  margin: 2px 0 0 0;
+}

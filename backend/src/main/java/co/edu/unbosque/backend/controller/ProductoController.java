@@ -1,0 +1,400 @@
+package co.edu.unbosque.backend.controller;
+
+import co.edu.unbosque.backend.model.entity.Categoria;
+import co.edu.unbosque.backend.model.entity.Producto;
+import co.edu.unbosque.backend.model.request.ActualizarProductoRequest;
+import co.edu.unbosque.backend.model.request.CambioPrecioProductoRequest;
+import co.edu.unbosque.backend.model.request.CrearProductoRequest;
+import co.edu.unbosque.backend.model.request.IngresoProductoRequest;
+import co.edu.unbosque.backend.model.response.CategoriaResponse;
+import co.edu.unbosque.backend.model.response.ProductoDetalleResponse;
+import co.edu.unbosque.backend.model.response.ProductoResponse;
+import co.edu.unbosque.backend.model.response.TendenciaProductoResponse;
+import co.edu.unbosque.backend.service.ProductoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+/**
+ * Controlador REST para operaciones del catálogo de productos.
+ *
+ * @author Sebastian Cardenas Garcia
+ */
+@RestController
+@RequestMapping("/api/productos")
+@Tag(name = "Productos", description = "Operaciones del catalogo de productos")
+public class ProductoController {
+
+    private final ProductoService productoService;
+
+    public ProductoController(ProductoService productoService) {
+        this.productoService = productoService;
+    }
+
+    /**
+     * Crea un producto.
+     */
+    @PostMapping
+    @Operation(
+            summary = "Crear producto",
+            description = "Crea un producto con stock inicial obligatorio. Si se envia numeroLote o fechaVencimiento, tambien crea el lote inicial y registra el movimiento de inventario."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Producto sin lote",
+                                    value = """
+                                            {
+                                              "nombre": "Gaseosa 350ml",
+                                              "codigoBarras": "7701234567890",
+                                              "stockMinimo": 10,
+                                              "stockInicial": 20,
+                                              "costo": 1500.0,
+                                              "precioVenta": 2500.0,
+                                              "porcentajeIva": 19.0,
+                                              "requierePrescripcion": false
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Producto con lote",
+                                    value = """
+                                            {
+                                              "categoriaId": 1,
+                                              "nombre": "Amoxicilina 500mg",
+                                              "codigoBarras": "7709876543210",
+                                              "stockMinimo": 5,
+                                              "stockInicial": 50,
+                                              "costo": 15000.0,
+                                              "precioVenta": 22000.0,
+                                              "porcentajeIva": 19.0,
+                                              "requierePrescripcion": true,
+                                              "fechaVencimiento": "2027-12-31",
+                                              "numeroLote": "AMX-2026-01"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProductoResponse> guardarProducto(@Valid @RequestBody CrearProductoRequest request) {
+        Producto productoGuardado = productoService.crearProducto(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toProductoResponse(productoGuardado));
+    }
+
+    /**
+     * Actualiza un producto existente.
+     */
+    @PatchMapping("/{id}")
+    @Operation(
+            summary = "Actualizar producto",
+            description = "Actualiza los campos editables del producto. No permite cambiar id, stock inicial, lote ni fecha de vencimiento. El stock actual si puede corregirse manualmente. Para editar codigo de barras se recomienda un endpoint aparte."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Edicion parcial",
+                                    value = """
+                                            {
+                                              "categoriaId": 2,
+                                              "nombre": "Acetaminofen 650mg",
+                                              "descripcion": "Caja por 20 tabletas recubiertas",
+                                              "stockMinimo": 12,
+                                              "stockActual": 120,
+                                              "costo": 9000.0,
+                                              "precioVenta": 13500.0,
+                                              "porcentajeIva": 0.0,
+                                              "requierePrescripcion": false,
+                                              "estado": "ACTIVO"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProductoResponse> actualizarProducto(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarProductoRequest request
+    ) {
+        return ResponseEntity.ok(toProductoResponse(productoService.actualizarProducto(id, request)));
+    }
+
+    /**
+     * Registra ingreso de stock para un producto existente usando el codigo de barras.
+     */
+    @PostMapping("/codigo-barras/{codigoBarras}/ingresos")
+    @Operation(
+            summary = "Ingresar stock por codigo de barras",
+            description = "Aumenta el stock de un producto existente. La fecha de vencimiento es obligatoria para poder registrar el lote asociado. Si se envia numeroLote, crea un nuevo lote. Si cambia el precio de venta, registra historial de precio."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Ingreso sin lote",
+                                    value = """
+                                            {
+                                              "cantidad": 25,
+                                              "fechaVencimiento": "2027-12-31"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Ingreso con lote y cambio de precio",
+                                    value = """
+                                            {
+                                              "cantidad": 40,
+                                              "numeroLote": "AMX-2026-02",
+                                              "nuevoCosto": 16000.0,
+                                              "nuevoPrecioVenta": 23500.0,
+                                              "fechaVencimiento": "2027-12-31"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProductoResponse> ingresarStock(
+            @PathVariable String codigoBarras,
+            @Valid @RequestBody IngresoProductoRequest request
+    ) {
+        return ResponseEntity.ok(toProductoResponse(productoService.ingresarStock(codigoBarras, request)));
+    }
+
+    /**
+     * Consulta un producto por identificador.
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "Consultar producto por id")
+    public ResponseEntity<ProductoResponse> obtenerProductoPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(toProductoResponse(productoService.obtenerProductoPorId(id)));
+    }
+
+    /**
+     * Consulta un producto por identificador con detalle extendido y lotes asociados.
+     */
+    @GetMapping("/{id}/detalle")
+    @Operation(summary = "Consultar producto por id con lotes", description = "Devuelve el producto con todos sus datos y la lista de lotes asociados ordenados por fecha de vencimiento.")
+    public ResponseEntity<ProductoDetalleResponse> obtenerProductoDetallePorId(@PathVariable Long id) {
+        return ResponseEntity.ok(productoService.obtenerProductoDetallePorId(id));
+    }
+
+    /**
+     * Lista productos activos.
+     */
+    @GetMapping("/activos")
+    @Operation(summary = "Listar productos activos")
+    public ResponseEntity<List<ProductoResponse>> listarActivos() {
+        return ResponseEntity.ok(productoService.listarProductosActivos()
+                .stream()
+                .map(this::toProductoResponse)
+                .toList());
+    }
+
+    /**
+     * Lista productos con stock bajo.
+     */
+    @GetMapping("/stock-bajo")
+    @Operation(summary = "Listar productos con stock bajo")
+    public ResponseEntity<List<ProductoResponse>> listarProductosConStockBajo() {
+        return ResponseEntity.ok(productoService.listarProductosConStockBajo()
+                .stream()
+                .map(this::toProductoResponse)
+                .toList());
+    }
+
+    /**
+     * Busca productos activos por nombre o código de barras.
+     * Usado por el frontend al registrar una venta.
+     */
+    @GetMapping("/buscar")
+    @Operation(summary = "Buscar productos activos por nombre o código")
+    public ResponseEntity<List<ProductoResponse>> buscarProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String codigo
+    ) {
+        String termino = nombre != null ? nombre : codigo;
+        if (termino == null || termino.isBlank()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(productoService.buscarActivosPorNombreOCodigo(termino));
+    }
+
+    /**
+     * Lista todos los productos sin importar su estado. Usado por el
+     * inventario para filtrar por ACTIVO / INACTIVO / DESCONTINUADO.
+     */
+    @GetMapping
+    @Operation(summary = "Listar todos los productos (cualquier estado)")
+    public ResponseEntity<List<ProductoResponse>> listarTodos() {
+        return ResponseEntity.ok(productoService.listarTodos());
+    }
+
+    /**
+     * Tendencia de ventas por producto: compara las unidades vendidas en los
+     * ultimos {@code dias} dias contra el periodo anterior de igual duracion.
+     * El tamanio del periodo es configurable para poder analizar ventanas
+     * de 7, 30, 90 dias, etc.
+     */
+    @GetMapping("/tendencia-ventas")
+    @Operation(
+            summary = "Tendencia de ventas por producto",
+            description = "Compara las unidades vendidas de cada producto en los ultimos N dias "
+                    + "contra los N dias anteriores. Solo considera ventas COMPLETADAS."
+    )
+    public ResponseEntity<List<TendenciaProductoResponse>> tendenciaVentas(
+            @RequestParam(defaultValue = "30") int dias
+    ) {
+        return ResponseEntity.ok(productoService.calcularTendenciaVentas(dias));
+    }
+
+    /**
+     * Elimina fisicamente un producto solo si nunca fue vendido.
+     * Si tiene ventas registradas retorna 400 con la sugerencia de
+     * marcarlo como DESCONTINUADO.
+     */
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @Operation(
+            summary = "Eliminar producto",
+            description = "Eliminacion fisica permitida solo para productos sin ventas registradas. "
+                    + "Si el producto tiene ventas, se sugiere usar el estado DESCONTINUADO."
+    )
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        productoService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Actualiza costo y precio de venta de un producto.
+     */
+    @PatchMapping("/codigo-barras/{codigoBarras}/precio")
+    @Operation(
+            summary = "Actualizar precio de producto por codigo de barras",
+            description = "Actualiza costo y precio de venta usando el codigo de barras del producto. El usuario responsable se toma automaticamente desde la auditoria del sistema."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    examples = {
+                            @ExampleObject(
+                                    name = "Cambio de precio",
+                                    value = """
+                                            {
+                                              "nuevoCosto": 9000.0,
+                                              "nuevoPrecioVenta": 13000.0,
+                                              "motivo": "Ajuste por proveedor"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Cambio sin motivo",
+                                    value = """
+                                            {
+                                              "nuevoCosto": 9000.0,
+                                              "nuevoPrecioVenta": 13000.0
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    public ResponseEntity<ProductoResponse> actualizarPrecio(
+            @PathVariable String codigoBarras,
+            @Valid @org.springframework.web.bind.annotation.RequestBody CambioPrecioProductoRequest request
+    ) {
+        return ResponseEntity.ok(toProductoResponse(productoService.actualizarPrecio(codigoBarras, request)));
+    }
+
+    // ===== Imagen del producto (SQLite TEXT + filesystem) =====
+
+    @PostMapping(value = "/{id}/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Subir/actualizar imagen del producto",
+            description = "Guarda la imagen en filesystem (uploads/productos/producto-{id}.ext) y persiste el nombre en producto.imagen_url (TEXT SQLite). "
+                    + "Formatos: jpg, jpeg, png, webp, gif. Tamaño máximo 5MB. Si el producto ya tenía imagen, la reemplaza."
+    )
+    public ResponseEntity<ProductoResponse> subirImagen(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file
+    ) {
+        Producto actualizado = productoService.guardarImagen(id, file);
+        return ResponseEntity.ok(toProductoResponse(actualizado));
+    }
+
+    @GetMapping("/{id}/imagen")
+    @Operation(summary = "Obtener imagen del producto", description = "Devuelve el archivo binario si existe; si no, 404.")
+    public ResponseEntity<Resource> obtenerImagen(@PathVariable Long id) {
+        Resource resource = productoService.obtenerImagenResource(id);
+        String contentType = productoService.obtenerImagenContentType(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
+    @DeleteMapping("/{id}/imagen")
+    @Operation(summary = "Eliminar imagen del producto", description = "Borra el archivo y limpia producto.imagen_url.")
+    public ResponseEntity<Void> eliminarImagen(@PathVariable Long id) {
+        productoService.eliminarImagen(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    private ProductoResponse toProductoResponse(Producto producto) {
+        return new ProductoResponse(
+                producto.getUniqueID(),
+                toCategoriaResponse(producto.getCategoria()),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getCodigoBarras(),
+                producto.getStockMinimo(),
+                producto.getStockActual(),
+                producto.getCosto(),
+                producto.getPrecioVenta(),
+                producto.getMargenGanancia(),
+                producto.getPorcentajeIva(),
+                producto.getRequierePrescripcion(),
+                producto.getEstado(),
+                producto.getImagenUrl(),
+                producto.getUnidadVenta() != null ? producto.getUnidadVenta() : "UNIDAD",
+                producto.getUnidadesPorPresentacion(),
+                producto.getPrecioPresentacion()
+        );
+    }
+
+    private CategoriaResponse toCategoriaResponse(Categoria categoria) {
+        if (categoria == null) {
+            return null;
+        }
+        return new CategoriaResponse(
+                categoria.getIdCategoria(),
+                categoria.getNombre(),
+                categoria.getDescripcion()
+        );
+    }
+}

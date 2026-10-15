@@ -1,0 +1,45 @@
+<!-- Header -->
+<div class="receipt-header">
+  <div class="header-top">
+    <span class="supplier-id">REF #{{ supplier().idProveedor }}</span>
+    <span class="status-badge" [attr.data-status]="supplier().estado">{{ supplier().estado }}</span>
+  </div>
+  <h2 class="supplier-name">{{ supplier().nombre }}</h2>
+  <div class="header-info">
+    @if (supplier().nit) {
+      <span class="nit-badge">NIT: {{ supplier().nit }}</span>
+    }
+  </div>
+</div>
+
+<div class="receipt-divider"></div>
+
+<!-- Contacto -->
+<div class="info-section">
+  <span class="section-label">Información de Contacto</span>
+  <div class="contact-grid">
+    <div class="contact-item">
+      <span class="item-label">Persona:</span>
+      <span class="item-value">{{ supplier().contacto || 'No especificado' }}</span>
+    </div>
+    <div class="contact-item">
+      <span class="item-label">Teléfono:</span>
+      <span class="item-value">{{ supplier().telefono || 'No especificado' }}</span>
+    </div>
+    <div class="contact-item">
+      <span class="item-label">Email:</span>
+      <span class="item-value">{{ supplier().email || 'No especificado' }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="receipt-divider dotted"></div>
+
+<!-- Comercial -->
+<div class="info-section">
+  <span class="section-label">Condiciones Comerciales</span>
+  <div class="payment-info">
+    <span class="item-label">Condición de Pago:</span>
+    <span class="item-value highlight">{{ supplier().condicionPago || 'Por definir' }}</span>
+  </div>
+</div>

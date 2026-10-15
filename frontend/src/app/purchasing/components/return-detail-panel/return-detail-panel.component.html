@@ -1,0 +1,156 @@
+@if (abierto()) {
+  <div class="panel-backdrop" (click)="cerrar()"></div>
+  <aside class="panel-detalle">
+    <header class="panel-header">
+      <div class="panel-header-texto">
+        <span class="panel-ref">REF #{{ devolucion()?.id ?? devolucionId() }}</span>
+        <h2>{{ nombrePrincipal() || (esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente') }}</h2>
+        <span class="panel-desc">{{ esProveedor() ? 'Devolución a proveedor' : 'Devolución a cliente' }} · {{ devolucion()?.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <button type="button" class="btn-cerrar-panel" (click)="cerrar()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    @if (cargando()) {
+      <div class="panel-estado">
+        <div class="spinner"></div>
+        <p>Cargando detalle...</p>
+      </div>
+    } @else if (error()) {
+      <div class="panel-error">{{ error() }}</div>
+    } @else if (devolucion()) {
+      <div class="panel-cuerpo">
+        <div class="panel-badges">
+          <span class="dev-badge">{{ esProveedor() ? 'Proveedor' : 'Cliente' }}</span>
+          @if ($any(devolucion())!.estado) {
+            <span class="estado-pill" [class]="'estado-' + $any(devolucion())!.estado.toLowerCase()">{{ $any(devolucion())!.estado }}</span>
+          }
+          @if ($any(devolucion())!.tipoDevolucion) {
+            <span class="badge-tipo">{{ $any(devolucion())!.tipoDevolucion }}</span>
+          }
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel-mini-card">
+            <span class="mini-label">Unidades devueltas</span>
+            <div class="mini-valor-linea">
+              <span class="mini-valor">{{ totalProductos() }}</span>
+              <span class="mini-unidad">unid.</span>
+            </div>
+            <span class="mini-extra">{{ $any(devolucion())!.detalles.length }} producto(s)</span>
+          </div>
+          <div class="panel-mini-card">
+            <span class="mini-label">Responsable</span>
+            <div class="mini-fila"><span>Usuario:</span><strong>{{ $any(devolucion())!.usuarioResponsable }}</strong></div>
+            @if (esProveedor()) {
+              <div class="mini-fila"><span>Proveedor:</span><strong>{{ $any(devolucion())!.nombreProveedor }}</strong></div>
+            } @else {
+              <div class="mini-fila"><span>Venta:</span><strong>#{{ $any(devolucion())!.idVenta }}</strong></div>
+              <div class="mini-fila"><span>Cliente:</span><strong>{{ $any(devolucion())!.nombreCliente || '—' }}</strong></div>
+            }
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-fila"><span class="info-label">Motivo</span><span class="info-valor">{{ $any(devolucion())!.motivo || '—' }}</span></div>
+          @if ($any(devolucion())!.observaciones) {
+            <div class="info-fila"><span class="info-label">Observaciones</span><span class="info-valor">{{ $any(devolucion())!.observaciones }}</span></div>
+          }
+          @if ($any(devolucion())!.documentoCliente) {
+            <div class="info-fila"><span class="info-label">Documento</span><span class="info-valor">{{ $any(devolucion())!.documentoCliente }}</span></div>
+          }
+        </div>
+
+        @if (esProveedor()) {
+          <div class="estado-control">
+            <span class="mini-label">Control de estado @if (!isAdmin()) { <em>(empleado)</em> }</span>
+            @if (isAdmin()) {
+              <div class="estado-row">
+                <select class="input-plain" [value]="estadoEdit()" (change)="estadoEdit.set($any($event.target).value)">
+                  @for (est of estadosDevolucion; track est) {
+                    <option [value]="est">{{ est }}</option>
+                  }
+                </select>
+                <button type="button" class="btn-estado" (click)="cambiarEstadoRapido(estadoEdit())" [disabled]="cambiandoEstado() || estadoEdit() === $any(devolucion())?.estado">
+                  {{ cambiandoEstado() ? 'Guardando...' : 'Cambiar' }}
+                </button>
+              </div>
+              <span class="hint">Admin: cambio directo a cualquier estado. Actual: {{ $any(devolucion())?.estado ?? 'PENDIENTE' }}.</span>
+            } @else {
+              <div class="estado-row empleado-row">
+                @if ($any(devolucion())?.estado === 'PENDIENTE') {
+                  <button type="button" class="btn-estado" (click)="cambiarEstadoRapido('ENVIADA')" [disabled]="cambiandoEstado()">Confirmar envío</button>
+                  <button type="button" class="btn-estado secundario" (click)="cambiarEstadoRapido('CERRADA')" [disabled]="cambiandoEstado()">Cancelar</button>
+                } @else if ($any(devolucion())?.estado === 'ENVIADA') {
+                  <span class="hint">Enviada — en espera de confirmación de ADMIN/REGENTE.</span>
+                  <button type="button" class="btn-estado secundario" (click)="cambiarEstadoRapido('PENDIENTE')" [disabled]="cambiandoEstado()">Retirar envío</button>
+                } @else {
+                  <span class="hint">Estado {{ $any(devolucion())?.estado }} — solo ADMIN puede modificarlo.</span>
+                }
+              </div>
+              <div class="estado-row">
+                <select class="input-plain" [value]="estadoEdit()" (change)="estadoEdit.set($any($event.target).value)">
+                  @for (est of estadosVisibles(); track est) {
+                    <option [value]="est">{{ est }}</option>
+                  }
+                </select>
+                <button type="button" class="btn-estado" (click)="cambiarEstadoRapido(estadoEdit())" [disabled]="cambiandoEstado() || estadoEdit() === $any(devolucion())?.estado">
+                  {{ cambiandoEstado() ? 'Guardando...' : 'Solicitar' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="barcode-card">
+          <div class="barcode-barras">
+            @for (ancho of patronBarras('' + $any(devolucion())!.id); track $index) {
+              <span class="barra" [style.width.px]="ancho"></span>
+            }
+          </div>
+          <span class="barcode-codigo">DEV-{{ $any(devolucion())!.id }}</span>
+        </div>
+
+        <details class="panel-acordeon" open>
+          <summary>
+            <span>Productos devueltos ({{ $any(devolucion())!.detalles.length }})</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <div class="acordeon-cuerpo">
+            @for (d of $any(devolucion())!.detalles; track d.idProducto) {
+              <div class="product-item">
+                <div class="product-info">
+                  <span class="product-name">{{ d.nombreProducto }}</span>
+                  <span class="product-lote">
+                    @if (d.numeroLote) { Lote: {{ d.numeroLote }} } @else { Sin lote }
+                    @if ($any(d).idDetalleVenta) { · Detalle #{{ $any(d).idDetalleVenta }} }
+                  </span>
+                </div>
+                <span class="product-qty">× {{ d.cantidad }}</span>
+              </div>
+            }
+          </div>
+        </details>
+      </div>
+
+      <footer class="panel-footer">
+        <button type="button" class="btn-panel secundario" (click)="solicitarEliminar()" [disabled]="eliminando()">
+          {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+        <button type="button" class="btn-panel primario" (click)="solicitarEditar()">Editar</button>
+      </footer>
+    }
+
+    @if (showDelete()) {
+      <app-confirmation-dialog
+        title="¿Eliminar devolución?"
+        content="Se revertirá el movimiento de inventario correspondiente. Esta acción no se puede deshacer."
+        cancelText="Cancelar"
+        confirmText="Eliminar"
+        (onCancel)="cancelarEliminar()"
+        (onConfirm)="confirmarEliminar()">
+      </app-confirmation-dialog>
+    }
+  </aside>
+}

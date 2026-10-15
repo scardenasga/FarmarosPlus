@@ -1,0 +1,62 @@
+<div class="sugerencias-panel" *ngIf="cargando() || recomendaciones().length > 0" [class.colapsado]="colapsado()">
+  <div class="sugerencias-header">
+    <div class="sugerencias-titulo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+      </svg>
+      <span>También suelen llevar</span>
+      @if (esDatosIniciales()) {
+        <span class="badge-datos-iniciales">datos iniciales</span>
+      } @else if (origen() === 'POPULARIDAD') {
+        <span class="badge-popularidad">populares</span>
+      }
+      @if (!cargando() && recomendaciones().length > 0) {
+        <span class="sugerencias-contador">{{ recomendaciones().length }}</span>
+      }
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+      @if (cargando()) {
+        <span class="sugerencias-cargando">
+          <span class="spinner"></span> buscando...
+        </span>
+      }
+      <button type="button" class="btn-minimizar" (click)="toggleColapsado()" [attr.aria-label]="colapsado() ? 'Expandir recomendaciones' : 'Minimizar recomendaciones'" [attr.title]="colapsado() ? 'Expandir' : 'Minimizar'">
+        @if (colapsado()) {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (!colapsado() && !cargando() && recomendaciones().length > 0) {
+    <div class="chips-lista">
+      @for (item of recomendaciones(); track item.productoId) {
+        <button
+          type="button"
+          class="chip-recomendacion"
+          (click)="onAgregar(item)"
+          [attr.title]="'Confianza ' + (item.confianza | percent:'1.0-0') + ' · Lift ' + (item.lift | number:'1.1-1')"
+          [attr.aria-label]="'Agregar ' + item.nombre">
+          <span class="chip-nombre">{{ item.nombre }}</span>
+          <span class="chip-accion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </span>
+        </button>
+      }
+    </div>
+    <p class="sugerencias-nota">
+      @if (origen() === 'FPGROWTH') {
+        Sugerencia basada en compras anteriores
+      } @else if (origen() === 'POPULARIDAD') {
+        Producto popular entre nuestros clientes
+      }
+    </p>
+  }
+  @if (colapsado() && !cargando() && recomendaciones().length > 0) {
+    <p class="sugerencias-nota" style="margin:0;">{{ recomendaciones().length }} sugerencia(s) oculta(s) — expande para ver</p>
+  }
+</div>
