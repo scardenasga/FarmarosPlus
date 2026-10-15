@@ -414,9 +414,19 @@
             </div>
           </details>
 
+          @if (d.unidadVenta === 'AMBAS' || d.unidadVenta === 'PRESENTACION') {
+            <div class="precio-card" style="border:1px solid var(--primary, #0ea5e9); background:var(--primary-container, #e0f2fe);">
+              <div>
+                <span class="mini-label">{{ d.unidadVenta === 'AMBAS' ? 'Blíster + Unidad (dosificación)' : 'Solo blíster/caja' }}</span>
+                <p class="precio-costo" style="font-weight:700; color:var(--text-dark);">{{ d.unidadesPorPresentacion }} unidades por blíster · ${{ d.precioPresentacion | number:'1.0-2' }} el blíster</p>
+                <p class="precio-costo">${{ (d.precioPresentacion! / d.unidadesPorPresentacion!) | number:'1.0-2' }}/u en blíster</p>
+              </div>
+              <span class="precio-valor" style="font-size:13px; text-align:right;">Unidad<br>${{ d.precioVenta | number:'1.0-2' }}</span>
+            </div>
+          }
           <div class="precio-card">
             <div>
-              <span class="mini-label">Precio de venta</span>
+              <span class="mini-label">Precio de venta (unidad)</span>
               <p class="precio-costo">Costo: ${{ d.costo | number:'1.0-2' }}</p>
             </div>
             <span class="precio-valor">${{ d.precioVenta | number:'1.0-2' }}</span>

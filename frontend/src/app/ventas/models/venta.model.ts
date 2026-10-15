@@ -43,6 +43,9 @@ export interface ProductoResponse {
   requierePrescripcion: boolean;
   estado: string;
   imagenUrl?: string | null;
+  unidadVenta?: string;
+  unidadesPorPresentacion?: number | null;
+  precioPresentacion?: number | null;
 }
 
 export interface DetalleVenta {
@@ -84,6 +87,7 @@ export interface VentaDetalleRequest {
   loteId?: number | null;
   cantidad: number;
   precioUnitario?: number | null;
+  tipoVenta?: 'UNIDAD' | 'PRESENTACION' | string;
 }
 
 export interface PagoVentaRequest {

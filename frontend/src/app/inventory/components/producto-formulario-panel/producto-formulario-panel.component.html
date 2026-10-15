@@ -178,6 +178,41 @@
               <p style="font-size:0.70rem; color: var(--text-muted); font-weight:600; margin:0;">Si dejas el precio vacío se creará automáticamente con la ganancia mínima configurada en Ajustes.</p>
             }
 
+            <!-- ═══ Presentación / Dosificación ═══ -->
+            <span class="seccion-titulo">Presentación / Dosificación</span>
+            <p style="font-size:0.72rem; color:var(--text-muted); font-weight:500; margin:-6px 0 8px;">Indica si se vende por unidad suelta, por blíster/caja o ambas. Cada producto define su propio tamaño (ej. 10, 14, 30).</p>
+
+            <app-form-input
+              label="Modo de venta *"
+              type="select"
+              [options]="[{id:'UNIDAD', nombre:'Solo unidad suelta (ej. gaseosa)'}, {id:'PRESENTACION', nombre:'Solo blíster/caja (no se vende suelto)'}, {id:'AMBAS', nombre:'Unidad y blíster/caja (ej. tabletas)'}]"
+              [control]="getControl('unidadVenta')">
+            </app-form-input>
+
+            @if (getControl('unidadVenta').value === 'PRESENTACION' || getControl('unidadVenta').value === 'AMBAS') {
+              <div class="campos-grid">
+                <app-form-input
+                  label="Unidades por blíster/caja *"
+                  type="number"
+                  placeholder="Ej. 10, 14, 30"
+                  [control]="getControl('unidadesPorPresentacion')">
+                </app-form-input>
+                <app-form-input
+                  label="Precio blíster/caja *"
+                  type="number"
+                  suffix="COP"
+                  placeholder="0"
+                  [control]="getControl('precioPresentacion')">
+                </app-form-input>
+              </div>
+              <p style="font-size:0.70rem; color:var(--text-muted); font-weight:600; margin:0;">Ej.: Amoxicilina x10 → $22.000 blíster, Ibuprofeno x14 → $25.000 blíster. En la venta podrás elegir Unidad o Blíster.</p>
+              @if (productForm.errors?.['presentacionInvalida'] && productForm.touched) {
+                <p class="campo-error">Para blíster/caja indica unidades (&gt;1) y precio (&gt;0) por presentación.</p>
+              }
+            } @else {
+              <p style="font-size:0.70rem; color:var(--text-muted); font-weight:600; margin:0;">Este producto solo se venderá por unidad suelta.</p>
+            }
+
             <!-- ═══ Reglas especiales ═══ -->
             <span class="seccion-titulo">Reglas especiales</span>
 

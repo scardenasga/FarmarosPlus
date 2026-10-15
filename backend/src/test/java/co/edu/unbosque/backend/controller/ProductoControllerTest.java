@@ -157,6 +157,9 @@ class ProductoControllerTest {
                 0.0,
                 false,
                 "ACTIVO",
+                null,
+                "UNIDAD",
+                null,
                 null
         );
 
@@ -229,7 +232,10 @@ class ProductoControllerTest {
                 false,
                 "ACTIVO",
                 null,
-                List.of()
+                List.of(),
+                "UNIDAD",
+                null,
+                null
         );
 
         when(productoService.obtenerProductoDetallePorId(1L)).thenReturn(respuesta);
@@ -256,7 +262,10 @@ class ProductoControllerTest {
                 false,
                 "ACTIVO",
                 null,
-                List.of()
+                List.of(),
+                "UNIDAD",
+                null,
+                null
         );
 
         when(productoService.obtenerProductoDetallePorId(2L)).thenReturn(respuesta);

@@ -122,7 +122,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                    p.porcentajeIva AS porcentajeIva,
                    p.requierePrescripcion AS requierePrescripcion,
                    p.estado AS estado,
-                   p.imagenUrl AS imagenUrl
+                   p.imagenUrl AS imagenUrl,
+                   p.unidadVenta AS unidadVenta,
+                   p.unidadesPorPresentacion AS unidadesPorPresentacion,
+                   p.precioPresentacion AS precioPresentacion
             FROM Producto p
             LEFT JOIN p.categoria c
             WHERE p.uniqueID = :id

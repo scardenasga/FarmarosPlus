@@ -71,7 +71,7 @@ class VentaServiceTest {
     }
 
     private CrearVentaRequest buildRequestValido() {
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 7000.0);
         return new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
     }
@@ -127,7 +127,7 @@ class VentaServiceTest {
         otro.setUniqueID(99L);
         Lote lote = buildLote(otro);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 7000.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
@@ -144,7 +144,7 @@ class VentaServiceTest {
         producto.setStockActual(1);
         Lote lote = buildLote(producto);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 5, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 5, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 17500.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
@@ -161,7 +161,7 @@ class VentaServiceTest {
         Lote lote = buildLote(producto);
         lote.setCantidad(1);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 5, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 5, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 17500.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 
@@ -190,7 +190,7 @@ class VentaServiceTest {
         Producto producto = buildProducto();
         Lote lote = buildLote(producto);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 7000.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 1.5, List.of(detalle), List.of(pago));
 
@@ -206,7 +206,7 @@ class VentaServiceTest {
         Producto producto = buildProducto();
         Lote lote = buildLote(producto);
 
-        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null);
+        VentaDetalleRequest detalle = new VentaDetalleRequest(10L, 5L, 2, null, null);
         PagoVentaRequest pago = new PagoVentaRequest("EFECTIVO", 999.0);
         CrearVentaRequest request = new CrearVentaRequest(1L, 0.0, List.of(detalle), List.of(pago));
 

@@ -69,6 +69,26 @@ public class Producto extends Auditable {
     private Boolean requierePrescripcion = false;
 
     /**
+     * Modo de venta del producto: UNIDAD (solo suelto), PRESENTACION (solo blister/caja),
+     * AMBAS (permite vender suelto o por presentación). Nullable por compatibilidad con datos existentes.
+     */
+    @Column(name = "unidad_venta", length = 20)
+    private String unidadVenta = "UNIDAD";
+
+    /**
+     * Cuántas unidades base contiene una presentación (ej. 10 tabletas por blister, 14, 30).
+     * Solo aplica cuando unidadVenta es PRESENTACION o AMBAS.
+     */
+    @Column(name = "unidades_por_presentacion")
+    private Integer unidadesPorPresentacion;
+
+    /**
+     * Precio de la presentación completa. Debe usarse con unidadesPorPresentacion.
+     */
+    @Column(name = "precio_presentacion")
+    private Double precioPresentacion;
+
+    /**
      * Valores válidos: ACTIVO | INACTIVO | DESCONTINUADO
      * Validar con @Pattern en el DTO correspondiente.
      */

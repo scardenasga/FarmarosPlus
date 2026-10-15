@@ -52,10 +52,31 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       precioVenta: [0, [Validators.required, Validators.min(0)]],
       porcentajeIva: [0, [Validators.required, Validators.min(0)]],
       requierePrescripcion: [false],
-      fechaVencimiento: ['', [Validators.required]],
+      fechaVencimiento: [''],
       numeroLote: [''],
-      hasLote: [false]
-    }, { validators: this.priceValidator });
+      hasLote: [false],
+      unidadVenta: ['UNIDAD', [Validators.required]],
+      unidadesPorPresentacion: [null],
+      precioPresentacion: [null]
+    }, { validators: this.presentationValidator });
+  }
+
+  private presentationValidator = (group: FormGroup): { [key: string]: any } | null => {
+    const uv = group.get('unidadVenta')?.value;
+    const up = group.get('unidadesPorPresentacion')?.value;
+    const pp = group.get('precioPresentacion')?.value;
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
+    if (needs) {
+      if (up == null || Number(up) <= 1) return { presentacionInvalida: true };
+      if (pp == null || Number(pp) <= 0) return { presentacionInvalida: true };
+    }
+    // also reuse price check
+    const costo = group.get('costo')?.value || 0;
+    const precioVenta = group.get('precioVenta')?.value || 0;
+    const iva = group.get('porcentajeIva')?.value || 0;
+    const minPrecio = costo * (1 + iva / 100);
+    if (precioVenta <= minPrecio && precioVenta > 0) return { priceTooLow: true };
+    return null;
   }
 
   private priceValidator(group: FormGroup): { [key: string]: any } | null {
@@ -89,6 +110,8 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
   confirmCreation(): void {
     const formValue = this.productForm.value;
 
+    const uv = formValue.unidadVenta || 'UNIDAD';
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
     const request: CrearProductoRequest = {
       nombre: formValue.nombre,
       descripcion: formValue.descripcion || undefined,
@@ -100,8 +123,11 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
       precioVenta: formValue.precioVenta,
       porcentajeIva: formValue.porcentajeIva,
       requierePrescripcion: formValue.requierePrescripcion,
-      fechaVencimiento: formValue.fechaVencimiento,
-      numeroLote: formValue.hasLote ? formValue.numeroLote : undefined
+      fechaVencimiento: formValue.fechaVencimiento || undefined,
+      numeroLote: formValue.hasLote ? formValue.numeroLote : undefined,
+      unidadVenta: uv,
+      unidadesPorPresentacion: needs ? Number(formValue.unidadesPorPresentacion) : undefined,
+      precioPresentacion: needs ? Number(formValue.precioPresentacion) : undefined
     };
 
     this.inventoryService.createProduct(request).subscribe({

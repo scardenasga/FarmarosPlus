@@ -27,9 +27,29 @@
         <div class="form-grid">
           <label class="form-field">Desde<input type="datetime-local" [ngModel]="desde()" (ngModelChange)="desde.set($event)" /></label>
           <label class="form-field">Hasta<input type="datetime-local" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)" /></label>
-          <label class="form-field">Monto inicial<input type="number" min="0" step="100" [ngModel]="montoInicial()" (ngModelChange)="montoInicial.set(+$event)" placeholder="0" /></label>
-          <label class="form-field">Efectivo contado<input type="number" min="0" step="100" [ngModel]="montoDeclarado()" (ngModelChange)="montoDeclarado.set($event === '' || $event == null ? null : +$event)" placeholder="Opcional" /></label>
+          <label class="form-field">
+            Monto inicial (base del día)
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="number" min="0" step="100" [ngModel]="montoInicial()" (ngModelChange)="onMontoInicialChange(+$event)" placeholder="0" style="flex:1;" />
+              @if (aperturaGuardada()) {
+                <span class="badge badge-ok" style="white-space:nowrap;">De apertura</span>
+                <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:11px;" (click)="cambiarApertura()">Cambiar</button>
+              }
+            </div>
+            @if (!aperturaGuardada()) {
+              <small style="color: var(--warning-text); font-size:11px;">Sin apertura del día — <button type="button" (click)="mostrarAperturaDialog.set(true)" style="text-decoration:underline; background:none; border:none; color:inherit; cursor:pointer; font-size:11px; padding:0;">registrar ahora</button></small>
+            }
+          </label>
+          <label class="form-field">Efectivo contado (cierre noche)<input type="number" min="0" step="100" [ngModel]="montoDeclarado()" (ngModelChange)="montoDeclarado.set($event === '' || $event == null ? null : +$event)" placeholder="Solo lo vendido + base" /></label>
         </div>
+        @if (resumen(); as r2) {
+          <div style="margin-top:8px; display:flex; gap:12px; flex-wrap:wrap; font-size:13px; color: var(--text-dark); background: var(--bg-main); border:1px dashed var(--border-color); border-radius:8px; padding:8px 12px;">
+            <span>Base: <strong>{{ r2.montoInicial | currency:'COP':'symbol':'1.0-0' }}</strong></span>
+            <span>+ Efectivo ventas: <strong>{{ r2.totalEfectivo | currency:'COP':'symbol':'1.0-0' }}</strong></span>
+            <span>= Esperado: <strong>{{ r2.efectivoEsperado | currency:'COP':'symbol':'1.0-0' }}</strong></span>
+            <span style="color: var(--text-muted);">→ En la noche solo cuenta lo vendido; la base ya está sumada.</span>
+          </div>
+        }
         <div class="form-actions">
           <button type="button" class="btn-primary" (click)="consultar()" [disabled]="cargandoResumen()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -122,4 +142,23 @@
       </div>
     </section>
   </div>
+
+  <!-- Dialog apertura del día (una caja / un turno, localStorage) -->
+  @if (mostrarAperturaDialog()) {
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px;">
+      <div style="background: var(--card-bg, #fff); border-radius:16px; padding:20px; max-width:420px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <h3 style="margin:0 0 6px; font-size:16px; font-weight:800; color: var(--text-dark);">¿Con cuánto inicias hoy?</h3>
+        <p style="margin:0 0 14px; font-size:13px; color: var(--text-muted);">Se guardará como base del día y se precargará en el cierre. En la noche solo cuenta lo vendido — no sumes la base de nuevo.</p>
+        <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:700; color: var(--text-muted);">Monto inicial (COP)
+          <input type="number" min="0" step="100" [ngModel]="aperturaInput()" (ngModelChange)="aperturaInput.set(+$event)" placeholder="Ej. 50000" style="height:38px; padding:0 12px; border:1px solid var(--border-color); border-radius:10px; font-size:15px; font-weight:600;" />
+        </label>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+          @if (aperturaGuardada()) {
+            <button type="button" class="btn-secondary" (click)="mostrarAperturaDialog.set(false)">Cancelar</button>
+          }
+          <button type="button" class="btn-primary" (click)="guardarApertura()">Guardar y continuar</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CierreCajaService, CierreResumen, CierreCaja } from '../../services/cierre-caja.service';
+import { AperturaCajaService } from '../../services/apertura-caja.service';
 import { NotificacionService } from '../../../shared/services/notificacion.service';
 
 @Component({
@@ -107,6 +108,7 @@ import { NotificacionService } from '../../../shared/services/notificacion.servi
 })
 export class CierreCajaComponent implements OnInit {
   private service = inject(CierreCajaService);
+  private apertura = inject(AperturaCajaService);
   private notificacion = inject(NotificacionService);
 
   desde = signal<string>('');
@@ -121,6 +123,11 @@ export class CierreCajaComponent implements OnInit {
   cargandoResumen = signal(false);
   guardando = signal(false);
 
+  // Apertura del día (localStorage, una caja / un turno)
+  mostrarAperturaDialog = signal(false);
+  aperturaInput = signal<number | null>(null);
+  aperturaGuardada = signal<boolean>(false);
+
   diferencia = computed(() => {
     const r = this.resumen();
     const d = this.montoDeclarado();
@@ -132,8 +139,41 @@ export class CierreCajaComponent implements OnInit {
     const hoy = new Date().toISOString().slice(0, 10);
     this.desde.set(hoy + 'T00:00:00');
     this.hasta.set(hoy + 'T23:59:59');
+    // Cargar monto inicial desde apertura guardada del día
+    const montoHoy = this.apertura.getMontoHoy();
+    if (montoHoy != null) {
+      this.montoInicial.set(montoHoy);
+      this.aperturaGuardada.set(true);
+    } else {
+      this.mostrarAperturaDialog.set(true);
+      this.aperturaInput.set(montoHoy ?? 0);
+    }
     this.consultar();
     this.cargarHistorial();
+  }
+
+  guardarApertura(): void {
+    const v = this.aperturaInput();
+    if (v == null || v < 0) { this.notificacion.error('El monto inicial no puede ser negativo'); return; }
+    this.apertura.guardarMontoHoy(Number(v));
+    this.montoInicial.set(Number(v));
+    this.aperturaGuardada.set(true);
+    this.mostrarAperturaDialog.set(false);
+    this.notificacion.exito(`Apertura del día guardada: ${Number(v).toLocaleString('es-CO')}`);
+    this.consultar();
+  }
+
+  cambiarApertura(): void {
+    this.aperturaInput.set(this.montoInicial());
+    this.mostrarAperturaDialog.set(true);
+  }
+
+  onMontoInicialChange(val: number): void {
+    this.montoInicial.set(val);
+    // Sincroniza apertura del día si ya existe
+    if (this.apertura.existeAperturaHoy()) {
+      this.apertura.guardarMontoHoy(val);
+    }
   }
 
   consultar(): void {

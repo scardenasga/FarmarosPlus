@@ -75,20 +75,27 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
       costo: [p.costo, [Validators.required, Validators.min(0)]],
       porcentajeIva: [p.porcentajeIva, [Validators.required, Validators.min(0)]],
       precioVenta: [p.precioVenta, [Validators.required, Validators.min(0)]],
-      requierePrescripcion: [p.requierePrescripcion]
-    }, { validators: this.priceValidator });
+      requierePrescripcion: [p.requierePrescripcion],
+      unidadVenta: [p.unidadVenta || 'UNIDAD', [Validators.required]],
+      unidadesPorPresentacion: [p.unidadesPorPresentacion ?? null],
+      precioPresentacion: [p.precioPresentacion ?? null]
+    }, { validators: this.presentationValidator });
   }
 
-  private priceValidator(group: FormGroup): { [key: string]: any } | null {
+  private presentationValidator = (group: FormGroup): { [key: string]: any } | null => {
+    const uv = group.get('unidadVenta')?.value;
+    const up = group.get('unidadesPorPresentacion')?.value;
+    const pp = group.get('precioPresentacion')?.value;
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
+    if (needs) {
+      if (up == null || Number(up) <= 1) return { presentacionInvalida: true };
+      if (pp == null || Number(pp) <= 0) return { presentacionInvalida: true };
+    }
     const costo = group.get('costo')?.value || 0;
     const precioVenta = group.get('precioVenta')?.value || 0;
     const iva = group.get('porcentajeIva')?.value || 0;
-
     const minPrecio = costo * (1 + iva / 100);
-
-    if (precioVenta <= minPrecio && precioVenta > 0) {
-      return { priceTooLow: true };
-    }
+    if (precioVenta <= minPrecio && precioVenta > 0) return { priceTooLow: true };
     return null;
   }
 
@@ -116,6 +123,8 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
     if (!id) return;
 
     const formValue = this.productForm.value;
+    const uv = formValue.unidadVenta || 'UNIDAD';
+    const needs = uv === 'PRESENTACION' || uv === 'AMBAS';
     const updateRequest: ActualizarProductoRequest = {
       nombre: formValue.nombre,
       descripcion: formValue.descripcion,
@@ -126,7 +135,10 @@ export class EditarProductoComponent implements OnInit, OnDestroy {
       costo: formValue.costo,
       porcentajeIva: formValue.porcentajeIva,
       precioVenta: formValue.precioVenta,
-      requierePrescripcion: formValue.requierePrescripcion
+      requierePrescripcion: formValue.requierePrescripcion,
+      unidadVenta: uv,
+      unidadesPorPresentacion: needs ? Number(formValue.unidadesPorPresentacion) : null,
+      precioPresentacion: needs ? Number(formValue.precioPresentacion) : null
     };
 
     this.inventoryService.updateProduct(id, updateRequest).subscribe({
